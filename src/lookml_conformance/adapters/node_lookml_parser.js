@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 // Adapter for node-lookml-parser (https://github.com/fabio-looker/node-lookml-parser).
 //
-//   node src/lookml_conformance/adapters/node_lookml_parser.js <project>
+//   node src/lookml_conformance/adapters/node_lookml_parser.js <project>...
 //
 // Parses every .lkml file of the project except LookML dashboards with
-// parseFiles({modelAssembly: true}) and prints one JSON line in the format of
-// docs/adapter-protocol.md. The parser is loaded with require('lookml-parser');
+// parseFiles({modelAssembly: true}) and prints one JSON line per project in the
+// format of docs/adapter-protocol.md. The parser is loaded with require('lookml-parser');
 // set LOOKML_PARSER_PATH to test another copy, such as a local checkout. The
 // parser maps `//project/...` includes to `imported_projects/project/...`,
 // which is the layout the suite uses.
@@ -115,8 +115,8 @@ function summarizeModel(model) {
   return { views, explores, all_views: Object.keys(views).sort() };
 }
 
-async function main() {
-  const root = path.resolve(process.argv[2]);
+async function resolve(projectArg) {
+  const root = path.resolve(projectArg);
   const source = lkmlFiles(root).map((file) => ({
     path: path.relative(root, file),
     content: fs.readFileSync(file, 'utf8'),
@@ -125,14 +125,22 @@ async function main() {
   const project = await lookmlParser.parseFiles({ source, modelAssembly: true, strings: false, console: silent });
   const models = Object.fromEntries(ownEntries(project.model).map(([name, model]) => [name, summarizeModel(model)]));
   return {
-    adapter: ADAPTER,
-    version,
-    capabilities: { imported_projects: true, per_model: true, explores: true, constants: true },
     models,
     errors: asList(project.errors).map((error) => error.message || String(error)),
   };
 }
 
-main()
-  .then((result) => console.log(JSON.stringify(result)))
-  .catch((error) => console.log(JSON.stringify({ adapter: ADAPTER, version, error: String(error.stack || error) })));
+// One JSON line per project given, tagged with the project path as received.
+async function main(projects) {
+  for (const project of projects) {
+    let result;
+    try {
+      result = { adapter: ADAPTER, version, project, ...(await resolve(project)) };
+    } catch (error) {
+      result = { adapter: ADAPTER, version, project, error: String(error.stack || error) };
+    }
+    process.stdout.write(JSON.stringify(result) + '\n');
+  }
+}
+
+main(process.argv.slice(2));

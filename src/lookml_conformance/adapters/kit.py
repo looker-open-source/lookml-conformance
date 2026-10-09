@@ -1,30 +1,21 @@
-"""Helpers shared by the Python adapters.
+"""Helpers for Python adapters: reshape a tool's output into the protocol.
 
-An adapter reports what its tool produces and nothing more. These helpers only reshape the tool's
-output into the protocol: they never merge refinements, substitute constants or fill other gaps.
+These helpers never merge refinements, substitute constants or fill any other gap the tool leaves.
+The adapter base class is :class:`lookml_conformance.adapter.Adapter`.
 """
 
 from __future__ import annotations
 
-import argparse
-import dataclasses
-import importlib.metadata
-import json
-import logging
-import sys
-import warnings
-from collections.abc import Callable, Iterable, Mapping, Sequence
+from collections.abc import Iterable, Mapping, Sequence
 from pathlib import Path
 from typing import Any
 
 from lookml_conformance.cases import IMPORTED_PROJECTS_DIR, MODEL_SUFFIX
 from lookml_conformance.normalize import collapse_whitespace
-from lookml_conformance.protocol import AdapterOutput, ViewOutput
+from lookml_conformance.protocol import ViewOutput
 
 FIELD_TEXT_PARAMS = ("sql", "label", "type")
 FIELD_COLLECTIONS = ("dimensions", "dimension_groups", "measures")
-
-Resolver = Callable[[Path, argparse.Namespace], AdapterOutput]
 
 
 def flatten_repeated(groups: Iterable[Any] | None) -> list[Any]:
@@ -128,42 +119,3 @@ def imported_projects(root: Path) -> dict[str, Path]:
         if directory.is_dir()
         else {}
     )
-
-
-def run_adapter(
-    name: str,
-    distribution: str,
-    resolve: Resolver,
-    argv: Sequence[str] | None = None,
-    configure: Callable[[argparse.ArgumentParser], None] | None = None,
-) -> int:
-    """Command-line entry point shared by the adapters: resolve one project and print the JSON line.
-
-    Any exception from the tool becomes an ``error`` output rather than a traceback, so the runner
-    reports an adapter error instead of failing to parse the output.
-    """
-    parser = argparse.ArgumentParser(description=f"lookml-conformance adapter for {distribution}")
-    parser.add_argument("project", type=Path, help="LookML project directory")
-    if configure is not None:
-        configure(parser)
-    args = parser.parse_args(argv)
-    version = importlib.metadata.version(distribution)
-    try:
-        output = dataclasses.replace(
-            _quietly(resolve, args.project.resolve(), args), adapter=name, version=version
-        )
-    except Exception as exc:  # the tool's failure is the result being reported
-        output = AdapterOutput.failure(name, repr(exc), version)
-    sys.stdout.write(json.dumps(output.to_dict()) + "\n")
-    return 0
-
-
-def _quietly(resolve: Resolver, root: Path, args: argparse.Namespace) -> AdapterOutput:
-    """Run the tool with its logging and warnings silenced, so stdout carries only the result."""
-    logging.disable(logging.CRITICAL)
-    try:
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore")
-            return resolve(root, args)
-    finally:
-        logging.disable(logging.NOTSET)

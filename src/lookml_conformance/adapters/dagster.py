@@ -1,18 +1,14 @@
 """Adapter for Dagster's Looker integration (``dagster-looker``).
 
-    python -m lookml_conformance.adapters.dagster <project>
+    python -m lookml_conformance.adapters.dagster <project>...
 
 ``build_looker_view_specs`` and ``build_looker_explore_specs`` hand every resolved view and explore
-to a ``DagsterLookerLkmlTranslator``; the adapter passes one that records them. When
-``build_looker_view_specs`` accepts ``model_name`` (a branch with model scoping), each model is
-resolved separately; otherwise dagster-looker resolves the project as a whole and the result is
-reported as one model.
+to a ``DagsterLookerLkmlTranslator``; the adapter passes one that records them. dagster-looker
+resolves the project as a whole, so the result is reported as one project-wide model.
 """
 
 from __future__ import annotations
 
-import argparse
-import inspect
 from collections.abc import Mapping
 from pathlib import Path
 from typing import Any
@@ -24,14 +20,32 @@ from dagster_looker.lkml.dagster_looker_lkml_translator import (
     LookMLStructureType,
 )
 
+from lookml_conformance.adapter import Adapter
 from lookml_conformance.adapters import kit
 from lookml_conformance.normalize import collapse_whitespace
-from lookml_conformance.protocol import AdapterOutput, Capabilities, ExploreOutput, ModelOutput
+from lookml_conformance.protocol import Capabilities, ExploreOutput, ModelOutput
 
-NAME = "dagster"
-DISTRIBUTION = "dagster-looker"
 PROJECT_WIDE = "*"
 JOIN_PARAMS = ("from", "view_label", "sql_on", "relationship", "type")
+
+
+class DagsterAdapter(Adapter):
+    name = "dagster"
+    distribution = "dagster-looker"
+    capabilities = Capabilities(per_model=False)
+
+    def resolve(self, project: Path) -> dict[str, ModelOutput]:
+        translator = RecordingTranslator()
+        asset_utils.build_looker_view_specs(project, translator)
+        asset_utils.build_looker_explore_specs(project, translator)
+        return {
+            PROJECT_WIDE: ModelOutput(
+                views={name: kit.view_output(view) for name, view in translator.views.items()},
+                explores={
+                    name: summarize_explore(name, explore) for name, explore in translator.explores.items()
+                },
+            )
+        }
 
 
 class RecordingTranslator(DagsterLookerLkmlTranslator):
@@ -74,30 +88,5 @@ def summarize_explore(name: str, explore: Mapping[str, Any]) -> ExploreOutput:
     )
 
 
-def resolve_scope(root: Path, model: str | None) -> ModelOutput:
-    translator = RecordingTranslator()
-    scope = {} if model is None else {"model_name": model}
-    asset_utils.build_looker_view_specs(root, translator, **scope)
-    asset_utils.build_looker_explore_specs(root, translator, **scope)
-    return ModelOutput(
-        views={name: kit.view_output(view) for name, view in translator.views.items()},
-        explores={name: summarize_explore(name, explore) for name, explore in translator.explores.items()},
-    )
-
-
-def resolve(root: Path, args: argparse.Namespace) -> AdapterOutput:
-    per_model = "model_name" in inspect.signature(asset_utils.build_looker_view_specs).parameters
-    scopes = [kit.model_name(path) for path in kit.model_files(root)] if per_model else [None]
-    return AdapterOutput(
-        adapter=NAME,
-        capabilities=Capabilities(per_model=per_model),
-        models={scope or PROJECT_WIDE: resolve_scope(root, scope) for scope in scopes},
-    )
-
-
-def main() -> int:
-    return kit.run_adapter(NAME, DISTRIBUTION, resolve)
-
-
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(DagsterAdapter.main())

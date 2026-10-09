@@ -1,15 +1,11 @@
 from __future__ import annotations
 
-import argparse
-import json
-import logging
-import warnings
 from pathlib import Path
 
 import pytest
 
 from lookml_conformance.adapters import kit
-from lookml_conformance.protocol import AdapterOutput, ModelOutput, ViewOutput
+from lookml_conformance.protocol import ViewOutput
 
 
 def test_flatten_repeated() -> None:
@@ -127,55 +123,3 @@ def test_imported_projects(tmp_path: Path) -> None:
     assert kit.imported_projects(tmp_path) == {
         "shared": (tmp_path / "imported_projects" / "shared").resolve()
     }
-
-
-def test_run_adapter_prints_the_output_with_name_and_version(
-    tmp_path: Path, capsys: pytest.CaptureFixture[str]
-) -> None:
-    seen: list[Path] = []
-
-    def resolve(root: Path, args: argparse.Namespace) -> AdapterOutput:
-        seen.append(root)
-        assert args.flag is True
-        return AdapterOutput(adapter="ignored", models={"m": ModelOutput(views={"v": ViewOutput()})})
-
-    def configure(parser: argparse.ArgumentParser) -> None:
-        parser.add_argument("--flag", action="store_true")
-
-    assert kit.run_adapter("mine", "pytest", resolve, [str(tmp_path), "--flag"], configure) == 0
-
-    output = json.loads(capsys.readouterr().out)
-    assert output["adapter"] == "mine"
-    assert output["version"] == pytest.__version__
-    assert list(output["models"]["m"]["views"]) == ["v"]
-    assert seen == [tmp_path.resolve()]
-
-
-def test_run_adapter_reports_tool_exceptions(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
-    def resolve(root: Path, args: argparse.Namespace) -> AdapterOutput:
-        raise KeyError("views")
-
-    kit.run_adapter("mine", "pytest", resolve, [str(tmp_path)])
-
-    assert json.loads(capsys.readouterr().out) == {
-        "adapter": "mine",
-        "version": pytest.__version__,
-        "error": "KeyError('views')",
-    }
-
-
-def test_run_adapter_silences_tool_logging_and_warnings_only_while_resolving(
-    tmp_path: Path, capsys: pytest.CaptureFixture[str]
-) -> None:
-    def resolve(root: Path, args: argparse.Namespace) -> AdapterOutput:
-        warnings.warn("noisy", UserWarning, stacklevel=1)
-        assert logging.getLogger("tool").isEnabledFor(logging.CRITICAL) is False
-        return AdapterOutput(adapter="x")
-
-    with warnings.catch_warnings(record=True) as caught:
-        warnings.simplefilter("always")
-        kit.run_adapter("mine", "pytest", resolve, [str(tmp_path)])
-
-    assert caught == []
-    assert logging.getLogger("tool").isEnabledFor(logging.ERROR)
-    assert json.loads(capsys.readouterr().out)["adapter"] == "mine"
