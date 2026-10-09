@@ -210,3 +210,9 @@ def test_setup_reports_bad_registry_entries(tmp_path: Path, capsys: pytest.Captu
 
     assert main(["setup", "--registry", str(registry)]) == EXIT_USAGE
     assert "no 'install' entry" in capsys.readouterr().err
+
+
+def test_run_without_batching(cases_dir: Path, tmp_path: Path) -> None:
+    command = fake_adapter(tmp_path, "raw.orders")
+
+    assert main(["--cases", str(cases_dir), "run", "-q", "--no-batch", "--command", command]) == EXIT_OK

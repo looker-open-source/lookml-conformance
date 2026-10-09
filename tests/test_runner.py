@@ -14,6 +14,7 @@ from lookml_conformance.runner import (
     RegistryError,
     load_registry,
     parse_output,
+    parse_outputs,
     run_suite,
     select_adapters,
 )
@@ -190,3 +191,129 @@ def test_run_suite_version_is_none_when_every_run_fails(tmp_path: Path, make_cas
 
     assert scorecard.adapters[0].version is None
     assert scorecard.results[0].verdicts["x"].outcome is Outcome.ERROR
+
+
+BATCH_ADAPTER = """\
+import json, sys
+log, crash_after = {log!r}, {crash_after!r}
+with open(log, "a") as handle:
+    handle.write(str(len(sys.argv) - 1) + "\\n")
+print("tool log line")
+for index, project in enumerate(sys.argv[1:]):
+    if crash_after is not None and index >= crash_after and len(sys.argv) > 2:
+        raise SystemExit("crashed part-way")
+    print(json.dumps({{"adapter": "fake", "version": "2", "project": project,
+                      "models": {{"m": {{"views": {{"orders": {{"sql_table_name": "raw.orders"}}}}}}}}}}))
+"""
+
+
+def batch_adapter(tmp_path: Path, crash_after: int | None = None) -> tuple[AdapterSpec, Path]:
+    log = tmp_path / "calls.log"
+    body = BATCH_ADAPTER.format(log=str(log), crash_after=crash_after)
+    return AdapterSpec("fake", script(tmp_path, body, "batch.py")), log
+
+
+def calls(log: Path) -> list[int]:
+    return [int(line) for line in log.read_text(encoding="utf-8").split()]
+
+
+def projects(tmp_path: Path, count: int) -> list[Path]:
+    paths = [tmp_path / f"p{index}" for index in range(count)]
+    for path in paths:
+        path.mkdir()
+    return paths
+
+
+def test_invoke_many_pairs_lines_with_projects(tmp_path: Path) -> None:
+    spec, log = batch_adapter(tmp_path)
+    paths = projects(tmp_path, 3)
+
+    outputs = spec.invoke_many(paths)
+
+    assert set(outputs) == {path.resolve() for path in paths}
+    assert {output.project for output in outputs.values()} == {str(path.resolve()) for path in paths}
+    assert calls(log) == [3]
+
+
+def test_invoke_many_retries_projects_a_crashed_batch_missed(tmp_path: Path) -> None:
+    spec, log = batch_adapter(tmp_path, crash_after=1)
+    paths = projects(tmp_path, 3)
+
+    outputs = spec.invoke_many(paths)
+
+    assert all(output.error is None for output in outputs.values())
+    assert calls(log) == [3, 1, 1]
+
+
+def test_invoke_many_falls_back_for_single_project_adapters(tmp_path: Path) -> None:
+    log = tmp_path / "calls.log"
+    body = (
+        "import json, sys\n"
+        f"open({str(log)!r}, 'a').write(str(len(sys.argv) - 1) + '\\n')\n"
+        "print(json.dumps({'adapter': 'old', 'version': sys.argv[-1]}))\n"
+    )
+    spec = AdapterSpec("old", script(tmp_path, body))
+    paths = projects(tmp_path, 2)
+
+    outputs = spec.invoke_many(paths)
+
+    assert calls(log) == [2, 1, 1]
+    assert {output.version for output in outputs.values()} == {str(path.resolve()) for path in paths}
+
+
+def test_invoke_many_retries_after_a_batch_timeout(tmp_path: Path) -> None:
+    body = 'import sys, time\nif len(sys.argv) > 2:\n    time.sleep(5)\nprint(\'{"adapter": "slow"}\')\n'
+    spec = AdapterSpec("slow", script(tmp_path, body), timeout=0.5)
+
+    outputs = spec.invoke_many(projects(tmp_path, 2))
+
+    assert [output.error for output in outputs.values()] == [None, None]
+
+
+def test_invoke_many_reports_missing_executable_for_every_project(tmp_path: Path) -> None:
+    outputs = AdapterSpec("x", ("/nonexistent/tool",)).invoke_many(projects(tmp_path, 2))
+
+    assert all(output.error and output.error.startswith("cannot run") for output in outputs.values())
+
+
+def test_parse_outputs_reports_protocol_errors_per_project(tmp_path: Path) -> None:
+    good, bad = tmp_path / "good", tmp_path / "bad"
+    stdout = "\n".join([
+        json.dumps({"adapter": "x", "project": str(good)}),
+        json.dumps({"adapter": "x", "project": str(bad), "models": []}),
+        json.dumps({"adapter": "x", "project": "/elsewhere"}),
+        "[1, 2]",
+    ])  # fmt: skip
+
+    outputs = parse_outputs("x", stdout, "", [good, bad])
+
+    assert outputs[good].error is None
+    assert outputs[bad].error == "output does not follow the protocol: models must be an object"
+    assert set(outputs) == {good, bad}
+
+
+def test_run_suite_batches_cases_per_adapter(tmp_path: Path, make_case: MakeCase) -> None:
+    cases = [load_case(make_case(id=f"r0{index}_c")) for index in range(1, 6)]
+    spec, log = batch_adapter(tmp_path)
+
+    scorecard = run_suite(cases, [spec], jobs=2)
+
+    assert sorted(calls(log)) == [2, 3]
+    assert {result.verdicts["fake"].outcome for result in scorecard.results} == {Outcome.PASS}
+
+
+def test_run_suite_without_batching_runs_one_case_per_process(tmp_path: Path, make_case: MakeCase) -> None:
+    cases = [load_case(make_case(id=f"r0{index}_c")) for index in range(1, 4)]
+    spec, log = batch_adapter(tmp_path)
+
+    run_suite(cases, [spec], jobs=2, batch=False)
+    run_suite(cases, [AdapterSpec(spec.name, spec.command, batch=False)], jobs=2)
+
+    assert calls(log) == [1] * 6
+
+
+def test_load_registry_reads_the_batch_flag(tmp_path: Path) -> None:
+    registry = tmp_path / "adapters.json"
+    registry.write_text(json.dumps({"adapters": [{"name": "a", "command": ["x"], "batch": False}]}))
+
+    assert load_registry(registry)[0].batch is False

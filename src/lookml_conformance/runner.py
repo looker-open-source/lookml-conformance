@@ -28,9 +28,11 @@ class RegistryError(ValueError):
 class AdapterSpec:
     """How to run one adapter, plus the metadata shown in reports.
 
-    ``command`` receives the project directory as its final argument. Relative paths in it and in
-    ``env`` are resolved against ``cwd``, which for a registry file is the file's directory.
-    ``install`` maps a package manager (``pip`` or ``npm``) to the pinned package of the tool.
+    ``command`` receives one or more project directories as its final arguments. Relative paths in
+    it and in ``env`` are resolved against ``cwd``, which for a registry file is the file's
+    directory. ``timeout`` applies per project. ``batch`` is false for adapters that must get one
+    project per process. ``install`` maps a package manager (``pip`` or ``npm``) to the pinned
+    package of the tool.
     """
 
     name: str
@@ -38,6 +40,7 @@ class AdapterSpec:
     env: Mapping[str, str] = field(default_factory=dict)
     cwd: Path | None = None
     timeout: float = DEFAULT_TIMEOUT_SECONDS
+    batch: bool = True
     label: str | None = None
     kind: str | None = None
     language: str | None = None
@@ -49,25 +52,67 @@ class AdapterSpec:
         return self.label or self.name
 
     def invoke(self, project: Path) -> AdapterOutput:
+        return self.invoke_many([project])[project.resolve()]
+
+    def invoke_many(self, projects: Sequence[Path]) -> dict[Path, AdapterOutput]:
+        """Resolve several projects in one process, keyed by resolved path.
+
+        Projects the batch did not answer for (the tool crashed part-way, or the adapter only
+        understands one project) are run again one at a time, so every project gets a result.
+        """
+        resolved = [project.resolve() for project in projects]
+        outputs = self._run(resolved)
+        if len(resolved) > 1:
+            for project in resolved:
+                if project not in outputs:
+                    outputs |= self._run([project])
+        return outputs
+
+    def _run(self, projects: Sequence[Path]) -> dict[Path, AdapterOutput]:
         env = os.environ | {
             key: os.path.expandvars(os.path.expanduser(value)) for key, value in self.env.items()
         }
-        command = [os.path.expanduser(part) for part in self.command] + [str(project.resolve())]
+        command = [os.path.expanduser(part) for part in self.command] + [str(project) for project in projects]
+        timeout = self.timeout * len(projects)
         try:
             completed = subprocess.run(
-                command,
-                capture_output=True,
-                text=True,
-                timeout=self.timeout,
-                env=env,
-                cwd=self.cwd,
-                check=False,
+                command, capture_output=True, text=True, timeout=timeout, env=env, cwd=self.cwd, check=False
             )
         except subprocess.TimeoutExpired:
-            return AdapterOutput.failure(self.name, f"timed out after {self.timeout:g}s")
+            if len(projects) > 1:
+                return {}  # retried one project at a time
+            return {projects[0]: AdapterOutput.failure(self.name, f"timed out after {timeout:g}s")}
         except OSError as exc:
-            return AdapterOutput.failure(self.name, f"cannot run {command[0]!r}: {exc}")
-        return parse_output(self.name, completed.stdout, completed.stderr)
+            failure = AdapterOutput.failure(self.name, f"cannot run {command[0]!r}: {exc}")
+            return dict.fromkeys(projects, failure)
+        return parse_outputs(self.name, completed.stdout, completed.stderr, projects)
+
+
+def parse_outputs(
+    adapter: str, stdout: str, stderr: str, projects: Sequence[Path]
+) -> dict[Path, AdapterOutput]:
+    """Pair the JSON lines of a batch run with their projects through the ``project`` key.
+
+    A run on a single project may omit ``project``; its last stdout line is then its result, as
+    the protocol allows for adapters that only take one project.
+    """
+    by_name = {str(project): project for project in projects}
+    outputs: dict[Path, AdapterOutput] = {}
+    for line in stdout.splitlines():
+        try:
+            data = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        if not isinstance(data, dict) or data.get("project") not in by_name:
+            continue
+        project = by_name[data["project"]]
+        try:
+            outputs[project] = AdapterOutput.from_dict(data)
+        except ProtocolError as exc:
+            outputs[project] = AdapterOutput.failure(adapter, f"output does not follow the protocol: {exc}")
+    if len(projects) == 1 and not outputs:
+        outputs[projects[0]] = parse_output(adapter, stdout, stderr)
+    return outputs
 
 
 def parse_output(adapter: str, stdout: str, stderr: str = "") -> AdapterOutput:
@@ -97,6 +142,7 @@ def load_registry(path: Path) -> list[AdapterSpec]:
                 env=dict(entry.get("env", {})),
                 cwd=path.parent.resolve(),
                 timeout=float(entry.get("timeout", DEFAULT_TIMEOUT_SECONDS)),
+                batch=bool(entry.get("batch", True)),
                 label=entry.get("label"),
                 kind=entry.get("kind"),
                 language=entry.get("language"),
@@ -126,24 +172,40 @@ def run_suite(
     adapters: Sequence[AdapterSpec],
     *,
     jobs: int = 1,
+    batch: bool = True,
     date: dt.date | None = None,
     progress: ProgressCallback | None = None,
 ) -> Scorecard:
-    """Run every adapter on every case, ``jobs`` adapter processes at a time."""
-    pairs = [(case, adapter) for case in cases for adapter in adapters]
+    """Run every adapter on every case, ``jobs`` adapter processes at a time.
 
-    def run_pair(pair: tuple[Case, AdapterSpec]) -> tuple[AdapterOutput, Verdict]:
-        case, adapter = pair
-        output = adapter.invoke(case.project)
-        verdict = judge(case, output)
-        if progress is not None:
-            progress(case, adapter, verdict)
-        return output, verdict
+    With ``batch``, each adapter process resolves a chunk of cases, so a tool's start-up cost is
+    paid once per chunk rather than once per case. ``jobs`` processes are shared between adapters.
+    """
+    jobs = max(1, jobs)
+    tasks = [
+        (adapter, chunk)
+        for adapter in adapters
+        for chunk in _chunks(cases, max(1, jobs // len(adapters)) if batch and adapter.batch else len(cases))
+    ]
 
-    with ThreadPoolExecutor(max_workers=max(1, jobs)) as pool:
-        runs = dict(
-            zip(((case.id, adapter.name) for case, adapter in pairs), pool.map(run_pair, pairs), strict=True)
-        )
+    def run_task(task: tuple[AdapterSpec, list[Case]]) -> list[tuple[str, str, AdapterOutput, Verdict]]:
+        adapter, chunk = task
+        outputs = adapter.invoke_many([case.project for case in chunk])
+        results = []
+        for case in chunk:
+            output = outputs[case.project.resolve()]
+            verdict = judge(case, output)
+            if progress is not None:
+                progress(case, adapter, verdict)
+            results.append((case.id, adapter.name, output, verdict))
+        return results
+
+    with ThreadPoolExecutor(max_workers=jobs) as pool:
+        runs = {
+            (case_id, name): (output, verdict)
+            for results in pool.map(run_task, tasks)
+            for case_id, name, output, verdict in results
+        }
 
     versions: dict[str, str | None] = {adapter.name: None for adapter in adapters}
     for (_, name), (output, _) in runs.items():
@@ -161,3 +223,15 @@ def run_suite(
             for case in cases
         ),
     )
+
+
+def _chunks(cases: Sequence[Case], count: int) -> list[list[Case]]:
+    """Split ``cases`` into at most ``count`` contiguous chunks of nearly equal size."""
+    count = max(1, min(count, len(cases)))
+    size, extra = divmod(len(cases), count)
+    chunks, start = [], 0
+    for index in range(count):
+        end = start + size + (index < extra)
+        chunks.append(list(cases[start:end]))
+        start = end
+    return [chunk for chunk in chunks if chunk]

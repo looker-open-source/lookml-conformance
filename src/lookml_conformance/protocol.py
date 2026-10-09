@@ -171,20 +171,25 @@ class ModelOutput:
 class AdapterOutput:
     """The parsed output of one adapter run on one project.
 
-    ``error`` marks a run that produced no usable result (the tool crashed, or the adapter printed
-    no JSON). ``errors`` holds diagnostics the tool reported while still producing a result.
+    ``project`` is the project path exactly as the adapter received it; it pairs each output line
+    with its project when one run resolves several projects. ``error`` marks a run that produced no
+    usable result (the tool crashed, or the adapter printed no JSON). ``errors`` holds diagnostics
+    the tool reported while still producing a result.
     """
 
     adapter: str
     version: str | None = None
+    project: str | None = None
     capabilities: Capabilities = field(default_factory=Capabilities)
     models: Mapping[str, ModelOutput] = field(default_factory=dict)
     errors: tuple[str, ...] = ()
     error: str | None = None
 
     @classmethod
-    def failure(cls, adapter: str, message: str, version: str | None = None) -> AdapterOutput:
-        return cls(adapter=adapter, version=version, error=message)
+    def failure(
+        cls, adapter: str, message: str, version: str | None = None, project: str | None = None
+    ) -> AdapterOutput:
+        return cls(adapter=adapter, version=version, project=project, error=message)
 
     @classmethod
     def from_dict(cls, data: Any) -> AdapterOutput:
@@ -193,23 +198,26 @@ class AdapterOutput:
         if not isinstance(adapter, str) or not adapter:
             raise ProtocolError("'adapter' must be a non-empty string")
         version = _optional_str(data.get("version"))
+        project = _optional_str(data.get("project"))
         if data.get("error") is not None:
-            return cls.failure(adapter, str(data["error"]), version)
+            return cls.failure(adapter, str(data["error"]), version, project)
         models = _object_or_empty(data.get("models"), "models")
         return cls(
             adapter=adapter,
             version=version,
+            project=project,
             capabilities=Capabilities.from_dict(data.get("capabilities")),
             models={name: ModelOutput.from_dict(model, f"models.{name}") for name, model in models.items()},
             errors=tuple(str(error) for error in data.get("errors") or []),
         )
 
     def to_dict(self) -> JSONObject:
+        head: JSONObject = {"adapter": self.adapter, "version": self.version}
+        if self.project is not None:
+            head["project"] = self.project
         if self.error is not None:
-            return {"adapter": self.adapter, "version": self.version, "error": self.error}
-        return {
-            "adapter": self.adapter,
-            "version": self.version,
+            return head | {"error": self.error}
+        return head | {
             "capabilities": self.capabilities.to_dict(),
             "models": {name: model.to_dict() for name, model in sorted(self.models.items())},
             "errors": list(self.errors),

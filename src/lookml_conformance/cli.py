@@ -81,6 +81,9 @@ def build_parser() -> argparse.ArgumentParser:
     run.add_argument(
         "--jobs", "-j", type=int, default=os.cpu_count() or 1, help="adapter processes in parallel"
     )
+    run.add_argument(
+        "--no-batch", action="store_true", help="start one adapter process per case (slower, fully isolated)"
+    )
     run.add_argument("--json", type=Path, metavar="PATH", help="write the scorecard as JSON")
     run.add_argument("--markdown", type=Path, metavar="PATH", help="write the scorecard as Markdown")
     run.add_argument("--quiet", "-q", action="store_true", help="do not print a line per case")
@@ -153,7 +156,7 @@ def cmd_run(args: argparse.Namespace) -> int:
                 f"{verdict.outcome.value:5} {case.id:56} {adapter.name:20} {reasons[:160]}", file=sys.stderr
             )
 
-    scorecard = run_suite(cases, adapters, jobs=args.jobs, progress=progress)
+    scorecard = run_suite(cases, adapters, jobs=args.jobs, batch=not args.no_batch, progress=progress)
     print(render_text(scorecard), end="")
     labels = {adapter.name: adapter.display_name for adapter in adapters}
     if args.json:
