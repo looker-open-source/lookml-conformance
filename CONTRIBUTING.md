@@ -39,11 +39,14 @@ One case tests one rule. If a case fails a tool for two independent reasons, spl
 
 ## Adding a tool
 
-1. Write an adapter that follows [docs/adapter-protocol.md](docs/adapter-protocol.md). For a Python
-   tool, add a module to `src/lookml_conformance/adapters/` using `kit.py`.
-2. Check it: `lookml-conformance run --command "<your adapter command>" --name <tool>`.
-3. Add the tool to `adapters.json` with its pinned version under `install`, then
-   `lookml-conformance setup <tool>` and regenerate the scorecard as above.
+Follow [docs/writing-an-adapter.md](docs/writing-an-adapter.md). In short:
+
+1. `lookml-conformance new-adapter <tool>` and implement `resolve()`.
+2. `lookml-conformance check-adapter --command "<your adapter command>"` until the output follows
+   the protocol on every case.
+3. Add the tool to `adapters.json` with its pinned version under `install`, run
+   `lookml-conformance setup <tool>`, and regenerate the scorecard and site data as above.
+4. `uv run pytest -m integration` checks that the published scorecard reproduces.
 
 The adapter must report what the tool produces and nothing more.
 

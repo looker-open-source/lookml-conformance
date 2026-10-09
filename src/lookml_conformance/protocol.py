@@ -1,8 +1,9 @@
 """The JSON an adapter prints: what a tool resolved for each model of a LookML project.
 
-An adapter is any executable that takes a project directory as its last argument and prints one
-JSON object on the last line of stdout. The format is described in ``docs/adapter-protocol.md``.
-These classes parse that JSON for the runner and build it for the Python adapters.
+An adapter is any executable that takes project directories as its final arguments and prints one
+JSON object per project, each on its own line. The format is described in
+``docs/adapter-protocol.md``. These classes parse that JSON for the runner and build it for the
+Python adapters.
 """
 
 from __future__ import annotations

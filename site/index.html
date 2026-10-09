@@ -142,8 +142,8 @@
         <div>
           <p class="eyebrow">Run it</p>
           <h2>Score your tool or your branch</h2>
-          <p class="section__lede">An adapter is any command that takes a project directory and prints one JSON line. Point the runner at your branch and use the exit status as a CI gate.</p>
-          <a class="btn btn--primary" href="https://github.com/josephaxisa/lookml-conformance#readme">Read the docs</a>
+          <p class="section__lede">An adapter runs your tool on LookML projects and prints one JSON line per project. In Python that is one class with one method. Point the runner at your branch and use the exit status as a CI gate.</p>
+          <a class="btn btn--primary" href="https://github.com/josephaxisa/lookml-conformance/blob/main/docs/writing-an-adapter.md">Write an adapter</a>
         </div>
         <pre class="code card"><code><span class="c"># reproduce the published scorecard</span>
 pip install -e .
@@ -153,7 +153,11 @@ lookml-conformance run
 <span class="c"># score a branch you have installed</span>
 lookml-conformance run \
   --command "python -m lookml_conformance.adapters.datahub" \
-  --name datahub-branch</code></pre>
+  --name datahub-branch
+
+<span class="c"># add a tool</span>
+lookml-conformance new-adapter my-tool
+lookml-conformance check-adapter --command "python my_tool.py"</code></pre>
       </div>
     </section>
   </main>

@@ -79,9 +79,12 @@ node-lookml-parser needs `npm`):
 
 ```bash
 lookml-conformance setup --python python3.11
-lookml-conformance run
+lookml-conformance run                                 # all tools, about 10 seconds
 lookml-conformance run --adapter datahub --only r0     # one tool, cases whose id contains "r0"
 ```
+
+Each adapter process resolves a batch of cases, so a tool's start-up cost is paid once per batch.
+`--no-batch` starts one process per case instead.
 
 Score a branch or a local build. Install the branch and this package into one environment, then
 pass the adapter command:
@@ -104,12 +107,15 @@ Other commands:
 | `catalog` | Regenerate `CASES.md` |
 | `check-citations` | Check that every quote is still on its page (needs network) |
 | `site` | Regenerate `site/data.json` for the website |
+| `adapters` | List the adapters in `adapters.json` and those installed as entry points |
+| `new-adapter NAME` | Write a starting point for a new Python adapter |
+| `check-adapter` | Check that an adapter's output follows the protocol on every case |
 
 ## Adapters
 
-An adapter is any executable that takes a project directory as its last argument and prints one
-JSON object on its last stdout line. It reports what the tool produces and nothing more: it must not
-merge refinements, substitute constants, or fill any other gap the tool leaves.
+An adapter runs one tool on LookML projects and prints one JSON line per project. It reports what
+the tool produces and nothing more: it must not merge refinements, substitute constants, or fill any
+other gap the tool leaves.
 
 | Tool | Adapter command |
 | --- | --- |
@@ -118,19 +124,29 @@ merge refinements, substitute constants, or fill any other gap the tool leaves.
 | Dagster | `python -m lookml_conformance.adapters.dagster` |
 | node-lookml-parser | `node src/lookml_conformance/adapters/node_lookml_parser.js` (set `LOOKML_PARSER_PATH` to test a checkout) |
 
-The output format is in [docs/adapter-protocol.md](docs/adapter-protocol.md). To add a tool, see
-[CONTRIBUTING.md](CONTRIBUTING.md).
+Adding a tool takes one class with one method:
+
+```bash
+lookml-conformance new-adapter my-tool      # writes the class, with the steps to fill in
+lookml-conformance check-adapter --command "python src/lookml_conformance/adapters/my_tool.py"
+```
+
+A tool can also ship its adapter in its own package, registered under the
+`lookml_conformance.adapters` entry point group; `lookml-conformance run --adapter my-tool` then
+finds it without changes to this repository. See [docs/writing-an-adapter.md](docs/writing-an-adapter.md)
+for the walkthrough and [docs/adapter-protocol.md](docs/adapter-protocol.md) for the output format,
+also available as a [JSON Schema](docs/adapter-output.schema.json).
 
 ## Repository layout
 
 ```text
 cases/<category>/<id>/       case.json and project/ (a minimal LookML project)
-src/lookml_conformance/      loader, judge, runner, scorecards, CLI
-src/lookml_conformance/adapters/   one adapter per tool, plus kit.py shared by the Python adapters
+src/lookml_conformance/      loader, judge, runner, scorecards, CLI, Adapter base class
+src/lookml_conformance/adapters/   one adapter per tool, plus kit.py with helpers for writing them
 adapters.json                tools in the published scorecard: command and pinned version
 results/latest.{json,md}     published scorecard
 site/                        website (GitHub Pages)
-docs/                        case format and adapter protocol
+docs/                        case format, adapter protocol and schema, adapter walkthrough
 tests/                       unit tests; tests/adapters/ also re-runs installed tools (pytest -m integration)
 ```
 
