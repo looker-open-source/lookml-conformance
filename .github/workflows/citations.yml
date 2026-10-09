@@ -1,0 +1,15 @@
+name: Citations
+
+# The Looker documentation changes over time. Check weekly that every quoted citation is still on its page.
+on:
+  schedule:
+    - cron: "17 6 * * 1"
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uv run lookml-conformance check-citations
