@@ -1,0 +1,993 @@
+{
+  "date": "2026-10-09",
+  "adapters": [
+    {
+      "name": "node-lookml-parser",
+      "version": "9.1.0"
+    },
+    {
+      "name": "openmetadata",
+      "version": "2.0.5.0"
+    },
+    {
+      "name": "datahub",
+      "version": "1.7.0.14"
+    },
+    {
+      "name": "dagster",
+      "version": "0.29.25"
+    }
+  ],
+  "results": [
+    {
+      "case": "r01_refinement_overrides_sql_table_name",
+      "category": "refinements",
+      "status": "confirmed",
+      "verdicts": {
+        "node-lookml-parser": {
+          "outcome": "pass",
+          "reasons": []
+        },
+        "openmetadata": {
+          "outcome": "fail",
+          "reasons": [
+            "ecommerce.orders.sql_table_name: expected 'analytics.orders_clean', got 'raw.orders'",
+            "ecommerce.orders.fields: expected ['id', 'status'], got ['id']",
+            "views that must not exist were exposed: ['+orders']"
+          ]
+        },
+        "datahub": {
+          "outcome": "fail",
+          "reasons": [
+            "ecommerce.orders.sql_table_name: expected 'analytics.orders_clean', got 'raw.orders'"
+          ]
+        },
+        "dagster": {
+          "outcome": "pass",
+          "reasons": []
+        }
+      }
+    },
+    {
+      "case": "r02_refinement_in_non_view_file",
+      "category": "refinements",
+      "status": "confirmed",
+      "verdicts": {
+        "node-lookml-parser": {
+          "outcome": "pass",
+          "reasons": []
+        },
+        "openmetadata": {
+          "outcome": "fail",
+          "reasons": [
+            "ecommerce.orders.sql_table_name: expected 'analytics.orders_clean', got 'raw.orders'"
+          ]
+        },
+        "datahub": {
+          "outcome": "fail",
+          "reasons": [
+            "ecommerce.orders.sql_table_name: expected 'analytics.orders_clean', got 'raw.orders'"
+          ]
+        },
+        "dagster": {
+          "outcome": "fail",
+          "reasons": [
+            "ecommerce.orders.sql_table_name: expected 'analytics.orders_clean', got 'raw.orders'"
+          ]
+        }
+      }
+    },
+    {
+      "case": "r03_two_models_refine_one_view_differently",
+      "category": "refinements",
+      "status": "confirmed",
+      "verdicts": {
+        "node-lookml-parser": {
+          "outcome": "pass",
+          "reasons": []
+        },
+        "openmetadata": {
+          "outcome": "fail",
+          "reasons": [
+            "main.orders.sql_table_name: expected 'analytics.orders_clean', got 'raw.orders'",
+            "sandbox.orders.sql_table_name: expected 'sandbox.orders_test', got 'raw.orders'",
+            "views that must not exist were exposed: ['+orders']"
+          ]
+        },
+        "datahub": {
+          "outcome": "fail",
+          "reasons": [
+            "main.orders.sql_table_name: expected 'analytics.orders_clean', got 'raw.orders'",
+            "sandbox.orders.sql_table_name: expected 'sandbox.orders_test', got 'raw.orders'"
+          ]
+        },
+        "dagster": {
+          "outcome": "fail",
+          "reasons": [
+            "main.orders.sql_table_name: expected 'analytics.orders_clean', got 'sandbox.orders_test'"
+          ]
+        }
+      }
+    },
+    {
+      "case": "r04_later_include_wins",
+      "category": "refinements",
+      "status": "confirmed",
+      "verdicts": {
+        "node-lookml-parser": {
+          "outcome": "pass",
+          "reasons": []
+        },
+        "openmetadata": {
+          "outcome": "fail",
+          "reasons": [
+            "m.orders.sql_table_name: expected 'from_a', got 'raw.orders'"
+          ]
+        },
+        "datahub": {
+          "outcome": "fail",
+          "reasons": [
+            "m.orders.sql_table_name: expected 'from_a', got 'raw.orders'"
+          ]
+        },
+        "dagster": {
+          "outcome": "fail",
+          "reasons": [
+            "m.orders.sql_table_name: expected 'from_a', got 'raw.orders'"
+          ]
+        }
+      }
+    },
+    {
+      "case": "r05_last_refinement_in_file_wins",
+      "category": "refinements",
+      "status": "confirmed",
+      "verdicts": {
+        "node-lookml-parser": {
+          "outcome": "pass",
+          "reasons": []
+        },
+        "openmetadata": {
+          "outcome": "fail",
+          "reasons": [
+            "m.orders.sql_table_name: expected 'second', got 'raw.orders'"
+          ]
+        },
+        "datahub": {
+          "outcome": "fail",
+          "reasons": [
+            "m.orders.sql_table_name: expected 'second', got 'raw.orders'"
+          ]
+        },
+        "dagster": {
+          "outcome": "fail",
+          "reasons": [
+            "m.orders.sql_table_name: expected 'second', got 'raw.orders'"
+          ]
+        }
+      }
+    },
+    {
+      "case": "r06_refinement_included_before_its_base",
+      "category": "refinements",
+      "status": "provisional",
+      "verdicts": {
+        "node-lookml-parser": {
+          "outcome": "pass",
+          "reasons": []
+        },
+        "openmetadata": {
+          "outcome": "fail",
+          "reasons": [
+            "m.orders.sql_table_name: expected 'refined', got 'raw.orders'"
+          ]
+        },
+        "datahub": {
+          "outcome": "fail",
+          "reasons": [
+            "m.orders.sql_table_name: expected 'refined', got 'raw.orders'"
+          ]
+        },
+        "dagster": {
+          "outcome": "fail",
+          "reasons": [
+            "m.orders.sql_table_name: expected 'refined', got 'raw.orders'"
+          ]
+        }
+      }
+    },
+    {
+      "case": "r07_field_refinement_keeps_unset_parameters",
+      "category": "refinements",
+      "status": "confirmed",
+      "verdicts": {
+        "node-lookml-parser": {
+          "outcome": "pass",
+          "reasons": []
+        },
+        "openmetadata": {
+          "outcome": "fail",
+          "reasons": [
+            "m.orders.id.label: expected 'Order ID', got 'Id'"
+          ]
+        },
+        "datahub": {
+          "outcome": "fail",
+          "reasons": [
+            "m.orders.id.label: expected 'Order ID', got 'Id'"
+          ]
+        },
+        "dagster": {
+          "outcome": "fail",
+          "reasons": [
+            "m.orders.id.label: expected 'Order ID', got 'Id'"
+          ]
+        }
+      }
+    },
+    {
+      "case": "r08_refinement_adds_fields",
+      "category": "refinements",
+      "status": "confirmed",
+      "verdicts": {
+        "node-lookml-parser": {
+          "outcome": "pass",
+          "reasons": []
+        },
+        "openmetadata": {
+          "outcome": "fail",
+          "reasons": [
+            "m.orders.fields: expected ['created', 'id', 'n', 'status'], got ['id', 'n']"
+          ]
+        },
+        "datahub": {
+          "outcome": "fail",
+          "reasons": [
+            "m.orders.fields: expected ['created', 'id', 'n', 'status'], got ['id', 'n']"
+          ]
+        },
+        "dagster": {
+          "outcome": "fail",
+          "reasons": [
+            "m.orders.fields: expected ['created', 'id', 'n', 'status'], got ['id', 'n']"
+          ]
+        }
+      }
+    },
+    {
+      "case": "r09_field_filters_are_additive",
+      "category": "refinements",
+      "status": "confirmed",
+      "verdicts": {
+        "node-lookml-parser": {
+          "outcome": "fail",
+          "reasons": [
+            "m.orders.n.filters: expected [{'status': 'complete'}, {'region': 'EU'}], got [{'region': 'EU'}]"
+          ]
+        },
+        "openmetadata": {
+          "outcome": "fail",
+          "reasons": [
+            "m.orders.n.filters: expected [{'status': 'complete'}, {'region': 'EU'}], got None"
+          ]
+        },
+        "datahub": {
+          "outcome": "fail",
+          "reasons": [
+            "m.orders.n.filters: expected [{'status': 'complete'}, {'region': 'EU'}], got [{'status': 'complete'}]"
+          ]
+        },
+        "dagster": {
+          "outcome": "fail",
+          "reasons": [
+            "m.orders.n.filters: expected [{'status': 'complete'}, {'region': 'EU'}], got [{'status': 'complete'}]"
+          ]
+        }
+      }
+    },
+    {
+      "case": "r10_final_refinement_blocks_later_ones",
+      "category": "refinements",
+      "status": "confirmed",
+      "verdicts": {
+        "node-lookml-parser": {
+          "outcome": "fail",
+          "reasons": [
+            "m.orders.sql_table_name: expected 'a.final', got 'b.later'"
+          ]
+        },
+        "openmetadata": {
+          "outcome": "fail",
+          "reasons": [
+            "m.orders.sql_table_name: expected 'a.final', got 'raw.orders'"
+          ]
+        },
+        "datahub": {
+          "outcome": "fail",
+          "reasons": [
+            "m.orders.sql_table_name: expected 'a.final', got 'raw.orders'"
+          ]
+        },
+        "dagster": {
+          "outcome": "fail",
+          "reasons": [
+            "m.orders.sql_table_name: expected 'a.final', got 'raw.orders'"
+          ]
+        }
+      }
+    },
+    {
+      "case": "r11_derived_table_refined_parameter_by_parameter",
+      "category": "refinements",
+      "status": "confirmed",
+      "verdicts": {
+        "node-lookml-parser": {
+          "outcome": "pass",
+          "reasons": []
+        },
+        "openmetadata": {
+          "outcome": "fail",
+          "reasons": [
+            "m.orders.derived_table.datagroup_trigger: expected 'daily', got None"
+          ]
+        },
+        "datahub": {
+          "outcome": "fail",
+          "reasons": [
+            "m.orders.derived_table.datagroup_trigger: expected 'daily', got None"
+          ]
+        },
+        "dagster": {
+          "outcome": "fail",
+          "reasons": [
+            "m.orders.derived_table.datagroup_trigger: expected 'daily', got None"
+          ]
+        }
+      }
+    },
+    {
+      "case": "r12_refinement_without_a_base_view",
+      "category": "refinements",
+      "status": "provisional",
+      "verdicts": {
+        "node-lookml-parser": {
+          "outcome": "pass",
+          "reasons": []
+        },
+        "openmetadata": {
+          "outcome": "pass",
+          "reasons": []
+        },
+        "datahub": {
+          "outcome": "pass",
+          "reasons": []
+        },
+        "dagster": {
+          "outcome": "pass",
+          "reasons": []
+        }
+      }
+    },
+    {
+      "case": "r13_dimension_group_timeframes_override",
+      "category": "refinements",
+      "status": "confirmed",
+      "verdicts": {
+        "node-lookml-parser": {
+          "outcome": "pass",
+          "reasons": []
+        },
+        "openmetadata": {
+          "outcome": "fail",
+          "reasons": [
+            "m.orders.fields: expected ['created'], got []",
+            "m.orders.created: field not resolved"
+          ]
+        },
+        "datahub": {
+          "outcome": "fail",
+          "reasons": [
+            "m.orders.created.label: expected 'Order Created', got None",
+            "m.orders.created.timeframes: expected ['date', 'month'], got ['date', 'month', 'raw', 'week', 'year']"
+          ]
+        },
+        "dagster": {
+          "outcome": "fail",
+          "reasons": [
+            "m.orders.created.label: expected 'Order Created', got None",
+            "m.orders.created.timeframes: expected ['date', 'month'], got ['date', 'month', 'raw', 'week', 'year']"
+          ]
+        }
+      }
+    },
+    {
+      "case": "i01_wildcard_include_applies_in_path_order",
+      "category": "includes",
+      "status": "provisional",
+      "verdicts": {
+        "node-lookml-parser": {
+          "outcome": "pass",
+          "reasons": []
+        },
+        "openmetadata": {
+          "outcome": "fail",
+          "reasons": [
+            "m.orders.sql_table_name: expected 'from_b', got 'raw.orders'"
+          ]
+        },
+        "datahub": {
+          "outcome": "fail",
+          "reasons": [
+            "m.orders.sql_table_name: expected 'from_b', got 'raw.orders'"
+          ]
+        },
+        "dagster": {
+          "outcome": "fail",
+          "reasons": [
+            "m.orders.sql_table_name: expected 'from_b', got 'raw.orders'"
+          ]
+        }
+      }
+    },
+    {
+      "case": "i02_nested_include_expands_in_place",
+      "category": "includes",
+      "status": "provisional",
+      "verdicts": {
+        "node-lookml-parser": {
+          "outcome": "fail",
+          "reasons": [
+            "m1.orders.sql_table_name: expected 'a', got 'b'"
+          ]
+        },
+        "openmetadata": {
+          "outcome": "fail",
+          "reasons": [
+            "m1.orders.sql_table_name: expected 'a', got 'raw.orders'",
+            "m2.orders.sql_table_name: expected 'c', got 'raw.orders'"
+          ]
+        },
+        "datahub": {
+          "outcome": "fail",
+          "reasons": [
+            "m1.orders.sql_table_name: expected 'a', got 'raw.orders'",
+            "m2.orders.sql_table_name: expected 'c', got 'raw.orders'"
+          ]
+        },
+        "dagster": {
+          "outcome": "fail",
+          "reasons": [
+            "m1.orders.sql_table_name: expected 'a', got 'raw.orders'",
+            "m2.orders.sql_table_name: expected 'c', got 'raw.orders'"
+          ]
+        }
+      }
+    },
+    {
+      "case": "i03_file_included_twice_keeps_first_position",
+      "category": "includes",
+      "status": "provisional",
+      "verdicts": {
+        "node-lookml-parser": {
+          "outcome": "pass",
+          "reasons": []
+        },
+        "openmetadata": {
+          "outcome": "fail",
+          "reasons": [
+            "m.orders.sql_table_name: expected 'a', got 'raw.orders'"
+          ]
+        },
+        "datahub": {
+          "outcome": "fail",
+          "reasons": [
+            "m.orders.sql_table_name: expected 'a', got 'raw.orders'"
+          ]
+        },
+        "dagster": {
+          "outcome": "fail",
+          "reasons": [
+            "m.orders.sql_table_name: expected 'a', got 'raw.orders'"
+          ]
+        }
+      }
+    },
+    {
+      "case": "i04_relative_include_resolves_from_the_including_file",
+      "category": "includes",
+      "status": "confirmed",
+      "verdicts": {
+        "node-lookml-parser": {
+          "outcome": "pass",
+          "reasons": []
+        },
+        "openmetadata": {
+          "outcome": "fail",
+          "reasons": [
+            "m.orders.sql_table_name: expected 'rel', got 'raw.orders'"
+          ]
+        },
+        "datahub": {
+          "outcome": "fail",
+          "reasons": [
+            "m.orders.sql_table_name: expected 'rel', got 'raw.orders'"
+          ]
+        },
+        "dagster": {
+          "outcome": "pass",
+          "reasons": []
+        }
+      }
+    },
+    {
+      "case": "i05_project_wildcards_do_not_reach_imported_projects",
+      "category": "includes",
+      "status": "confirmed",
+      "verdicts": {
+        "node-lookml-parser": {
+          "outcome": "fail",
+          "reasons": [
+            "m.orders.sql_table_name: expected 'raw.orders', got 'imported'"
+          ]
+        },
+        "openmetadata": {
+          "outcome": "pass",
+          "reasons": []
+        },
+        "datahub": {
+          "outcome": "pass",
+          "reasons": []
+        },
+        "dagster": {
+          "outcome": "fail",
+          "reasons": [
+            "m.orders.sql_table_name: expected 'raw.orders', got 'imported'"
+          ]
+        }
+      }
+    },
+    {
+      "case": "i06_imported_project_view_can_be_refined",
+      "category": "includes",
+      "status": "confirmed",
+      "verdicts": {
+        "node-lookml-parser": {
+          "outcome": "pass",
+          "reasons": []
+        },
+        "openmetadata": {
+          "outcome": "fail",
+          "reasons": [
+            "m.orders.sql_table_name: expected 'local.orders', got 'raw.orders'"
+          ]
+        },
+        "datahub": {
+          "outcome": "fail",
+          "reasons": [
+            "m.orders.sql_table_name: expected 'local.orders', got 'raw.orders'"
+          ]
+        },
+        "dagster": {
+          "outcome": "fail",
+          "reasons": [
+            "m.orders.sql_table_name: expected 'local.orders', got 'raw.orders'"
+          ]
+        }
+      }
+    },
+    {
+      "case": "i07_absolute_include_inside_an_imported_project",
+      "category": "includes",
+      "status": "confirmed",
+      "verdicts": {
+        "node-lookml-parser": {
+          "outcome": "pass",
+          "reasons": []
+        },
+        "openmetadata": {
+          "outcome": "pass",
+          "reasons": []
+        },
+        "datahub": {
+          "outcome": "pass",
+          "reasons": []
+        },
+        "dagster": {
+          "outcome": "pass",
+          "reasons": []
+        }
+      }
+    },
+    {
+      "case": "i08_include_cycle_terminates",
+      "category": "includes",
+      "status": "provisional",
+      "verdicts": {
+        "node-lookml-parser": {
+          "outcome": "pass",
+          "reasons": []
+        },
+        "openmetadata": {
+          "outcome": "fail",
+          "reasons": [
+            "m.orders.sql_table_name: expected 'b', got 'raw.orders'"
+          ]
+        },
+        "datahub": {
+          "outcome": "fail",
+          "reasons": [
+            "m.orders.sql_table_name: expected 'b', got 'raw.orders'"
+          ]
+        },
+        "dagster": {
+          "outcome": "pass",
+          "reasons": []
+        }
+      }
+    },
+    {
+      "case": "i09_dashboard_files_are_not_views",
+      "category": "includes",
+      "status": "confirmed",
+      "verdicts": {
+        "node-lookml-parser": {
+          "outcome": "pass",
+          "reasons": []
+        },
+        "openmetadata": {
+          "outcome": "pass",
+          "reasons": []
+        },
+        "datahub": {
+          "outcome": "pass",
+          "reasons": []
+        },
+        "dagster": {
+          "outcome": "pass",
+          "reasons": []
+        }
+      }
+    },
+    {
+      "case": "e01_extends_inherits_the_refined_base",
+      "category": "extends",
+      "status": "provisional",
+      "verdicts": {
+        "node-lookml-parser": {
+          "outcome": "pass",
+          "reasons": []
+        },
+        "openmetadata": {
+          "outcome": "fail",
+          "reasons": [
+            "main.orders.sql_table_name: expected 'analytics.orders_clean', got 'raw.orders'",
+            "main.orders_ext.sql_table_name: expected 'analytics.orders_clean', got None",
+            "main.orders_ext.fields: expected ['extra', 'id'], got ['extra']"
+          ]
+        },
+        "datahub": {
+          "outcome": "fail",
+          "reasons": [
+            "main.orders.sql_table_name: expected 'analytics.orders_clean', got 'raw.orders'",
+            "main.orders_ext.sql_table_name: expected 'analytics.orders_clean', got 'raw.orders'"
+          ]
+        },
+        "dagster": {
+          "outcome": "pass",
+          "reasons": []
+        }
+      }
+    },
+    {
+      "case": "e02_extends_is_additive_under_refinement",
+      "category": "extends",
+      "status": "confirmed",
+      "verdicts": {
+        "node-lookml-parser": {
+          "outcome": "fail",
+          "reasons": [
+            "m.orders.extends: expected ['base_a', 'base_b'], got ['base_b']"
+          ]
+        },
+        "openmetadata": {
+          "outcome": "fail",
+          "reasons": [
+            "m.orders.sql_table_name: expected 'b.t', got None",
+            "m.orders.fields: expected ['a_field', 'b_field', 'id'], got ['id']",
+            "m.orders.extends: expected ['base_a', 'base_b'], got ['base_a']"
+          ]
+        },
+        "datahub": {
+          "outcome": "fail",
+          "reasons": [
+            "m.orders.sql_table_name: expected 'b.t', got 'a.t'",
+            "m.orders.fields: expected ['a_field', 'b_field', 'id'], got ['a_field', 'id']",
+            "m.orders.extends: expected ['base_a', 'base_b'], got ['base_a']"
+          ]
+        },
+        "dagster": {
+          "outcome": "fail",
+          "reasons": [
+            "m.orders.sql_table_name: expected 'b.t', got 'a.t'",
+            "m.orders.fields: expected ['a_field', 'b_field', 'id'], got ['a_field', 'id']",
+            "m.orders.extends: expected ['base_a', 'base_b'], got ['base_a']"
+          ]
+        }
+      }
+    },
+    {
+      "case": "e03_multiple_extends_last_listed_wins",
+      "category": "extends",
+      "status": "confirmed",
+      "verdicts": {
+        "node-lookml-parser": {
+          "outcome": "pass",
+          "reasons": []
+        },
+        "openmetadata": {
+          "outcome": "fail",
+          "reasons": [
+            "m.combined.sql_table_name: expected 'b.t', got None",
+            "m.combined.fields: expected ['a_field', 'b_field', 'own', 'shared'], got ['own']",
+            "m.combined.shared: field not resolved"
+          ]
+        },
+        "datahub": {
+          "outcome": "fail",
+          "reasons": [
+            "m.combined.fields: expected ['a_field', 'b_field', 'own', 'shared'], got ['b_field', 'own', 'shared']"
+          ]
+        },
+        "dagster": {
+          "outcome": "pass",
+          "reasons": []
+        }
+      }
+    },
+    {
+      "case": "e04_child_overrides_extended_bases",
+      "category": "extends",
+      "status": "confirmed",
+      "verdicts": {
+        "node-lookml-parser": {
+          "outcome": "pass",
+          "reasons": []
+        },
+        "openmetadata": {
+          "outcome": "fail",
+          "reasons": [
+            "m.child.fields: expected ['a_only', 'id'], got ['id']",
+            "m.child.id.sql: expected '${TABLE}.b_id', got None"
+          ]
+        },
+        "datahub": {
+          "outcome": "fail",
+          "reasons": [
+            "m.child.fields: expected ['a_only', 'id'], got ['id']",
+            "m.child.id.sql: expected '${TABLE}.b_id', got None"
+          ]
+        },
+        "dagster": {
+          "outcome": "fail",
+          "reasons": [
+            "m.child.id.sql: expected '${TABLE}.b_id', got None"
+          ]
+        }
+      }
+    },
+    {
+      "case": "m01_model_without_the_refinement_sees_the_base",
+      "category": "model_scope",
+      "status": "confirmed",
+      "verdicts": {
+        "node-lookml-parser": {
+          "outcome": "pass",
+          "reasons": []
+        },
+        "openmetadata": {
+          "outcome": "fail",
+          "reasons": [
+            "refined.orders.sql_table_name: expected 'analytics.orders_clean', got 'raw.orders'",
+            "views that must not exist were exposed: ['+orders']"
+          ]
+        },
+        "datahub": {
+          "outcome": "fail",
+          "reasons": [
+            "refined.orders.sql_table_name: expected 'analytics.orders_clean', got 'raw.orders'"
+          ]
+        },
+        "dagster": {
+          "outcome": "fail",
+          "reasons": [
+            "plain.orders.sql_table_name: expected 'raw.orders', got 'analytics.orders_clean'"
+          ]
+        }
+      }
+    },
+    {
+      "case": "x01_explore_view_name_binds_base_view",
+      "category": "explores",
+      "status": "confirmed",
+      "verdicts": {
+        "node-lookml-parser": {
+          "outcome": "pass",
+          "reasons": []
+        },
+        "openmetadata": {
+          "outcome": "n/a",
+          "reasons": [
+            "adapter does not support explores"
+          ]
+        },
+        "datahub": {
+          "outcome": "fail",
+          "reasons": [
+            "m.explore.customer_orders.label: expected 'Customer Orders', got None"
+          ]
+        },
+        "dagster": {
+          "outcome": "fail",
+          "reasons": [
+            "m.explore.customer_orders.label: expected 'Customer Orders', got None"
+          ]
+        }
+      }
+    },
+    {
+      "case": "x02_explore_from_and_join_from_bind_views",
+      "category": "explores",
+      "status": "confirmed",
+      "verdicts": {
+        "node-lookml-parser": {
+          "outcome": "pass",
+          "reasons": []
+        },
+        "openmetadata": {
+          "outcome": "n/a",
+          "reasons": [
+            "adapter does not support explores"
+          ]
+        },
+        "datahub": {
+          "outcome": "pass",
+          "reasons": []
+        },
+        "dagster": {
+          "outcome": "pass",
+          "reasons": []
+        }
+      }
+    },
+    {
+      "case": "c01_manifest_constant_in_sql_table_name",
+      "category": "constants",
+      "status": "confirmed",
+      "verdicts": {
+        "node-lookml-parser": {
+          "outcome": "fail",
+          "reasons": [
+            "m.orders.sql_table_name: expected 'analytics_prod.orders', got '@{ANALYTICS_SCHEMA}.orders'"
+          ]
+        },
+        "openmetadata": {
+          "outcome": "pass",
+          "reasons": []
+        },
+        "datahub": {
+          "outcome": "pass",
+          "reasons": []
+        },
+        "dagster": {
+          "outcome": "fail",
+          "reasons": [
+            "m.orders.sql_table_name: expected 'analytics_prod.orders', got '@{ANALYTICS_SCHEMA}.orders'"
+          ]
+        }
+      }
+    },
+    {
+      "case": "c02_manifest_constant_in_derived_table_sql",
+      "category": "constants",
+      "status": "confirmed",
+      "verdicts": {
+        "node-lookml-parser": {
+          "outcome": "fail",
+          "reasons": [
+            "m.orders.derived_table.sql: expected 'SELECT id FROM `bq_project.raw.orders`', got 'SELECT id FROM `@{RAW_DATASET}.orders`'"
+          ]
+        },
+        "openmetadata": {
+          "outcome": "pass",
+          "reasons": []
+        },
+        "datahub": {
+          "outcome": "pass",
+          "reasons": []
+        },
+        "dagster": {
+          "outcome": "fail",
+          "reasons": [
+            "m.orders.derived_table.sql: expected 'SELECT id FROM `bq_project.raw.orders`', got 'SELECT id FROM `@{RAW_DATASET}.orders`'"
+          ]
+        }
+      }
+    },
+    {
+      "case": "p01_single_semicolon_inside_sql_block",
+      "category": "syntax",
+      "status": "confirmed",
+      "verdicts": {
+        "node-lookml-parser": {
+          "outcome": "fail",
+          "reasons": [
+            "m.orders.derived_table.sql: expected \"SELECT id FROM raw.orders WHERE note != ';'\", got \"SELECT id FROM raw.orders WHERE note != ';,'\"",
+            "m.orders.cleaned.sql: expected \"REGEXP_REPLACE(${TABLE}.note, ';', '')\", got \"REGEXP_REPLACE(${TABLE}.note, ';,', '')\""
+          ]
+        },
+        "openmetadata": {
+          "outcome": "pass",
+          "reasons": []
+        },
+        "datahub": {
+          "outcome": "pass",
+          "reasons": []
+        },
+        "dagster": {
+          "outcome": "pass",
+          "reasons": []
+        }
+      }
+    },
+    {
+      "case": "p02_hash_inside_sql_block_is_not_lookml_comment",
+      "category": "syntax",
+      "status": "confirmed",
+      "verdicts": {
+        "node-lookml-parser": {
+          "outcome": "pass",
+          "reasons": []
+        },
+        "openmetadata": {
+          "outcome": "pass",
+          "reasons": []
+        },
+        "datahub": {
+          "outcome": "pass",
+          "reasons": []
+        },
+        "dagster": {
+          "outcome": "pass",
+          "reasons": []
+        }
+      }
+    },
+    {
+      "case": "p03_named_fields_errors_and_info",
+      "category": "syntax",
+      "status": "confirmed",
+      "verdicts": {
+        "node-lookml-parser": {
+          "outcome": "fail",
+          "reasons": [
+            "m.orders.info.type: expected 'string', got None",
+            "m.orders.info.sql: expected '${TABLE}.info', got None",
+            "m.orders.errors.type: expected 'count', got None"
+          ]
+        },
+        "openmetadata": {
+          "outcome": "pass",
+          "reasons": []
+        },
+        "datahub": {
+          "outcome": "pass",
+          "reasons": []
+        },
+        "dagster": {
+          "outcome": "pass",
+          "reasons": []
+        }
+      }
+    }
+  ]
+}
