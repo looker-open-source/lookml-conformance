@@ -1,0 +1,54 @@
+[build-system]
+requires = ["hatchling>=1.24"]
+build-backend = "hatchling.build"
+
+[project]
+name = "lookml-conformance"
+version = "0.1.0"
+description = "Conformance suite for tools that resolve LookML projects: includes, refinements, extends and model scope."
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [{ name = "Joseph Axisa" }]
+keywords = ["looker", "lookml", "conformance", "lineage", "metadata"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Topic :: Software Development :: Testing",
+]
+dependencies = []
+
+[project.urls]
+Homepage = "https://josephaxisa.github.io/lookml-conformance/"
+Repository = "https://github.com/josephaxisa/lookml-conformance"
+
+[project.scripts]
+lookml-conformance = "lookml_conformance.cli:main"
+
+[dependency-groups]
+dev = ["pytest>=8.3", "pytest-cov>=5", "ruff>=0.6", "mypy>=1.11"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/lookml_conformance"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = ["--strict-markers"]
+markers = ["integration: runs a real tool through its adapter (skipped when the tool is not installed)"]
+
+[tool.coverage.run]
+source = ["lookml_conformance"]
+omit = ["*/lookml_conformance/adapters/datahub.py", "*/lookml_conformance/adapters/dagster.py", "*/lookml_conformance/adapters/openmetadata.py"]
+
+[tool.ruff]
+line-length = 110
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "SIM", "RUF", "PT", "RET", "C4"]
+
+[tool.mypy]
+python_version = "3.10"
+strict = true
+files = ["src/lookml_conformance"]
+exclude = ["src/lookml_conformance/adapters/(datahub|dagster|openmetadata)\\.py"]

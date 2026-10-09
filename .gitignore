@@ -1,0 +1,17 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+.coverage
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+build/
+dist/
+node_modules/
+
+# Tool environments created by scripts/setup-envs.sh
+.envs/
+
+# Private notes on upstream bugs, kept out of the public repo until the PRs are filed
+.upstream/
