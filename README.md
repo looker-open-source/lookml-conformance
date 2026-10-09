@@ -6,8 +6,8 @@ parsers and linters that read LookML from git instead of asking a Looker instanc
 Parsing a `.lkml` file is the easy part; [`lkml`](https://github.com/joshtemple/lkml) does it well.
 The hard part is resolving a project the way Looker does: following `include:` statements per
 model, applying refinements in include order, merging `extends`, and substituting manifest
-constants. Every tool that builds lineage from LookML implements this resolution itself. This suite
-checks those implementations against the Looker documentation.
+constants. Every tool that builds lineage from LookML implements this resolution itself, and then
+traces each view to the tables it reads. This suite checks both against the Looker documentation.
 
 Results and case explorer: https://josephaxisa.github.io/lookml-conformance/
 
@@ -18,15 +18,16 @@ Released versions, scored on 2026-10-09 ([full scorecard](results/latest.md)):
 | Tool | Version | Confirmed | Provisional | All |
 | --- | --- | ---: | ---: | ---: |
 | [node-lookml-parser](https://github.com/fabio-looker/node-lookml-parser) | `lookml-parser` 9.1.0 | 19 / 27 | 6 / 7 | **25 / 34** |
-| [Dagster](https://github.com/dagster-io/dagster) | `dagster-looker` 0.29.25 | 9 / 27 | 3 / 7 | **12 / 34** |
-| [DataHub](https://github.com/datahub-project/datahub) | `acryl-datahub[lookml]` 1.7.0.14 | 9 / 27 | 1 / 7 | **10 / 34** |
-| [OpenMetadata](https://github.com/open-metadata/OpenMetadata) | `openmetadata-ingestion[looker]` 2.0.5.0 | 8 / 25 | 1 / 7 | **9 / 32** |
+| [Dagster](https://github.com/dagster-io/dagster) | `dagster-looker` 0.29.25 | 12 / 32 | 3 / 7 | **15 / 39** |
+| [DataHub](https://github.com/datahub-project/datahub) | `acryl-datahub[lookml]` 1.7.0.14 | 13 / 32 | 1 / 7 | **14 / 39** |
+| [OpenMetadata](https://github.com/open-metadata/OpenMetadata) | `openmetadata-ingestion[looker]` 2.0.5.0 | 10 / 30 | 1 / 7 | **11 / 37** |
 
 OpenMetadata reads explores from the Looker API, so the two explore cases do not apply to it.
+node-lookml-parser builds no lineage, so the five lineage cases do not apply to it.
 
 ## Cases
 
-34 cases in seven categories. [CASES.md](CASES.md) lists each one with its rule and quotes.
+39 cases in eight categories. [CASES.md](CASES.md) lists each one with its rule and quotes.
 
 | Category | Cases | What it covers |
 | --- | ---: | --- |
@@ -36,6 +37,7 @@ OpenMetadata reads explores from the Looker API, so the two explore cases do not
 | Model scope | 1 | A refinement does not leak into a model that does not include it |
 | Explores | 2 | `view_name`, `from`, join `from`, explore refinements |
 | Constants | 2 | `@{NAME}` in `sql_table_name` and derived table SQL |
+| Lineage | 5 | `${view.SQL_TABLE_NAME}` in derived tables, chains of derived tables, references to refined views, native derived tables |
 | Syntax | 3 | `;` and `#` inside SQL blocks, fields named `errors` and `info` |
 
 A case is a directory with a minimal LookML project and a `case.json` that states the rule, quotes
@@ -57,7 +59,7 @@ the Looker documentation it comes from, and lists the expected resolution per mo
 }
 ```
 
-Cases are **confirmed** when the expectation follows from the quoted documentation (27 cases) and
+Cases are **confirmed** when the expectation follows from the quoted documentation (32 cases) and
 **provisional** when the documentation leaves the behavior open (7 cases). A provisional case states
 the open question and names the public source its expectation is pinned to, until it is checked on
 a Looker instance. `lookml-conformance check-citations` fetches every cited page and fails if a

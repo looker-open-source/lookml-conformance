@@ -15,8 +15,9 @@ the public source its expectation is pinned to.
 | [Model scope](#model-scope) | 1 | 1 | 0 |
 | [Explores](#explores) | 2 | 2 | 0 |
 | [Constants](#constants) | 2 | 2 | 0 |
+| [Lineage](#lineage) | 5 | 5 | 0 |
 | [Syntax](#syntax) | 3 | 3 | 0 |
-| **Total** | 34 | 27 | 7 |
+| **Total** | 39 | 32 | 7 |
 
 ## Refinements
 
@@ -447,6 +448,72 @@ Rule: @{NAME} inside derived_table SQL is replaced with the value of the manifes
 > Constants can be referenced anywhere in the model where strings are accepted<br>[param-manifest-constant](https://docs.cloud.google.com/looker/docs/reference/param-manifest-constant)
 
 Files: [`case.json`](cases/constants/c02_manifest_constant_in_derived_table_sql/case.json) · [`project/`](cases/constants/c02_manifest_constant_in_derived_table_sql/project)
+
+## Lineage
+
+### `l01_derived_table_reads_view_table`
+
+**Derived table SQL that reads ${orders.SQL_TABLE_NAME} reads the orders table.** *confirmed*
+
+Rule: A ${view.SQL_TABLE_NAME} reference in derived table SQL reads the table of the referenced view.
+
+> ${view_name.SQL_TABLE_NAME} references another view or derived table.<br>[sql-and-referring-to-lookml#substitution_operator_($)](https://docs.cloud.google.com/looker/docs/sql-and-referring-to-lookml#substitution_operator_($))
+
+> In addition to referencing normal database tables, you can also reference LookML views or derived tables in sql.<br>[param-view-sql-for-derived-table#definition](https://docs.cloud.google.com/looker/docs/reference/param-view-sql-for-derived-table#definition)
+
+Why: order_facts.view.lkml comes before orders.view.lkml in path order, so a tool that resolves references while reading files in that order has not seen orders when it reads order_facts. The reference names a view of the model, wherever that view is defined.
+
+Files: [`case.json`](cases/lineage/l01_derived_table_reads_view_table/case.json) · [`project/`](cases/lineage/l01_derived_table_reads_view_table/project)
+
+### `l02_chained_derived_tables_reach_the_base_table`
+
+**A derived table built on another derived table reaches the base table.** *confirmed*
+
+Rule: A derived table that reads another derived table through ${view.SQL_TABLE_NAME} reads the tables that derived table reads.
+
+> ${view_name.SQL_TABLE_NAME} references another view or derived table.<br>[sql-and-referring-to-lookml#substitution_operator_($)](https://docs.cloud.google.com/looker/docs/sql-and-referring-to-lookml#substitution_operator_($))
+
+Why: orders_rollup_repeat reads orders_rollup, and orders_rollup reads orders, so raw.orders is the only table upstream of orders_rollup_repeat.
+
+Files: [`case.json`](cases/lineage/l02_chained_derived_tables_reach_the_base_table/case.json) · [`project/`](cases/lineage/l02_chained_derived_tables_reach_the_base_table/project)
+
+### `l03_derived_table_reads_a_table_and_a_view`
+
+**Derived table SQL can read a table and a view together.** *confirmed*
+
+Rule: When derived table SQL reads a table directly and a view through ${view.SQL_TABLE_NAME}, both tables are upstream.
+
+> In addition to referencing normal database tables, you can also reference LookML views or derived tables in sql.<br>[param-view-sql-for-derived-table#definition](https://docs.cloud.google.com/looker/docs/reference/param-view-sql-for-derived-table#definition)
+
+Files: [`case.json`](cases/lineage/l03_derived_table_reads_a_table_and_a_view/case.json) · [`project/`](cases/lineage/l03_derived_table_reads_a_table_and_a_view/project)
+
+### `l04_reference_follows_the_refined_table`
+
+**A ${view.SQL_TABLE_NAME} reference follows the view's refined table.** *confirmed*
+
+Rule: A reference to a refined view reads the table the refinement sets, not the base view's table.
+
+> in most cases a refinement will override the original settings of an object<br>[lookml-refinements#refinements_override_parameters](https://docs.cloud.google.com/looker/docs/lookml-refinements#refinements_override_parameters)
+
+> ${view_name.SQL_TABLE_NAME} references another view or derived table.<br>[sql-and-referring-to-lookml#substitution_operator_($)](https://docs.cloud.google.com/looker/docs/sql-and-referring-to-lookml#substitution_operator_($))
+
+Why: The refinement replaces sql_table_name on orders, and the reference reads the orders view as the model resolves it.
+
+Files: [`case.json`](cases/lineage/l04_reference_follows_the_refined_table/case.json) · [`project/`](cases/lineage/l04_reference_follows_the_refined_table/project)
+
+### `l05_native_derived_table_reads_its_explore`
+
+**A native derived table reads the tables of the explore it is built on.** *confirmed*
+
+Rule: A native derived table is a query on the explore named in explore_source, so the tables of the views its columns use are upstream.
+
+> Looker creates the query for you by using the specified Explore<br>[creating-ndts#defining_an_ndt_in_lookml](https://docs.cloud.google.com/looker/docs/creating-ndts#defining_an_ndt_in_lookml)
+
+> the column name matches the name of the specified field in the original Explore<br>[creating-ndts](https://docs.cloud.google.com/looker/docs/creating-ndts)
+
+Why: The columns take users.country and orders.count from the orders explore, so the query reads the orders view and the joined users view.
+
+Files: [`case.json`](cases/lineage/l05_native_derived_table_reads_its_explore/case.json) · [`project/`](cases/lineage/l05_native_derived_table_reads_its_explore/project)
 
 ## Syntax
 

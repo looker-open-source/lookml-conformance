@@ -1,0 +1,26 @@
+{
+  "id": "l03_derived_table_reads_a_table_and_a_view",
+  "title": "Derived table SQL can read a table and a view together",
+  "rule": "When derived table SQL reads a table directly and a view through ${view.SQL_TABLE_NAME}, both tables are upstream.",
+  "status": "confirmed",
+  "citations": [
+    {
+      "url": "https://docs.cloud.google.com/looker/docs/reference/param-view-sql-for-derived-table#definition",
+      "quote": "In addition to referencing normal database tables, you can also reference LookML views or derived tables in sql."
+    }
+  ],
+  "expect": {
+    "models": {
+      "m": {
+        "views": {
+          "orders_by_customer": {
+            "upstream_tables": [
+              "raw.customers",
+              "raw.orders"
+            ]
+          }
+        }
+      }
+    }
+  }
+}

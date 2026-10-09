@@ -1,0 +1,30 @@
+{
+  "id": "l01_derived_table_reads_view_table",
+  "title": "Derived table SQL that reads ${orders.SQL_TABLE_NAME} reads the orders table",
+  "rule": "A ${view.SQL_TABLE_NAME} reference in derived table SQL reads the table of the referenced view.",
+  "status": "confirmed",
+  "citations": [
+    {
+      "url": "https://docs.cloud.google.com/looker/docs/sql-and-referring-to-lookml#substitution_operator_($)",
+      "quote": "${view_name.SQL_TABLE_NAME} references another view or derived table."
+    },
+    {
+      "url": "https://docs.cloud.google.com/looker/docs/reference/param-view-sql-for-derived-table#definition",
+      "quote": "In addition to referencing normal database tables, you can also reference LookML views or derived tables in sql."
+    }
+  ],
+  "rationale": "order_facts.view.lkml comes before orders.view.lkml in path order, so a tool that resolves references while reading files in that order has not seen orders when it reads order_facts. The reference names a view of the model, wherever that view is defined.",
+  "expect": {
+    "models": {
+      "m": {
+        "views": {
+          "order_facts": {
+            "upstream_tables": [
+              "raw.orders"
+            ]
+          }
+        }
+      }
+    }
+  }
+}

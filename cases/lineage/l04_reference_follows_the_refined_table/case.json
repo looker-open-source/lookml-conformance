@@ -1,0 +1,30 @@
+{
+  "id": "l04_reference_follows_the_refined_table",
+  "title": "A ${view.SQL_TABLE_NAME} reference follows the view's refined table",
+  "rule": "A reference to a refined view reads the table the refinement sets, not the base view's table.",
+  "status": "confirmed",
+  "citations": [
+    {
+      "url": "https://docs.cloud.google.com/looker/docs/lookml-refinements#refinements_override_parameters",
+      "quote": "in most cases a refinement will override the original settings of an object"
+    },
+    {
+      "url": "https://docs.cloud.google.com/looker/docs/sql-and-referring-to-lookml#substitution_operator_($)",
+      "quote": "${view_name.SQL_TABLE_NAME} references another view or derived table."
+    }
+  ],
+  "rationale": "The refinement replaces sql_table_name on orders, and the reference reads the orders view as the model resolves it.",
+  "expect": {
+    "models": {
+      "m": {
+        "views": {
+          "orders_rollup": {
+            "upstream_tables": [
+              "analytics.orders_clean"
+            ]
+          }
+        }
+      }
+    }
+  }
+}

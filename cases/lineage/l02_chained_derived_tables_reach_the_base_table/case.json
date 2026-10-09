@@ -1,0 +1,26 @@
+{
+  "id": "l02_chained_derived_tables_reach_the_base_table",
+  "title": "A derived table built on another derived table reaches the base table",
+  "rule": "A derived table that reads another derived table through ${view.SQL_TABLE_NAME} reads the tables that derived table reads.",
+  "status": "confirmed",
+  "citations": [
+    {
+      "url": "https://docs.cloud.google.com/looker/docs/sql-and-referring-to-lookml#substitution_operator_($)",
+      "quote": "${view_name.SQL_TABLE_NAME} references another view or derived table."
+    }
+  ],
+  "rationale": "orders_rollup_repeat reads orders_rollup, and orders_rollup reads orders, so raw.orders is the only table upstream of orders_rollup_repeat.",
+  "expect": {
+    "models": {
+      "m": {
+        "views": {
+          "orders_rollup_repeat": {
+            "upstream_tables": [
+              "raw.orders"
+            ]
+          }
+        }
+      }
+    }
+  }
+}

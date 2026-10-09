@@ -112,6 +112,9 @@ function renderImpact(data) {
   const extendsPassed = extendsTotals.reduce((s, t) => s + t.passed, 0);
   const extendsApplicable = extendsTotals.reduce((s, t) => s + t.applicable, 0);
 
+  const lineageCases = inCategory("lineage");
+  const bestLineage = Math.max(...lineage.map((t) => tally(data, t.name, lineageCases).passed));
+
   const cards = [
     {
       big: [bestRefinements, ` / ${refinements.length}`],
@@ -127,6 +130,11 @@ function renderImpact(data) {
       big: [extendsPassed, ` / ${extendsApplicable}`],
       title: "Extended views lose their parents",
       text: `Across the lineage tools, ${extendsPassed} of ${extendsApplicable} extends results are right. Views that extend several views, or gain extends through a refinement, lose tables and fields.`,
+    },
+    {
+      big: [bestLineage, ` / ${lineageCases.length}`],
+      title: "Derived tables lose their sources",
+      text: `The best lineage tool passes ${bestLineage} of the ${lineageCases.length} lineage cases. They cover \${view.SQL_TABLE_NAME} references, chains of derived tables, references to refined views and native derived tables.`,
     },
   ];
   $("#impact-cards").replaceChildren(

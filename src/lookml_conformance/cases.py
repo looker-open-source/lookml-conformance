@@ -25,7 +25,16 @@ PROJECT_DIR = "project"
 IMPORTED_PROJECTS_DIR = "imported_projects"
 MODEL_SUFFIX = ".model.lkml"
 
-CATEGORIES = ("refinements", "includes", "extends", "model_scope", "explores", "constants", "syntax")
+CATEGORIES = (
+    "refinements",
+    "includes",
+    "extends",
+    "model_scope",
+    "explores",
+    "constants",
+    "lineage",
+    "syntax",
+)
 CAPABILITIES = ("explores", "imported_projects", "constants", "lineage")
 
 VIEW_KEYS = frozenset(

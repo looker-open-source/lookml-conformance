@@ -25,7 +25,7 @@ def test_the_suite_covers_every_category() -> None:
 
 def test_case_ids_carry_a_category_prefix() -> None:
     prefixes = {"refinements": "r", "includes": "i", "extends": "e", "model_scope": "m", "explores": "x",
-                "constants": "c", "syntax": "p"}  # fmt: skip
+                "constants": "c", "lineage": "l", "syntax": "p"}  # fmt: skip
     assert [case.id for case in CASES if not case.id.startswith(prefixes[case.category])] == []
 
 

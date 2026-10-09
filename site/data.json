@@ -1,11 +1,11 @@
 {
  "date": "2026-10-09",
  "suite": {
-  "cases": 34,
-  "confirmed": 27,
+  "cases": 39,
+  "confirmed": 32,
   "provisional": 7,
-  "citations": 66,
-  "pages": 12
+  "citations": 74,
+  "pages": 15
  },
  "categories": [
   {
@@ -31,6 +31,10 @@
   {
    "id": "constants",
    "title": "Constants"
+  },
+  {
+   "id": "lineage",
+   "title": "Lineage"
   },
   {
    "id": "syntax",
@@ -71,12 +75,12 @@
    "version": "2.0.5.0",
    "score": {
     "all": {
-     "passed": 9,
-     "applicable": 32
+     "passed": 11,
+     "applicable": 37
     },
     "confirmed": {
-     "passed": 8,
-     "applicable": 25
+     "passed": 10,
+     "applicable": 30
     },
     "provisional": {
      "passed": 1,
@@ -94,12 +98,12 @@
    "version": "1.7.0.14",
    "score": {
     "all": {
-     "passed": 10,
-     "applicable": 34
+     "passed": 14,
+     "applicable": 39
     },
     "confirmed": {
-     "passed": 9,
-     "applicable": 27
+     "passed": 13,
+     "applicable": 32
     },
     "provisional": {
      "passed": 1,
@@ -117,12 +121,12 @@
    "version": "0.29.25",
    "score": {
     "all": {
-     "passed": 12,
-     "applicable": 34
+     "passed": 15,
+     "applicable": 39
     },
     "confirmed": {
-     "passed": 9,
-     "applicable": 27
+     "passed": 12,
+     "applicable": 32
     },
     "provisional": {
      "passed": 3,
@@ -2614,6 +2618,377 @@
      "outcome": "fail",
      "reasons": [
       "m.orders.derived_table.sql: expected 'SELECT id FROM `bq_project.raw.orders`', got 'SELECT id FROM `@{RAW_DATASET}.orders`'"
+     ]
+    }
+   }
+  },
+  {
+   "id": "l01_derived_table_reads_view_table",
+   "category": "lineage",
+   "title": "Derived table SQL that reads ${orders.SQL_TABLE_NAME} reads the orders table",
+   "rule": "A ${view.SQL_TABLE_NAME} reference in derived table SQL reads the table of the referenced view.",
+   "status": "confirmed",
+   "citations": [
+    {
+     "url": "https://docs.cloud.google.com/looker/docs/sql-and-referring-to-lookml#substitution_operator_($)",
+     "quote": "${view_name.SQL_TABLE_NAME} references another view or derived table.",
+     "label": "sql-and-referring-to-lookml#substitution_operator_($)"
+    },
+    {
+     "url": "https://docs.cloud.google.com/looker/docs/reference/param-view-sql-for-derived-table#definition",
+     "quote": "In addition to referencing normal database tables, you can also reference LookML views or derived tables in sql.",
+     "label": "param-view-sql-for-derived-table#definition"
+    }
+   ],
+   "rationale": "order_facts.view.lkml comes before orders.view.lkml in path order, so a tool that resolves references while reading files in that order has not seen orders when it reads order_facts. The reference names a view of the model, wherever that view is defined.",
+   "provisional": null,
+   "invalid_in_looker": false,
+   "expect": {
+    "models": {
+     "m": {
+      "views": {
+       "order_facts": {
+        "upstream_tables": [
+         "raw.orders"
+        ]
+       }
+      },
+      "explores": {}
+     }
+    },
+    "absent_views": []
+   },
+   "files": [
+    {
+     "path": "m.model.lkml",
+     "content": "connection: \"wh\"\ninclude: \"/views/*.view.lkml\"\n"
+    },
+    {
+     "path": "views/order_facts.view.lkml",
+     "content": "view: order_facts {\n  derived_table: {\n    sql: SELECT customer_id, COUNT(*) AS order_count\n      FROM ${orders.SQL_TABLE_NAME}\n      GROUP BY 1 ;;\n  }\n  dimension: customer_id { sql: ${TABLE}.customer_id ;; }\n}\n"
+    },
+    {
+     "path": "views/orders.view.lkml",
+     "content": "view: orders {\n  sql_table_name: raw.orders ;;\n  dimension: id { sql: ${TABLE}.id ;; }\n}\n"
+    }
+   ],
+   "verdicts": {
+    "node-lookml-parser": {
+     "outcome": "n/a",
+     "reasons": [
+      "adapter does not support lineage"
+     ]
+    },
+    "openmetadata": {
+     "outcome": "fail",
+     "reasons": [
+      "m.order_facts.upstream_tables: expected ['raw.orders'], got []; reported upstream: []"
+     ]
+    },
+    "datahub": {
+     "outcome": "pass",
+     "reasons": []
+    },
+    "dagster": {
+     "outcome": "pass",
+     "reasons": []
+    }
+   }
+  },
+  {
+   "id": "l02_chained_derived_tables_reach_the_base_table",
+   "category": "lineage",
+   "title": "A derived table built on another derived table reaches the base table",
+   "rule": "A derived table that reads another derived table through ${view.SQL_TABLE_NAME} reads the tables that derived table reads.",
+   "status": "confirmed",
+   "citations": [
+    {
+     "url": "https://docs.cloud.google.com/looker/docs/sql-and-referring-to-lookml#substitution_operator_($)",
+     "quote": "${view_name.SQL_TABLE_NAME} references another view or derived table.",
+     "label": "sql-and-referring-to-lookml#substitution_operator_($)"
+    }
+   ],
+   "rationale": "orders_rollup_repeat reads orders_rollup, and orders_rollup reads orders, so raw.orders is the only table upstream of orders_rollup_repeat.",
+   "provisional": null,
+   "invalid_in_looker": false,
+   "expect": {
+    "models": {
+     "m": {
+      "views": {
+       "orders_rollup_repeat": {
+        "upstream_tables": [
+         "raw.orders"
+        ]
+       }
+      },
+      "explores": {}
+     }
+    },
+    "absent_views": []
+   },
+   "files": [
+    {
+     "path": "m.model.lkml",
+     "content": "connection: \"wh\"\ninclude: \"/views/*.view.lkml\"\n"
+    },
+    {
+     "path": "views/orders.view.lkml",
+     "content": "view: orders {\n  sql_table_name: raw.orders ;;\n  dimension: id { sql: ${TABLE}.id ;; }\n}\n"
+    },
+    {
+     "path": "views/orders_rollup.view.lkml",
+     "content": "view: orders_rollup {\n  derived_table: {\n    sql: SELECT customer_id, COUNT(*) AS order_count\n      FROM ${orders.SQL_TABLE_NAME}\n      GROUP BY 1 ;;\n  }\n  dimension: customer_id { sql: ${TABLE}.customer_id ;; }\n}\n"
+    },
+    {
+     "path": "views/orders_rollup_repeat.view.lkml",
+     "content": "view: orders_rollup_repeat {\n  derived_table: {\n    sql: SELECT customer_id, order_count\n      FROM ${orders_rollup.SQL_TABLE_NAME}\n      WHERE order_count > 1 ;;\n  }\n  dimension: customer_id { sql: ${TABLE}.customer_id ;; }\n}\n"
+    }
+   ],
+   "verdicts": {
+    "node-lookml-parser": {
+     "outcome": "n/a",
+     "reasons": [
+      "adapter does not support lineage"
+     ]
+    },
+    "openmetadata": {
+     "outcome": "pass",
+     "reasons": []
+    },
+    "datahub": {
+     "outcome": "pass",
+     "reasons": []
+    },
+    "dagster": {
+     "outcome": "pass",
+     "reasons": []
+    }
+   }
+  },
+  {
+   "id": "l03_derived_table_reads_a_table_and_a_view",
+   "category": "lineage",
+   "title": "Derived table SQL can read a table and a view together",
+   "rule": "When derived table SQL reads a table directly and a view through ${view.SQL_TABLE_NAME}, both tables are upstream.",
+   "status": "confirmed",
+   "citations": [
+    {
+     "url": "https://docs.cloud.google.com/looker/docs/reference/param-view-sql-for-derived-table#definition",
+     "quote": "In addition to referencing normal database tables, you can also reference LookML views or derived tables in sql.",
+     "label": "param-view-sql-for-derived-table#definition"
+    }
+   ],
+   "rationale": null,
+   "provisional": null,
+   "invalid_in_looker": false,
+   "expect": {
+    "models": {
+     "m": {
+      "views": {
+       "orders_by_customer": {
+        "upstream_tables": [
+         "raw.customers",
+         "raw.orders"
+        ]
+       }
+      },
+      "explores": {}
+     }
+    },
+    "absent_views": []
+   },
+   "files": [
+    {
+     "path": "m.model.lkml",
+     "content": "connection: \"wh\"\ninclude: \"/views/*.view.lkml\"\n"
+    },
+    {
+     "path": "views/orders.view.lkml",
+     "content": "view: orders {\n  sql_table_name: raw.orders ;;\n  dimension: id { sql: ${TABLE}.id ;; }\n}\n"
+    },
+    {
+     "path": "views/orders_by_customer.view.lkml",
+     "content": "view: orders_by_customer {\n  derived_table: {\n    sql: SELECT c.id AS customer_id, COUNT(o.id) AS order_count\n      FROM raw.customers AS c\n      LEFT JOIN ${orders.SQL_TABLE_NAME} AS o ON o.customer_id = c.id\n      GROUP BY 1 ;;\n  }\n  dimension: customer_id { sql: ${TABLE}.customer_id ;; }\n}\n"
+    }
+   ],
+   "verdicts": {
+    "node-lookml-parser": {
+     "outcome": "n/a",
+     "reasons": [
+      "adapter does not support lineage"
+     ]
+    },
+    "openmetadata": {
+     "outcome": "pass",
+     "reasons": []
+    },
+    "datahub": {
+     "outcome": "pass",
+     "reasons": []
+    },
+    "dagster": {
+     "outcome": "fail",
+     "reasons": [
+      "m.orders_by_customer.upstream_tables: expected ['raw.customers', 'raw.orders'], got ['raw.orders']; reported upstream: ['view orders']"
+     ]
+    }
+   }
+  },
+  {
+   "id": "l04_reference_follows_the_refined_table",
+   "category": "lineage",
+   "title": "A ${view.SQL_TABLE_NAME} reference follows the view's refined table",
+   "rule": "A reference to a refined view reads the table the refinement sets, not the base view's table.",
+   "status": "confirmed",
+   "citations": [
+    {
+     "url": "https://docs.cloud.google.com/looker/docs/lookml-refinements#refinements_override_parameters",
+     "quote": "in most cases a refinement will override the original settings of an object",
+     "label": "lookml-refinements#refinements_override_parameters"
+    },
+    {
+     "url": "https://docs.cloud.google.com/looker/docs/sql-and-referring-to-lookml#substitution_operator_($)",
+     "quote": "${view_name.SQL_TABLE_NAME} references another view or derived table.",
+     "label": "sql-and-referring-to-lookml#substitution_operator_($)"
+    }
+   ],
+   "rationale": "The refinement replaces sql_table_name on orders, and the reference reads the orders view as the model resolves it.",
+   "provisional": null,
+   "invalid_in_looker": false,
+   "expect": {
+    "models": {
+     "m": {
+      "views": {
+       "orders_rollup": {
+        "upstream_tables": [
+         "analytics.orders_clean"
+        ]
+       }
+      },
+      "explores": {}
+     }
+    },
+    "absent_views": []
+   },
+   "files": [
+    {
+     "path": "m.model.lkml",
+     "content": "connection: \"wh\"\ninclude: \"/views/*.view.lkml\"\n"
+    },
+    {
+     "path": "views/orders.view.lkml",
+     "content": "view: orders {\n  sql_table_name: raw.orders ;;\n  dimension: id { sql: ${TABLE}.id ;; }\n}\n"
+    },
+    {
+     "path": "views/orders_refinements.view.lkml",
+     "content": "include: \"/views/orders.view.lkml\"\nview: +orders {\n  sql_table_name: analytics.orders_clean ;;\n}\n"
+    },
+    {
+     "path": "views/orders_rollup.view.lkml",
+     "content": "view: orders_rollup {\n  derived_table: {\n    sql: SELECT customer_id, COUNT(*) AS order_count\n      FROM ${orders.SQL_TABLE_NAME}\n      GROUP BY 1 ;;\n  }\n  dimension: customer_id { sql: ${TABLE}.customer_id ;; }\n}\n"
+    }
+   ],
+   "verdicts": {
+    "node-lookml-parser": {
+     "outcome": "n/a",
+     "reasons": [
+      "adapter does not support lineage"
+     ]
+    },
+    "openmetadata": {
+     "outcome": "fail",
+     "reasons": [
+      "m.orders_rollup.upstream_tables: expected ['analytics.orders_clean'], got ['raw.orders']; reported upstream: ['table raw.orders']"
+     ]
+    },
+    "datahub": {
+     "outcome": "fail",
+     "reasons": [
+      "m.orders_rollup.upstream_tables: expected ['analytics.orders_clean'], got ['raw.orders']; reported upstream: ['view orders']"
+     ]
+    },
+    "dagster": {
+     "outcome": "pass",
+     "reasons": []
+    }
+   }
+  },
+  {
+   "id": "l05_native_derived_table_reads_its_explore",
+   "category": "lineage",
+   "title": "A native derived table reads the tables of the explore it is built on",
+   "rule": "A native derived table is a query on the explore named in explore_source, so the tables of the views its columns use are upstream.",
+   "status": "confirmed",
+   "citations": [
+    {
+     "url": "https://docs.cloud.google.com/looker/docs/creating-ndts#defining_an_ndt_in_lookml",
+     "quote": "Looker creates the query for you by using the specified Explore",
+     "label": "creating-ndts#defining_an_ndt_in_lookml"
+    },
+    {
+     "url": "https://docs.cloud.google.com/looker/docs/creating-ndts",
+     "quote": "the column name matches the name of the specified field in the original Explore",
+     "label": "creating-ndts"
+    }
+   ],
+   "rationale": "The columns take users.country and orders.count from the orders explore, so the query reads the orders view and the joined users view.",
+   "provisional": null,
+   "invalid_in_looker": false,
+   "expect": {
+    "models": {
+     "m": {
+      "views": {
+       "orders_by_country": {
+        "upstream_tables": [
+         "raw.orders",
+         "raw.users"
+        ]
+       }
+      },
+      "explores": {}
+     }
+    },
+    "absent_views": []
+   },
+   "files": [
+    {
+     "path": "m.model.lkml",
+     "content": "connection: \"wh\"\ninclude: \"/views/*.view.lkml\"\nexplore: orders {\n  join: users {\n    sql_on: ${orders.user_id} = ${users.id} ;;\n    relationship: many_to_one\n  }\n}\n"
+    },
+    {
+     "path": "views/orders.view.lkml",
+     "content": "view: orders {\n  sql_table_name: raw.orders ;;\n  dimension: id { sql: ${TABLE}.id ;; }\n  dimension: user_id { sql: ${TABLE}.user_id ;; }\n  measure: count { type: count }\n}\n"
+    },
+    {
+     "path": "views/orders_by_country.view.lkml",
+     "content": "view: orders_by_country {\n  derived_table: {\n    explore_source: orders {\n      column: country { field: users.country }\n      column: order_count { field: orders.count }\n    }\n  }\n  dimension: country {}\n  dimension: order_count { type: number }\n}\n"
+    },
+    {
+     "path": "views/users.view.lkml",
+     "content": "view: users {\n  sql_table_name: raw.users ;;\n  dimension: id { sql: ${TABLE}.id ;; }\n  dimension: country { sql: ${TABLE}.country ;; }\n}\n"
+    }
+   ],
+   "verdicts": {
+    "node-lookml-parser": {
+     "outcome": "n/a",
+     "reasons": [
+      "adapter does not support lineage"
+     ]
+    },
+    "openmetadata": {
+     "outcome": "fail",
+     "reasons": [
+      "m.orders_by_country.upstream_tables: expected ['raw.orders', 'raw.users'], got []; reported upstream: []"
+     ]
+    },
+    "datahub": {
+     "outcome": "pass",
+     "reasons": []
+    },
+    "dagster": {
+     "outcome": "fail",
+     "reasons": [
+      "m.orders_by_country.upstream_tables: expected ['raw.orders', 'raw.users'], got ['orders_by_country']; reported upstream: ['table orders_by_country']"
      ]
     }
    }

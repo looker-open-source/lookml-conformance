@@ -1,0 +1,31 @@
+{
+  "id": "l05_native_derived_table_reads_its_explore",
+  "title": "A native derived table reads the tables of the explore it is built on",
+  "rule": "A native derived table is a query on the explore named in explore_source, so the tables of the views its columns use are upstream.",
+  "status": "confirmed",
+  "citations": [
+    {
+      "url": "https://docs.cloud.google.com/looker/docs/creating-ndts#defining_an_ndt_in_lookml",
+      "quote": "Looker creates the query for you by using the specified Explore"
+    },
+    {
+      "url": "https://docs.cloud.google.com/looker/docs/creating-ndts",
+      "quote": "the column name matches the name of the specified field in the original Explore"
+    }
+  ],
+  "rationale": "The columns take users.country and orders.count from the orders explore, so the query reads the orders view and the joined users view.",
+  "expect": {
+    "models": {
+      "m": {
+        "views": {
+          "orders_by_country": {
+            "upstream_tables": [
+              "raw.orders",
+              "raw.users"
+            ]
+          }
+        }
+      }
+    }
+  }
+}

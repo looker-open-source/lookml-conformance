@@ -7,9 +7,9 @@
 | Tool | Version | confirmed | provisional | All |
 | --- | --- | --- | --- | --- |
 | node-lookml-parser | `9.1.0` | 19 / 27 | 6 / 7 | **25 / 34** |
-| OpenMetadata | `2.0.5.0` | 8 / 25 | 1 / 7 | **9 / 32** |
-| DataHub | `1.7.0.14` | 9 / 27 | 1 / 7 | **10 / 34** |
-| Dagster | `0.29.25` | 9 / 27 | 3 / 7 | **12 / 34** |
+| OpenMetadata | `2.0.5.0` | 10 / 30 | 1 / 7 | **11 / 37** |
+| DataHub | `1.7.0.14` | 13 / 32 | 1 / 7 | **14 / 39** |
+| Dagster | `0.29.25` | 12 / 32 | 3 / 7 | **15 / 39** |
 
 ## Results
 
@@ -46,6 +46,11 @@
 | `x02_explore_from_and_join_from_bind_views` | confirmed | ✅ | N/A | ✅ | ✅ |
 | `c01_manifest_constant_in_sql_table_name` | confirmed | ❌ | ✅ | ✅ | ❌ |
 | `c02_manifest_constant_in_derived_table_sql` | confirmed | ❌ | ✅ | ✅ | ❌ |
+| `l01_derived_table_reads_view_table` | confirmed | N/A | ❌ | ✅ | ✅ |
+| `l02_chained_derived_tables_reach_the_base_table` | confirmed | N/A | ✅ | ✅ | ✅ |
+| `l03_derived_table_reads_a_table_and_a_view` | confirmed | N/A | ✅ | ✅ | ❌ |
+| `l04_reference_follows_the_refined_table` | confirmed | N/A | ❌ | ❌ | ✅ |
+| `l05_native_derived_table_reads_its_explore` | confirmed | N/A | ❌ | ✅ | ❌ |
 | `p01_single_semicolon_inside_sql_block` | confirmed | ❌ | ✅ | ✅ | ✅ |
 | `p02_hash_inside_sql_block_is_not_lookml_comment` | confirmed | ✅ | ✅ | ✅ | ✅ |
 | `p03_named_fields_errors_and_info` | confirmed | ❌ | ✅ | ✅ | ✅ |
@@ -128,5 +133,11 @@
 - `c01_manifest_constant_in_sql_table_name` · **Dagster**: m.orders.sql_table_name: expected 'analytics_prod.orders', got '@{ANALYTICS_SCHEMA}.orders'
 - `c02_manifest_constant_in_derived_table_sql` · **node-lookml-parser**: m.orders.derived_table.sql: expected 'SELECT id FROM `bq_project.raw.orders`', got 'SELECT id FROM `@{RAW_DATASET}.orders`'
 - `c02_manifest_constant_in_derived_table_sql` · **Dagster**: m.orders.derived_table.sql: expected 'SELECT id FROM `bq_project.raw.orders`', got 'SELECT id FROM `@{RAW_DATASET}.orders`'
+- `l01_derived_table_reads_view_table` · **OpenMetadata**: m.order_facts.upstream_tables: expected ['raw.orders'], got []; reported upstream: []
+- `l03_derived_table_reads_a_table_and_a_view` · **Dagster**: m.orders_by_customer.upstream_tables: expected ['raw.customers', 'raw.orders'], got ['raw.orders']; reported upstream: ['view orders']
+- `l04_reference_follows_the_refined_table` · **OpenMetadata**: m.orders_rollup.upstream_tables: expected ['analytics.orders_clean'], got ['raw.orders']; reported upstream: ['table raw.orders']
+- `l04_reference_follows_the_refined_table` · **DataHub**: m.orders_rollup.upstream_tables: expected ['analytics.orders_clean'], got ['raw.orders']; reported upstream: ['view orders']
+- `l05_native_derived_table_reads_its_explore` · **OpenMetadata**: m.orders_by_country.upstream_tables: expected ['raw.orders', 'raw.users'], got []; reported upstream: []
+- `l05_native_derived_table_reads_its_explore` · **Dagster**: m.orders_by_country.upstream_tables: expected ['raw.orders', 'raw.users'], got ['orders_by_country']; reported upstream: ['table orders_by_country']
 - `p01_single_semicolon_inside_sql_block` · **node-lookml-parser**: m.orders.derived_table.sql: expected "SELECT id FROM raw.orders WHERE note != ';'", got "SELECT id FROM raw.orders WHERE note != ';,'"; m.orders.cleaned.sql: expected "REGEXP_REPLACE(${TABLE}.note, ';', '')", got "REGEXP_REPLACE(${TABLE}.note, ';,', '')"
 - `p03_named_fields_errors_and_info` · **node-lookml-parser**: m.orders.info.type: expected 'string', got None; m.orders.info.sql: expected '${TABLE}.info', got None; m.orders.errors.type: expected 'count', got None

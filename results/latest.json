@@ -914,6 +914,143 @@
       }
     },
     {
+      "case": "l01_derived_table_reads_view_table",
+      "category": "lineage",
+      "status": "confirmed",
+      "verdicts": {
+        "node-lookml-parser": {
+          "outcome": "n/a",
+          "reasons": [
+            "adapter does not support lineage"
+          ]
+        },
+        "openmetadata": {
+          "outcome": "fail",
+          "reasons": [
+            "m.order_facts.upstream_tables: expected ['raw.orders'], got []; reported upstream: []"
+          ]
+        },
+        "datahub": {
+          "outcome": "pass",
+          "reasons": []
+        },
+        "dagster": {
+          "outcome": "pass",
+          "reasons": []
+        }
+      }
+    },
+    {
+      "case": "l02_chained_derived_tables_reach_the_base_table",
+      "category": "lineage",
+      "status": "confirmed",
+      "verdicts": {
+        "node-lookml-parser": {
+          "outcome": "n/a",
+          "reasons": [
+            "adapter does not support lineage"
+          ]
+        },
+        "openmetadata": {
+          "outcome": "pass",
+          "reasons": []
+        },
+        "datahub": {
+          "outcome": "pass",
+          "reasons": []
+        },
+        "dagster": {
+          "outcome": "pass",
+          "reasons": []
+        }
+      }
+    },
+    {
+      "case": "l03_derived_table_reads_a_table_and_a_view",
+      "category": "lineage",
+      "status": "confirmed",
+      "verdicts": {
+        "node-lookml-parser": {
+          "outcome": "n/a",
+          "reasons": [
+            "adapter does not support lineage"
+          ]
+        },
+        "openmetadata": {
+          "outcome": "pass",
+          "reasons": []
+        },
+        "datahub": {
+          "outcome": "pass",
+          "reasons": []
+        },
+        "dagster": {
+          "outcome": "fail",
+          "reasons": [
+            "m.orders_by_customer.upstream_tables: expected ['raw.customers', 'raw.orders'], got ['raw.orders']; reported upstream: ['view orders']"
+          ]
+        }
+      }
+    },
+    {
+      "case": "l04_reference_follows_the_refined_table",
+      "category": "lineage",
+      "status": "confirmed",
+      "verdicts": {
+        "node-lookml-parser": {
+          "outcome": "n/a",
+          "reasons": [
+            "adapter does not support lineage"
+          ]
+        },
+        "openmetadata": {
+          "outcome": "fail",
+          "reasons": [
+            "m.orders_rollup.upstream_tables: expected ['analytics.orders_clean'], got ['raw.orders']; reported upstream: ['table raw.orders']"
+          ]
+        },
+        "datahub": {
+          "outcome": "fail",
+          "reasons": [
+            "m.orders_rollup.upstream_tables: expected ['analytics.orders_clean'], got ['raw.orders']; reported upstream: ['view orders']"
+          ]
+        },
+        "dagster": {
+          "outcome": "pass",
+          "reasons": []
+        }
+      }
+    },
+    {
+      "case": "l05_native_derived_table_reads_its_explore",
+      "category": "lineage",
+      "status": "confirmed",
+      "verdicts": {
+        "node-lookml-parser": {
+          "outcome": "n/a",
+          "reasons": [
+            "adapter does not support lineage"
+          ]
+        },
+        "openmetadata": {
+          "outcome": "fail",
+          "reasons": [
+            "m.orders_by_country.upstream_tables: expected ['raw.orders', 'raw.users'], got []; reported upstream: []"
+          ]
+        },
+        "datahub": {
+          "outcome": "pass",
+          "reasons": []
+        },
+        "dagster": {
+          "outcome": "fail",
+          "reasons": [
+            "m.orders_by_country.upstream_tables: expected ['raw.orders', 'raw.users'], got ['orders_by_country']; reported upstream: ['table orders_by_country']"
+          ]
+        }
+      }
+    },
+    {
       "case": "p01_single_semicolon_inside_sql_block",
       "category": "syntax",
       "status": "confirmed",

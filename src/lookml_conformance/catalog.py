@@ -15,6 +15,7 @@ CATEGORY_TITLES = {
     "model_scope": "Model scope",
     "explores": "Explores",
     "constants": "Constants",
+    "lineage": "Lineage",
     "syntax": "Syntax",
 }
 _HEADER = """\
