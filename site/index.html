@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>LookML Conformance</title>
+  <meta name="description" content="A conformance suite for tools that resolve LookML: 34 minimal projects, each tied to a quoted rule from the Looker documentation, scored against OpenMetadata, DataHub, Dagster and node-lookml-parser.">
+  <meta property="og:title" content="LookML Conformance">
+  <meta property="og:description" content="How closely do LookML tools follow Looker's own rules? 34 cases, every expectation quoted from the Looker documentation.">
+  <meta name="color-scheme" content="dark light">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css">
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <a class="skip" href="#results">Skip to results</a>
+
+  <header class="nav">
+    <div class="wrap nav__inner">
+      <a class="brand" href="#top" aria-label="LookML Conformance home">
+        <svg class="brand__mark" viewBox="0 0 32 32" aria-hidden="true"><use href="favicon.svg#mark"/></svg>
+        <span>lookml<span class="brand__dim">-conformance</span></span>
+      </a>
+      <nav class="nav__links" aria-label="Sections">
+        <a href="#impact">Impact</a>
+        <a href="#results">Results</a>
+        <a href="#cases">Cases</a>
+        <a href="#method">Method</a>
+        <a href="#run">Run it</a>
+        <a class="nav__gh" href="https://github.com/josephaxisa/lookml-conformance">GitHub</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="top">
+    <section class="hero">
+      <div class="hero__glow" aria-hidden="true"></div>
+      <div class="wrap hero__grid">
+        <div class="hero__copy">
+          <p class="eyebrow">Conformance suite for LookML tools</p>
+          <h1>Lineage tools read LookML. <span class="grad">Most read it differently from Looker.</span></h1>
+          <p class="lede" id="hero-lede">Minimal LookML projects, each tied to a rule quoted from the Looker documentation, run against the tools that build catalogs and lineage from LookML.</p>
+          <div class="hero__cta">
+            <a class="btn btn--primary" href="#results">See the results</a>
+            <a class="btn" href="#run">Test your tool</a>
+          </div>
+        </div>
+        <div class="hero__board card" id="hero-board" aria-label="Pass rate per tool"></div>
+      </div>
+      <div class="wrap">
+        <dl class="stats" id="stats"></dl>
+      </div>
+    </section>
+
+    <section class="section" id="impact">
+      <div class="wrap">
+        <p class="eyebrow">Why it matters</p>
+        <h2>Lineage is only as right as the LookML resolution behind it</h2>
+        <p class="section__lede">Looker assembles each model from its includes, applies refinements in include order and merges extends. A tool that skips a step reports a table Looker never queries, and the catalog looks complete while being wrong.</p>
+        <div class="impact" id="impact-cards"></div>
+
+        <div class="example card" id="example">
+          <div class="example__head">
+            <div>
+              <p class="eyebrow eyebrow--muted">Case <code id="example-id"></code></p>
+              <h3 id="example-title"></h3>
+              <p class="muted" id="example-rule"></p>
+            </div>
+          </div>
+          <div class="example__body">
+            <div class="files" id="example-files"></div>
+            <div class="resolved">
+              <h4>Table each tool resolves for <code>orders</code></h4>
+              <div class="table-scroll"><table class="resolved__table" id="example-table"></table></div>
+              <blockquote class="quote" id="example-quote"></blockquote>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section section--alt" id="results">
+      <div class="wrap">
+        <p class="eyebrow">Results</p>
+        <h2>Scoreboard</h2>
+        <p class="section__lede" id="results-lede"></p>
+        <div class="tools" id="tools"></div>
+      </div>
+    </section>
+
+    <section class="section" id="cases">
+      <div class="wrap">
+        <p class="eyebrow">Cases</p>
+        <h2>Every case, every tool</h2>
+        <p class="section__lede">Each row is one rule. Select a row to read the documentation it quotes, the LookML project, and why a tool failed.</p>
+        <div class="filters" role="toolbar" aria-label="Filter cases">
+          <div class="chips" id="category-chips"></div>
+          <div class="filters__right">
+            <label class="toggle"><input type="checkbox" id="only-confirmed"> Confirmed only</label>
+            <label class="toggle"><input type="checkbox" id="only-failing"> Failing only</label>
+          </div>
+        </div>
+        <div class="matrix card">
+          <div class="table-scroll"><table class="matrix__table" id="matrix"></table></div>
+        </div>
+        <p class="legend"><span class="dot dot--pass"></span>pass <span class="dot dot--fail"></span>fail <span class="dot dot--error"></span>adapter error <span class="dot dot--na"></span>not applicable <span class="badge badge--provisional">provisional</span> behavior the documentation leaves open</p>
+      </div>
+    </section>
+
+    <section class="section section--alt" id="method">
+      <div class="wrap">
+        <p class="eyebrow">Method</p>
+        <h2>Every expectation is traceable</h2>
+        <ol class="steps">
+          <li class="step card">
+            <span class="step__n">1</span>
+            <h3>One rule</h3>
+            <p>A case states a single rule in one sentence, such as "the file included last wins".</p>
+          </li>
+          <li class="step card">
+            <span class="step__n">2</span>
+            <h3>A verbatim quote</h3>
+            <p>The rule cites the Looker documentation word for word, linked to the section. <code>check-citations</code> re-reads every page and fails if a quote changes.</p>
+          </li>
+          <li class="step card">
+            <span class="step__n">3</span>
+            <h3>A minimal project</h3>
+            <p>A few lines of LookML that isolate the rule, and the resolution Looker produces for each model.</p>
+          </li>
+          <li class="step card">
+            <span class="step__n">4</span>
+            <h3>An honest adapter</h3>
+            <p>Each tool runs through an adapter that reports what the tool produces and never fills a gap the tool leaves.</p>
+          </li>
+        </ol>
+        <p class="note" id="method-note"></p>
+      </div>
+    </section>
+
+    <section class="section" id="run">
+      <div class="wrap run">
+        <div>
+          <p class="eyebrow">Run it</p>
+          <h2>Score your tool or your branch</h2>
+          <p class="section__lede">An adapter is any command that takes a project directory and prints one JSON line. Point the runner at your branch and use the exit status as a CI gate.</p>
+          <a class="btn btn--primary" href="https://github.com/josephaxisa/lookml-conformance#readme">Read the docs</a>
+        </div>
+        <pre class="code card"><code><span class="c"># reproduce the published scorecard</span>
+pip install -e .
+lookml-conformance setup
+lookml-conformance run
+
+<span class="c"># score a branch you have installed</span>
+lookml-conformance run \
+  --command "python -m lookml_conformance.adapters.datahub" \
+  --name datahub-branch</code></pre>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="wrap footer__inner">
+      <p id="footer-date"></p>
+      <p><a href="https://github.com/josephaxisa/lookml-conformance">Source</a></p>
+    </div>
+  </footer>
+
+  <div class="drawer" id="drawer" hidden>
+    <div class="drawer__scrim" data-close></div>
+    <aside class="drawer__panel" role="dialog" aria-modal="true" aria-labelledby="drawer-title">
+      <button class="drawer__close" type="button" data-close aria-label="Close">×</button>
+      <div id="drawer-body"></div>
+    </aside>
+  </div>
+
+  <noscript><p class="wrap">The results need JavaScript. They are also in <a href="https://github.com/josephaxisa/lookml-conformance/blob/main/results/latest.md">results/latest.md</a>.</p></noscript>
+</body>
+</html>

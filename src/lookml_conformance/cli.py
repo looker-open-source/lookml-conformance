@@ -18,6 +18,7 @@ from lookml_conformance.environments import SetupError, setup
 from lookml_conformance.judge import Verdict
 from lookml_conformance.runner import AdapterSpec, RegistryError, load_registry, run_suite, select_adapters
 from lookml_conformance.scorecard import Scorecard, render_markdown, render_text
+from lookml_conformance.site import build_site_data, render_site_data
 
 EXIT_OK, EXIT_FAILURES, EXIT_USAGE = 0, 1, 2
 
@@ -114,6 +115,15 @@ def build_parser() -> argparse.ArgumentParser:
         "--python", default="python3", help="interpreter for the Python tools (default: python3)"
     )
     setup_cmd.set_defaults(handler=cmd_setup)
+
+    site = commands.add_parser("site", help="write the website data from the cases and a JSON scorecard")
+    site.add_argument("scorecard", type=Path, nargs="?", default=Path("results/latest.json"))
+    site.add_argument("--registry", type=Path, default=Path("adapters.json"))
+    site.add_argument(
+        "--output", "-o", type=Path, default=Path("site/data.json"), help="default: site/data.json"
+    )
+    site.add_argument("--check", action="store_true", help="exit with 1 if the file is out of date")
+    site.set_defaults(handler=cmd_site)
     return parser
 
 
@@ -189,6 +199,24 @@ def cmd_setup(args: argparse.Namespace) -> int:
     if args.adapters:
         adapters = select_adapters(adapters, args.adapters)
     setup(adapters, root=args.registry.parent.resolve(), python=args.python)
+    return EXIT_OK
+
+
+def cmd_site(args: argparse.Namespace) -> int:
+    scorecard = Scorecard.from_dict(json.loads(args.scorecard.read_text(encoding="utf-8")))
+    try:
+        data = build_site_data(load_cases(args.cases), scorecard, load_registry(args.registry))
+    except ValueError as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return EXIT_USAGE
+    rendered = render_site_data(data)
+    if args.check:
+        current = args.output.read_text(encoding="utf-8") if args.output.is_file() else ""
+        if current != rendered:
+            print(f"{args.output} is out of date; run: lookml-conformance site", file=sys.stderr)
+            return EXIT_FAILURES
+        return EXIT_OK
+    _write(args.output, rendered)
     return EXIT_OK
 
 

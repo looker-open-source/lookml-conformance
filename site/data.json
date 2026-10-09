@@ -1,0 +1,2844 @@
+{
+ "date": "2026-10-09",
+ "suite": {
+  "cases": 34,
+  "confirmed": 27,
+  "provisional": 7,
+  "citations": 66,
+  "pages": 12
+ },
+ "categories": [
+  {
+   "id": "refinements",
+   "title": "Refinements"
+  },
+  {
+   "id": "includes",
+   "title": "Includes"
+  },
+  {
+   "id": "extends",
+   "title": "Extends"
+  },
+  {
+   "id": "model_scope",
+   "title": "Model scope"
+  },
+  {
+   "id": "explores",
+   "title": "Explores"
+  },
+  {
+   "id": "constants",
+   "title": "Constants"
+  },
+  {
+   "id": "syntax",
+   "title": "Syntax"
+  }
+ ],
+ "tools": [
+  {
+   "name": "node-lookml-parser",
+   "label": "node-lookml-parser",
+   "kind": "Parser",
+   "language": "JavaScript",
+   "url": "https://github.com/fabio-looker/node-lookml-parser",
+   "package": "lookml-parser@9.1.0",
+   "version": "9.1.0",
+   "score": {
+    "all": {
+     "passed": 25,
+     "applicable": 34
+    },
+    "confirmed": {
+     "passed": 19,
+     "applicable": 27
+    },
+    "provisional": {
+     "passed": 6,
+     "applicable": 7
+    }
+   }
+  },
+  {
+   "name": "openmetadata",
+   "label": "OpenMetadata",
+   "kind": "Metadata catalog",
+   "language": "Python",
+   "url": "https://github.com/open-metadata/OpenMetadata",
+   "package": "openmetadata-ingestion[looker]==2.0.5.0",
+   "version": "2.0.5.0",
+   "score": {
+    "all": {
+     "passed": 9,
+     "applicable": 32
+    },
+    "confirmed": {
+     "passed": 8,
+     "applicable": 25
+    },
+    "provisional": {
+     "passed": 1,
+     "applicable": 7
+    }
+   }
+  },
+  {
+   "name": "datahub",
+   "label": "DataHub",
+   "kind": "Metadata catalog",
+   "language": "Python",
+   "url": "https://github.com/datahub-project/datahub",
+   "package": "acryl-datahub[lookml]==1.7.0.14",
+   "version": "1.7.0.14",
+   "score": {
+    "all": {
+     "passed": 10,
+     "applicable": 34
+    },
+    "confirmed": {
+     "passed": 9,
+     "applicable": 27
+    },
+    "provisional": {
+     "passed": 1,
+     "applicable": 7
+    }
+   }
+  },
+  {
+   "name": "dagster",
+   "label": "Dagster",
+   "kind": "Orchestrator",
+   "language": "Python",
+   "url": "https://github.com/dagster-io/dagster",
+   "package": "dagster-looker==0.29.25",
+   "version": "0.29.25",
+   "score": {
+    "all": {
+     "passed": 12,
+     "applicable": 34
+    },
+    "confirmed": {
+     "passed": 9,
+     "applicable": 27
+    },
+    "provisional": {
+     "passed": 3,
+     "applicable": 7
+    }
+   }
+  }
+ ],
+ "cases": [
+  {
+   "id": "r01_refinement_overrides_sql_table_name",
+   "category": "refinements",
+   "title": "A refinement overrides sql_table_name and adds a field",
+   "rule": "A +view refinement replaces the parameters it sets on the base view and adds the fields it declares.",
+   "status": "confirmed",
+   "citations": [
+    {
+     "url": "https://docs.cloud.google.com/looker/docs/lookml-refinements#refinements_override_parameters",
+     "quote": "in most cases a refinement will override the original settings of an object",
+     "label": "lookml-refinements#refinements_override_parameters"
+    },
+    {
+     "url": "https://docs.cloud.google.com/looker/docs/lookml-refinements",
+     "quote": "This refinement adds an air_carrier dimension to the existing flights view",
+     "label": "lookml-refinements"
+    }
+   ],
+   "rationale": null,
+   "provisional": null,
+   "invalid_in_looker": false,
+   "expect": {
+    "models": {
+     "ecommerce": {
+      "views": {
+       "orders": {
+        "sql_table_name": "analytics.orders_clean",
+        "fields": [
+         "id",
+         "status"
+        ]
+       }
+      },
+      "explores": {}
+     }
+    },
+    "absent_views": [
+     "+orders"
+    ]
+   },
+   "files": [
+    {
+     "path": "ecommerce.model.lkml",
+     "content": "connection: \"wh\"\ninclude: \"/views/*.view.lkml\"\nexplore: orders {}\n"
+    },
+    {
+     "path": "views/orders.view.lkml",
+     "content": "view: orders {\n  sql_table_name: raw.orders ;;\n  dimension: id { sql: ${TABLE}.id ;; }\n}\n"
+    },
+    {
+     "path": "views/orders_refinements.view.lkml",
+     "content": "include: \"/views/orders.view.lkml\"\nview: +orders {\n  sql_table_name: analytics.orders_clean ;;\n  dimension: status { sql: ${TABLE}.status ;; }\n}\n"
+    }
+   ],
+   "verdicts": {
+    "node-lookml-parser": {
+     "outcome": "pass",
+     "reasons": []
+    },
+    "openmetadata": {
+     "outcome": "fail",
+     "reasons": [
+      "ecommerce.orders.sql_table_name: expected 'analytics.orders_clean', got 'raw.orders'",
+      "ecommerce.orders.fields: expected ['id', 'status'], got ['id']",
+      "views that must not exist were exposed: ['+orders']"
+     ]
+    },
+    "datahub": {
+     "outcome": "fail",
+     "reasons": [
+      "ecommerce.orders.sql_table_name: expected 'analytics.orders_clean', got 'raw.orders'"
+     ]
+    },
+    "dagster": {
+     "outcome": "pass",
+     "reasons": []
+    }
+   }
+  },
+  {
+   "id": "r02_refinement_in_non_view_file",
+   "category": "refinements",
+   "title": "A refinement in a file that is not a .view file still applies",
+   "rule": "A refinement applies wherever it is declared, including files without the .view extension.",
+   "status": "confirmed",
+   "citations": [
+    {
+     "url": "https://docs.cloud.google.com/looker/docs/lookml-refinements#using_refinements_in_your_lookml_project",
+     "quote": "You can add refinements in any existing LookML file, or you can create separate LookML files for your refinements.",
+     "label": "lookml-refinements#using_refinements_in_your_lookml_project"
+    }
+   ],
+   "rationale": null,
+   "provisional": null,
+   "invalid_in_looker": false,
+   "expect": {
+    "models": {
+     "ecommerce": {
+      "views": {
+       "orders": {
+        "sql_table_name": "analytics.orders_clean"
+       }
+      },
+      "explores": {}
+     }
+    },
+    "absent_views": [
+     "+orders"
+    ]
+   },
+   "files": [
+    {
+     "path": "ecommerce.model.lkml",
+     "content": "connection: \"wh\"\ninclude: \"/views/orders.view.lkml\"\ninclude: \"/refinements/orders.layer.lkml\"\nexplore: orders {}\n"
+    },
+    {
+     "path": "refinements/orders.layer.lkml",
+     "content": "include: \"/views/orders.view.lkml\"\nview: +orders {\n  sql_table_name: analytics.orders_clean ;;\n}\n"
+    },
+    {
+     "path": "views/orders.view.lkml",
+     "content": "view: orders {\n  sql_table_name: raw.orders ;;\n  dimension: id {\n    type: number\n    sql: ${TABLE}.id ;;\n  }\n}\n"
+    }
+   ],
+   "verdicts": {
+    "node-lookml-parser": {
+     "outcome": "pass",
+     "reasons": []
+    },
+    "openmetadata": {
+     "outcome": "fail",
+     "reasons": [
+      "ecommerce.orders.sql_table_name: expected 'analytics.orders_clean', got 'raw.orders'"
+     ]
+    },
+    "datahub": {
+     "outcome": "fail",
+     "reasons": [
+      "ecommerce.orders.sql_table_name: expected 'analytics.orders_clean', got 'raw.orders'"
+     ]
+    },
+    "dagster": {
+     "outcome": "fail",
+     "reasons": [
+      "ecommerce.orders.sql_table_name: expected 'analytics.orders_clean', got 'raw.orders'"
+     ]
+    }
+   }
+  },
+  {
+   "id": "r03_two_models_refine_one_view_differently",
+   "category": "refinements",
+   "title": "Two models refine the same view differently; each sees only its own refinement",
+   "rule": "A refinement applies only to the models whose includes reach the refining file.",
+   "status": "confirmed",
+   "citations": [
+    {
+     "url": "https://docs.cloud.google.com/looker/docs/lookml-refinements#using_refinements_in_your_lookml_project",
+     "quote": "In your model file, include the files where your refinements are defined.",
+     "label": "lookml-refinements#using_refinements_in_your_lookml_project"
+    },
+    {
+     "url": "https://docs.cloud.google.com/looker/docs/reference/param-model-include#including_views_and_dashboards_in_a_model",
+     "quote": "Use the include parameter in a model file to specify the dashboard and view files that will be available to that model.",
+     "label": "param-model-include#including_views_and_dashboards_in_a_model"
+    }
+   ],
+   "rationale": "Each model includes a different refinement file. A file a model does not include is not available to that model, so its refinement cannot apply there.",
+   "provisional": null,
+   "invalid_in_looker": false,
+   "expect": {
+    "models": {
+     "main": {
+      "views": {
+       "orders": {
+        "sql_table_name": "analytics.orders_clean",
+        "fields": [
+         "id"
+        ]
+       }
+      },
+      "explores": {}
+     },
+     "sandbox": {
+      "views": {
+       "orders": {
+        "sql_table_name": "sandbox.orders_test",
+        "fields": [
+         "id"
+        ]
+       }
+      },
+      "explores": {}
+     }
+    },
+    "absent_views": [
+     "+orders"
+    ]
+   },
+   "files": [
+    {
+     "path": "main.model.lkml",
+     "content": "connection: \"wh\"\ninclude: \"/views/orders.view.lkml\"\ninclude: \"/views/refine.view.lkml\"\nexplore: orders {}\n"
+    },
+    {
+     "path": "sandbox.model.lkml",
+     "content": "connection: \"wh\"\ninclude: \"/views/orders.view.lkml\"\ninclude: \"/views/sandbox_refine.view.lkml\"\nexplore: orders {}\n"
+    },
+    {
+     "path": "views/orders.view.lkml",
+     "content": "view: orders {\n  sql_table_name: raw.orders ;;\n  dimension: id {\n    type: number\n    sql: ${TABLE}.id ;;\n  }\n}\n"
+    },
+    {
+     "path": "views/refine.view.lkml",
+     "content": "include: \"/views/orders.view.lkml\"\nview: +orders {\n  sql_table_name: analytics.orders_clean ;;\n}\n"
+    },
+    {
+     "path": "views/sandbox_refine.view.lkml",
+     "content": "include: \"/views/orders.view.lkml\"\nview: +orders {\n  sql_table_name: sandbox.orders_test ;;\n}\n"
+    }
+   ],
+   "verdicts": {
+    "node-lookml-parser": {
+     "outcome": "pass",
+     "reasons": []
+    },
+    "openmetadata": {
+     "outcome": "fail",
+     "reasons": [
+      "main.orders.sql_table_name: expected 'analytics.orders_clean', got 'raw.orders'",
+      "sandbox.orders.sql_table_name: expected 'sandbox.orders_test', got 'raw.orders'",
+      "views that must not exist were exposed: ['+orders']"
+     ]
+    },
+    "datahub": {
+     "outcome": "fail",
+     "reasons": [
+      "main.orders.sql_table_name: expected 'analytics.orders_clean', got 'raw.orders'",
+      "sandbox.orders.sql_table_name: expected 'sandbox.orders_test', got 'raw.orders'"
+     ]
+    },
+    "dagster": {
+     "outcome": "fail",
+     "reasons": [
+      "main.orders.sql_table_name: expected 'analytics.orders_clean', got 'sandbox.orders_test'"
+     ]
+    }
+   }
+  },
+  {
+   "id": "r04_later_include_wins",
+   "category": "refinements",
+   "title": "Refinements apply in include order: the file included last wins",
+   "rule": "When two included files refine the same view, the file included last wins.",
+   "status": "confirmed",
+   "citations": [
+    {
+     "url": "https://docs.cloud.google.com/looker/docs/lookml-refinements#order",
+     "quote": "Within a project, refinements are applied in the order in which their files are included.",
+     "label": "lookml-refinements#order"
+    },
+    {
+     "url": "https://docs.cloud.google.com/looker/docs/lookml-refinements#order",
+     "quote": "Refinements from files included last will override refinements from files included earlier.",
+     "label": "lookml-refinements#order"
+    }
+   ],
+   "rationale": null,
+   "provisional": null,
+   "invalid_in_looker": false,
+   "expect": {
+    "models": {
+     "m": {
+      "views": {
+       "orders": {
+        "sql_table_name": "from_a"
+       }
+      },
+      "explores": {}
+     }
+    },
+    "absent_views": []
+   },
+   "files": [
+    {
+     "path": "a.lkml",
+     "content": "include: \"/orders.view\"\nview: +orders {\n  sql_table_name: from_a ;;\n}\n"
+    },
+    {
+     "path": "b.lkml",
+     "content": "include: \"/orders.view\"\nview: +orders {\n  sql_table_name: from_b ;;\n}\n"
+    },
+    {
+     "path": "m.model.lkml",
+     "content": "connection: \"wh\"\ninclude: \"/orders.view\"\ninclude: \"/b.lkml\"\ninclude: \"/a.lkml\"\nexplore: orders {}\n"
+    },
+    {
+     "path": "orders.view.lkml",
+     "content": "view: orders {\n  sql_table_name: raw.orders ;;\n  dimension: id {\n    type: number\n    sql: ${TABLE}.id ;;\n  }\n}\n"
+    }
+   ],
+   "verdicts": {
+    "node-lookml-parser": {
+     "outcome": "pass",
+     "reasons": []
+    },
+    "openmetadata": {
+     "outcome": "fail",
+     "reasons": [
+      "m.orders.sql_table_name: expected 'from_a', got 'raw.orders'"
+     ]
+    },
+    "datahub": {
+     "outcome": "fail",
+     "reasons": [
+      "m.orders.sql_table_name: expected 'from_a', got 'raw.orders'"
+     ]
+    },
+    "dagster": {
+     "outcome": "fail",
+     "reasons": [
+      "m.orders.sql_table_name: expected 'from_a', got 'raw.orders'"
+     ]
+    }
+   }
+  },
+  {
+   "id": "r05_last_refinement_in_file_wins",
+   "category": "refinements",
+   "title": "Within one file, refinements apply top to bottom",
+   "rule": "Two refinements of the same view in one file apply in order, so the lower one wins.",
+   "status": "confirmed",
+   "citations": [
+    {
+     "url": "https://docs.cloud.google.com/looker/docs/lookml-refinements#order",
+     "quote": "Within a single file, refinements are applied line by line going downwards.",
+     "label": "lookml-refinements#order"
+    }
+   ],
+   "rationale": null,
+   "provisional": null,
+   "invalid_in_looker": false,
+   "expect": {
+    "models": {
+     "m": {
+      "views": {
+       "orders": {
+        "sql_table_name": "second"
+       }
+      },
+      "explores": {}
+     }
+    },
+    "absent_views": []
+   },
+   "files": [
+    {
+     "path": "m.model.lkml",
+     "content": "connection: \"wh\"\ninclude: \"/orders.view\"\ninclude: \"/r.lkml\"\nexplore: orders {}\n"
+    },
+    {
+     "path": "orders.view.lkml",
+     "content": "view: orders {\n  sql_table_name: raw.orders ;;\n  dimension: id {\n    type: number\n    sql: ${TABLE}.id ;;\n  }\n}\n"
+    },
+    {
+     "path": "r.lkml",
+     "content": "include: \"/orders.view\"\nview: +orders { sql_table_name: first ;; }\nview: +orders { sql_table_name: second ;; }\n"
+    }
+   ],
+   "verdicts": {
+    "node-lookml-parser": {
+     "outcome": "pass",
+     "reasons": []
+    },
+    "openmetadata": {
+     "outcome": "fail",
+     "reasons": [
+      "m.orders.sql_table_name: expected 'second', got 'raw.orders'"
+     ]
+    },
+    "datahub": {
+     "outcome": "fail",
+     "reasons": [
+      "m.orders.sql_table_name: expected 'second', got 'raw.orders'"
+     ]
+    },
+    "dagster": {
+     "outcome": "fail",
+     "reasons": [
+      "m.orders.sql_table_name: expected 'second', got 'raw.orders'"
+     ]
+    }
+   }
+  },
+  {
+   "id": "r06_refinement_included_before_its_base",
+   "category": "refinements",
+   "title": "A refinement whose file is included before the base view still applies",
+   "rule": "A refinement applies even when the model includes the refining file before the file that defines the view.",
+   "status": "provisional",
+   "citations": [
+    {
+     "url": "https://docs.cloud.google.com/looker/docs/lookml-refinements#using_refinements_in_your_lookml_project",
+     "quote": "In the file where you write your refinements, you must include the files of the LookML that you're refining.",
+     "label": "lookml-refinements#using_refinements_in_your_lookml_project"
+    },
+    {
+     "url": "https://docs.cloud.google.com/looker/docs/lookml-refinements#using_refinements_in_your_lookml_project",
+     "quote": "The Looker IDE will give you warnings if you try to refine an object that is not included.",
+     "label": "lookml-refinements#using_refinements_in_your_lookml_project"
+    }
+   ],
+   "rationale": null,
+   "provisional": {
+    "question": "The refining file does not include the base view, which the documentation requires and the IDE warns about. Only the model includes both, refinement first. Does Looker still apply the refinement?",
+    "pinned_to": "node-lookml-parser 9.1.0"
+   },
+   "invalid_in_looker": false,
+   "expect": {
+    "models": {
+     "m": {
+      "views": {
+       "orders": {
+        "sql_table_name": "refined"
+       }
+      },
+      "explores": {}
+     }
+    },
+    "absent_views": []
+   },
+   "files": [
+    {
+     "path": "m.model.lkml",
+     "content": "connection: \"wh\"\ninclude: \"/r.lkml\"\ninclude: \"/orders.view\"\nexplore: orders {}\n"
+    },
+    {
+     "path": "orders.view.lkml",
+     "content": "view: orders {\n  sql_table_name: raw.orders ;;\n  dimension: id {\n    type: number\n    sql: ${TABLE}.id ;;\n  }\n}\n"
+    },
+    {
+     "path": "r.lkml",
+     "content": "view: +orders {\n  sql_table_name: refined ;;\n}\n"
+    }
+   ],
+   "verdicts": {
+    "node-lookml-parser": {
+     "outcome": "pass",
+     "reasons": []
+    },
+    "openmetadata": {
+     "outcome": "fail",
+     "reasons": [
+      "m.orders.sql_table_name: expected 'refined', got 'raw.orders'"
+     ]
+    },
+    "datahub": {
+     "outcome": "fail",
+     "reasons": [
+      "m.orders.sql_table_name: expected 'refined', got 'raw.orders'"
+     ]
+    },
+    "dagster": {
+     "outcome": "fail",
+     "reasons": [
+      "m.orders.sql_table_name: expected 'refined', got 'raw.orders'"
+     ]
+    }
+   }
+  },
+  {
+   "id": "r07_field_refinement_keeps_unset_parameters",
+   "category": "refinements",
+   "title": "Refining a field changes only the parameters the refinement sets",
+   "rule": "Refining an existing field overrides the parameters the refinement sets and keeps the others.",
+   "status": "confirmed",
+   "citations": [
+    {
+     "url": "https://docs.cloud.google.com/looker/docs/lookml-refinements#refinements_override_parameters",
+     "quote": "in most cases a refinement will override the original settings of an object",
+     "label": "lookml-refinements#refinements_override_parameters"
+    },
+    {
+     "url": "https://docs.cloud.google.com/looker/docs/lookml-refinements#refinements_override_parameters",
+     "quote": "The last refinement takes precedence, so hidden: no is applied and the dimension will be displayed in the final view.",
+     "label": "lookml-refinements#refinements_override_parameters"
+    }
+   ],
+   "rationale": "The documentation's example refines only hidden on an existing dimension and the dimension stays in the view, so its other parameters are kept.",
+   "provisional": null,
+   "invalid_in_looker": false,
+   "expect": {
+    "models": {
+     "m": {
+      "views": {
+       "orders": {
+        "sql_table_name": "raw.orders",
+        "fields": [
+         "id"
+        ],
+        "field_params": {
+         "id": {
+          "label": "Order ID",
+          "sql": "${TABLE}.id",
+          "type": "number"
+         }
+        }
+       }
+      },
+      "explores": {}
+     }
+    },
+    "absent_views": []
+   },
+   "files": [
+    {
+     "path": "m.model.lkml",
+     "content": "connection: \"wh\"\ninclude: \"/orders.view\"\ninclude: \"/r.lkml\"\nexplore: orders {}\n"
+    },
+    {
+     "path": "orders.view.lkml",
+     "content": "view: orders {\n  sql_table_name: raw.orders ;;\n  dimension: id {\n    type: number\n    sql: ${TABLE}.id ;;\n    label: \"Id\"\n  }\n}\n"
+    },
+    {
+     "path": "r.lkml",
+     "content": "include: \"/orders.view\"\nview: +orders {\n  dimension: id { label: \"Order ID\" }\n}\n"
+    }
+   ],
+   "verdicts": {
+    "node-lookml-parser": {
+     "outcome": "pass",
+     "reasons": []
+    },
+    "openmetadata": {
+     "outcome": "fail",
+     "reasons": [
+      "m.orders.id.label: expected 'Order ID', got 'Id'"
+     ]
+    },
+    "datahub": {
+     "outcome": "fail",
+     "reasons": [
+      "m.orders.id.label: expected 'Order ID', got 'Id'"
+     ]
+    },
+    "dagster": {
+     "outcome": "fail",
+     "reasons": [
+      "m.orders.id.label: expected 'Order ID', got 'Id'"
+     ]
+    }
+   }
+  },
+  {
+   "id": "r08_refinement_adds_fields",
+   "category": "refinements",
+   "title": "A refinement adds dimensions and dimension groups and keeps existing measures",
+   "rule": "Fields declared in a refinement are added to the fields of the base view.",
+   "status": "confirmed",
+   "citations": [
+    {
+     "url": "https://docs.cloud.google.com/looker/docs/lookml-refinements",
+     "quote": "This refinement adds an air_carrier dimension to the existing flights view",
+     "label": "lookml-refinements"
+    }
+   ],
+   "rationale": null,
+   "provisional": null,
+   "invalid_in_looker": false,
+   "expect": {
+    "models": {
+     "m": {
+      "views": {
+       "orders": {
+        "sql_table_name": "raw.orders",
+        "fields": [
+         "created",
+         "id",
+         "n",
+         "status"
+        ]
+       }
+      },
+      "explores": {}
+     }
+    },
+    "absent_views": []
+   },
+   "files": [
+    {
+     "path": "m.model.lkml",
+     "content": "connection: \"wh\"\ninclude: \"/orders.view\"\ninclude: \"/r.lkml\"\nexplore: orders {}\n"
+    },
+    {
+     "path": "orders.view.lkml",
+     "content": "view: orders {\n  sql_table_name: raw.orders ;;\n  dimension: id { sql: ${TABLE}.id ;; }\n  measure: n { type: count }\n}\n"
+    },
+    {
+     "path": "r.lkml",
+     "content": "include: \"/orders.view\"\nview: +orders {\n  dimension: status { sql: ${TABLE}.status ;; }\n  dimension_group: created {\n    type: time\n    sql: ${TABLE}.created_at ;;\n  }\n}\n"
+    }
+   ],
+   "verdicts": {
+    "node-lookml-parser": {
+     "outcome": "pass",
+     "reasons": []
+    },
+    "openmetadata": {
+     "outcome": "fail",
+     "reasons": [
+      "m.orders.fields: expected ['created', 'id', 'n', 'status'], got ['id', 'n']"
+     ]
+    },
+    "datahub": {
+     "outcome": "fail",
+     "reasons": [
+      "m.orders.fields: expected ['created', 'id', 'n', 'status'], got ['id', 'n']"
+     ]
+    },
+    "dagster": {
+     "outcome": "fail",
+     "reasons": [
+      "m.orders.fields: expected ['created', 'id', 'n', 'status'], got ['id', 'n']"
+     ]
+    }
+   }
+  },
+  {
+   "id": "r09_field_filters_are_additive",
+   "category": "refinements",
+   "title": "filters on a measure accumulate across the base view and a refinement",
+   "rule": "filters on a field is additive under refinement: the refinement's filters are appended to the base filters.",
+   "status": "confirmed",
+   "citations": [
+    {
+     "url": "https://docs.cloud.google.com/looker/docs/lookml-refinements#some_parameters_are_additive",
+     "quote": "The following parameters are additive:",
+     "label": "lookml-refinements#some_parameters_are_additive"
+    },
+    {
+     "url": "https://docs.cloud.google.com/looker/docs/lookml-refinements#some_parameters_are_additive",
+     "quote": "meaning that the values from the base object are used in conjunction with the values from the refined object",
+     "label": "lookml-refinements#some_parameters_are_additive"
+    }
+   ],
+   "rationale": "The additive list on that page includes filters for dimensions and measures.",
+   "provisional": null,
+   "invalid_in_looker": false,
+   "expect": {
+    "models": {
+     "m": {
+      "views": {
+       "orders": {
+        "fields": [
+         "n",
+         "region",
+         "status"
+        ],
+        "field_params": {
+         "n": {
+          "filters": [
+           {
+            "status": "complete"
+           },
+           {
+            "region": "EU"
+           }
+          ]
+         }
+        }
+       }
+      },
+      "explores": {}
+     }
+    },
+    "absent_views": []
+   },
+   "files": [
+    {
+     "path": "m.model.lkml",
+     "content": "connection: \"wh\"\ninclude: \"/orders.view\"\ninclude: \"/r.lkml\"\nexplore: orders {}\n"
+    },
+    {
+     "path": "orders.view.lkml",
+     "content": "view: orders {\n  sql_table_name: raw.orders ;;\n  dimension: status { sql: ${TABLE}.status ;; }\n  dimension: region { sql: ${TABLE}.region ;; }\n  measure: n {\n    type: count\n    filters: [status: \"complete\"]\n  }\n}\n"
+    },
+    {
+     "path": "r.lkml",
+     "content": "include: \"/orders.view\"\nview: +orders {\n  measure: n { filters: [region: \"EU\"] }\n}\n"
+    }
+   ],
+   "verdicts": {
+    "node-lookml-parser": {
+     "outcome": "fail",
+     "reasons": [
+      "m.orders.n.filters: expected [{'status': 'complete'}, {'region': 'EU'}], got [{'region': 'EU'}]"
+     ]
+    },
+    "openmetadata": {
+     "outcome": "fail",
+     "reasons": [
+      "m.orders.n.filters: expected [{'status': 'complete'}, {'region': 'EU'}], got None"
+     ]
+    },
+    "datahub": {
+     "outcome": "fail",
+     "reasons": [
+      "m.orders.n.filters: expected [{'status': 'complete'}, {'region': 'EU'}], got [{'status': 'complete'}]"
+     ]
+    },
+    "dagster": {
+     "outcome": "fail",
+     "reasons": [
+      "m.orders.n.filters: expected [{'status': 'complete'}, {'region': 'EU'}], got [{'status': 'complete'}]"
+     ]
+    }
+   }
+  },
+  {
+   "id": "r10_final_refinement_blocks_later_ones",
+   "category": "refinements",
+   "title": "After a refinement with final: yes, a later refinement must not change the view",
+   "rule": "final: yes on a refinement stops any later refinement of the same view from applying.",
+   "status": "confirmed",
+   "citations": [
+    {
+     "url": "https://docs.cloud.google.com/looker/docs/lookml-refinements#final",
+     "quote": "The Looker IDE will return a LookML error if there are existing refinements that would be applied after this final refinement",
+     "label": "lookml-refinements#final"
+    }
+   ],
+   "rationale": "Looker rejects the project with a LookML error. A tool may report an error, but must not resolve the view with the later refinement applied.",
+   "provisional": null,
+   "invalid_in_looker": true,
+   "expect": {
+    "models": {
+     "m": {
+      "views": {
+       "orders": {
+        "sql_table_name": "a.final"
+       }
+      },
+      "explores": {}
+     }
+    },
+    "absent_views": []
+   },
+   "files": [
+    {
+     "path": "m.model.lkml",
+     "content": "connection: \"wh\"\ninclude: \"/orders.view\"\ninclude: \"/r_final.lkml\"\ninclude: \"/r_later.lkml\"\nexplore: orders {}\n"
+    },
+    {
+     "path": "orders.view.lkml",
+     "content": "view: orders {\n  sql_table_name: raw.orders ;;\n  dimension: id {\n    type: number\n    sql: ${TABLE}.id ;;\n  }\n}\n"
+    },
+    {
+     "path": "r_final.lkml",
+     "content": "include: \"/orders.view\"\nview: +orders {\n  final: yes\n  sql_table_name: a.final ;;\n}\n"
+    },
+    {
+     "path": "r_later.lkml",
+     "content": "include: \"/orders.view\"\nview: +orders {\n  sql_table_name: b.later ;;\n}\n"
+    }
+   ],
+   "verdicts": {
+    "node-lookml-parser": {
+     "outcome": "fail",
+     "reasons": [
+      "m.orders.sql_table_name: expected 'a.final', got 'b.later'"
+     ]
+    },
+    "openmetadata": {
+     "outcome": "fail",
+     "reasons": [
+      "m.orders.sql_table_name: expected 'a.final', got 'raw.orders'"
+     ]
+    },
+    "datahub": {
+     "outcome": "fail",
+     "reasons": [
+      "m.orders.sql_table_name: expected 'a.final', got 'raw.orders'"
+     ]
+    },
+    "dagster": {
+     "outcome": "fail",
+     "reasons": [
+      "m.orders.sql_table_name: expected 'a.final', got 'raw.orders'"
+     ]
+    }
+   }
+  },
+  {
+   "id": "r11_derived_table_refined_parameter_by_parameter",
+   "category": "refinements",
+   "title": "Refining a derived_table adds parameters without dropping its SQL",
+   "rule": "A refinement of derived_table merges the sub-parameters it sets into the base derived_table.",
+   "status": "confirmed",
+   "citations": [
+    {
+     "url": "https://docs.cloud.google.com/looker/docs/lookml-refinements",
+     "quote": "However, you can add refinements to the PDT's view, since refinements don't create a new copy of the object being refined.",
+     "label": "lookml-refinements"
+    },
+    {
+     "url": "https://docs.cloud.google.com/looker/docs/lookml-refinements#refinements_override_parameters",
+     "quote": "in most cases a refinement will override the original settings of an object",
+     "label": "lookml-refinements#refinements_override_parameters"
+    },
+    {
+     "url": "https://docs.cloud.google.com/looker/docs/lookml-refinements#some_parameters_are_additive",
+     "quote": "The following parameters are additive:",
+     "label": "lookml-refinements#some_parameters_are_additive"
+    }
+   ],
+   "rationale": "The documentation recommends refinements for adding to persistent derived tables, and lists derived-table sub-parameters among the additive parameters, which only works if derived_table is merged parameter by parameter.",
+   "provisional": null,
+   "invalid_in_looker": false,
+   "expect": {
+    "models": {
+     "m": {
+      "views": {
+       "orders": {
+        "sql_table_name": null,
+        "derived_table": {
+         "sql": "SELECT id FROM raw.orders",
+         "datagroup_trigger": "daily"
+        }
+       }
+      },
+      "explores": {}
+     }
+    },
+    "absent_views": []
+   },
+   "files": [
+    {
+     "path": "m.model.lkml",
+     "content": "connection: \"wh\"\ninclude: \"/orders.view\"\ninclude: \"/r.lkml\"\nexplore: orders {}\n"
+    },
+    {
+     "path": "orders.view.lkml",
+     "content": "view: orders {\n  derived_table: {\n    sql: SELECT id FROM raw.orders ;;\n  }\n  dimension: id { sql: ${TABLE}.id ;; }\n}\n"
+    },
+    {
+     "path": "r.lkml",
+     "content": "include: \"/orders.view\"\nview: +orders {\n  derived_table: {\n    datagroup_trigger: daily\n  }\n}\n"
+    }
+   ],
+   "verdicts": {
+    "node-lookml-parser": {
+     "outcome": "pass",
+     "reasons": []
+    },
+    "openmetadata": {
+     "outcome": "fail",
+     "reasons": [
+      "m.orders.derived_table.datagroup_trigger: expected 'daily', got None"
+     ]
+    },
+    "datahub": {
+     "outcome": "fail",
+     "reasons": [
+      "m.orders.derived_table.datagroup_trigger: expected 'daily', got None"
+     ]
+    },
+    "dagster": {
+     "outcome": "fail",
+     "reasons": [
+      "m.orders.derived_table.datagroup_trigger: expected 'daily', got None"
+     ]
+    }
+   }
+  },
+  {
+   "id": "r12_refinement_without_a_base_view",
+   "category": "refinements",
+   "title": "A refinement of a view that does not exist creates no view",
+   "rule": "A refinement whose base view is never defined does not create a view.",
+   "status": "provisional",
+   "citations": [
+    {
+     "url": "https://docs.cloud.google.com/looker/docs/lookml-refinements#using_refinements_in_your_lookml_project",
+     "quote": "The Looker IDE will give you warnings if you try to refine an object that is not included.",
+     "label": "lookml-refinements#using_refinements_in_your_lookml_project"
+    }
+   ],
+   "rationale": null,
+   "provisional": {
+    "question": "Does Looker report an error or ignore the refinement? The suite only requires that no view named ghost or +ghost appears.",
+    "pinned_to": "node-lookml-parser 9.1.0"
+   },
+   "invalid_in_looker": false,
+   "expect": {
+    "models": {
+     "m": {
+      "views": {
+       "orders": {
+        "sql_table_name": "raw.orders"
+       }
+      },
+      "explores": {}
+     }
+    },
+    "absent_views": [
+     "ghost",
+     "+ghost"
+    ]
+   },
+   "files": [
+    {
+     "path": "m.model.lkml",
+     "content": "connection: \"wh\"\ninclude: \"/orders.view\"\ninclude: \"/r.lkml\"\nexplore: orders {}\n"
+    },
+    {
+     "path": "orders.view.lkml",
+     "content": "view: orders {\n  sql_table_name: raw.orders ;;\n  dimension: id {\n    type: number\n    sql: ${TABLE}.id ;;\n  }\n}\n"
+    },
+    {
+     "path": "r.lkml",
+     "content": "view: +ghost { sql_table_name: x.y ;; }\n"
+    }
+   ],
+   "verdicts": {
+    "node-lookml-parser": {
+     "outcome": "pass",
+     "reasons": []
+    },
+    "openmetadata": {
+     "outcome": "pass",
+     "reasons": []
+    },
+    "datahub": {
+     "outcome": "pass",
+     "reasons": []
+    },
+    "dagster": {
+     "outcome": "pass",
+     "reasons": []
+    }
+   }
+  },
+  {
+   "id": "r13_dimension_group_timeframes_override",
+   "category": "refinements",
+   "title": "Refining a dimension_group replaces its timeframes list",
+   "rule": "timeframes is not additive, so a refinement replaces the list and keeps the parameters it does not set.",
+   "status": "confirmed",
+   "citations": [
+    {
+     "url": "https://docs.cloud.google.com/looker/docs/lookml-refinements#refinements_override_parameters",
+     "quote": "in most cases a refinement will override the original settings of an object",
+     "label": "lookml-refinements#refinements_override_parameters"
+    },
+    {
+     "url": "https://docs.cloud.google.com/looker/docs/lookml-refinements#some_parameters_are_additive",
+     "quote": "The following parameters are additive:",
+     "label": "lookml-refinements#some_parameters_are_additive"
+    },
+    {
+     "url": "https://docs.cloud.google.com/looker/docs/reference/param-field-dimension-group",
+     "quote": "It specifies one or more timeframes that should be generated by the dimension group.",
+     "label": "param-field-dimension-group"
+    }
+   ],
+   "rationale": "timeframes is not on the documentation's list of additive parameters, so the refinement's value overrides the base value.",
+   "provisional": null,
+   "invalid_in_looker": false,
+   "expect": {
+    "models": {
+     "m": {
+      "views": {
+       "orders": {
+        "sql_table_name": "raw.orders",
+        "fields": [
+         "created"
+        ],
+        "field_params": {
+         "created": {
+          "type": "time",
+          "sql": "${TABLE}.created_at",
+          "label": "Order Created",
+          "timeframes": [
+           "date",
+           "month"
+          ]
+         }
+        }
+       }
+      },
+      "explores": {}
+     }
+    },
+    "absent_views": []
+   },
+   "files": [
+    {
+     "path": "m.model.lkml",
+     "content": "connection: \"wh\"\ninclude: \"/orders.view\"\ninclude: \"/r.lkml\"\nexplore: orders {}\n"
+    },
+    {
+     "path": "orders.view.lkml",
+     "content": "view: orders {\n  sql_table_name: raw.orders ;;\n  dimension_group: created {\n    type: time\n    timeframes: [raw, date, week, month, year]\n    sql: ${TABLE}.created_at ;;\n  }\n}\n"
+    },
+    {
+     "path": "r.lkml",
+     "content": "include: \"/orders.view\"\nview: +orders {\n  dimension_group: created {\n    timeframes: [date, month]\n    label: \"Order Created\"\n  }\n}\n"
+    }
+   ],
+   "verdicts": {
+    "node-lookml-parser": {
+     "outcome": "pass",
+     "reasons": []
+    },
+    "openmetadata": {
+     "outcome": "fail",
+     "reasons": [
+      "m.orders.fields: expected ['created'], got []",
+      "m.orders.created: field not resolved"
+     ]
+    },
+    "datahub": {
+     "outcome": "fail",
+     "reasons": [
+      "m.orders.created.label: expected 'Order Created', got None",
+      "m.orders.created.timeframes: expected ['date', 'month'], got ['date', 'month', 'raw', 'week', 'year']"
+     ]
+    },
+    "dagster": {
+     "outcome": "fail",
+     "reasons": [
+      "m.orders.created.label: expected 'Order Created', got None",
+      "m.orders.created.timeframes: expected ['date', 'month'], got ['date', 'month', 'raw', 'week', 'year']"
+     ]
+    }
+   }
+  },
+  {
+   "id": "i01_wildcard_include_applies_in_path_order",
+   "category": "includes",
+   "title": "Files matched by a wildcard include are applied in path order",
+   "rule": "Refinement files matched by one wildcard include apply in lexical path order.",
+   "status": "provisional",
+   "citations": [
+    {
+     "url": "https://docs.cloud.google.com/looker/docs/lookml-refinements#order",
+     "quote": "But with refinements in particular, using wildcards in your includes is not recommended.",
+     "label": "lookml-refinements#order"
+    },
+    {
+     "url": "https://docs.cloud.google.com/looker/docs/reference/param-model-include#wildcard_examples",
+     "quote": "does not allow you to control the order in which each file is included",
+     "label": "param-model-include#wildcard_examples"
+    }
+   ],
+   "rationale": null,
+   "provisional": {
+    "question": "The documentation discourages wildcards with refinements and says their order cannot be controlled. Which order does Looker use?",
+    "pinned_to": "node-lookml-parser 9.1.0 (lexical path order)"
+   },
+   "invalid_in_looker": false,
+   "expect": {
+    "models": {
+     "m": {
+      "views": {
+       "orders": {
+        "sql_table_name": "from_b"
+       }
+      },
+      "explores": {}
+     }
+    },
+    "absent_views": []
+   },
+   "files": [
+    {
+     "path": "m.model.lkml",
+     "content": "connection: \"wh\"\ninclude: \"/orders.view\"\ninclude: \"/r/*.lkml\"\nexplore: orders {}\n"
+    },
+    {
+     "path": "orders.view.lkml",
+     "content": "view: orders {\n  sql_table_name: raw.orders ;;\n  dimension: id {\n    type: number\n    sql: ${TABLE}.id ;;\n  }\n}\n"
+    },
+    {
+     "path": "r/a_r.lkml",
+     "content": "include: \"/orders.view\"\nview: +orders {\n  sql_table_name: from_a ;;\n}\n"
+    },
+    {
+     "path": "r/b_r.lkml",
+     "content": "include: \"/orders.view\"\nview: +orders {\n  sql_table_name: from_b ;;\n}\n"
+    }
+   ],
+   "verdicts": {
+    "node-lookml-parser": {
+     "outcome": "pass",
+     "reasons": []
+    },
+    "openmetadata": {
+     "outcome": "fail",
+     "reasons": [
+      "m.orders.sql_table_name: expected 'from_b', got 'raw.orders'"
+     ]
+    },
+    "datahub": {
+     "outcome": "fail",
+     "reasons": [
+      "m.orders.sql_table_name: expected 'from_b', got 'raw.orders'"
+     ]
+    },
+    "dagster": {
+     "outcome": "fail",
+     "reasons": [
+      "m.orders.sql_table_name: expected 'from_b', got 'raw.orders'"
+     ]
+    }
+   }
+  },
+  {
+   "id": "i02_nested_include_expands_in_place",
+   "category": "includes",
+   "title": "A nested include is expanded where its include statement appears",
+   "rule": "A file included by an included file is applied at the position of its include statement, before the including file's own declarations.",
+   "status": "provisional",
+   "citations": [
+    {
+     "url": "https://docs.cloud.google.com/looker/docs/importing-projects#including_files_that_include_other_files",
+     "quote": "then file B will be included into file A before file A is imported into the current project.",
+     "label": "importing-projects#including_files_that_include_other_files"
+    },
+    {
+     "url": "https://docs.cloud.google.com/looker/docs/reference/param-model-include#wildcard_examples",
+     "quote": "LookML refinements leverage the order of includes",
+     "label": "param-model-include#wildcard_examples"
+    }
+   ],
+   "rationale": null,
+   "provisional": {
+    "question": "Where do the declarations of a nested include land in the include order? node-lookml-parser places them after the including file's own declarations (m1 resolves b).",
+    "pinned_to": "DataHub test fixture metadata-ingestion/tests/integration/looker/lookml/lkml_refinement_samples/sample1"
+   },
+   "invalid_in_looker": false,
+   "expect": {
+    "models": {
+     "m1": {
+      "views": {
+       "orders": {
+        "sql_table_name": "a"
+       }
+      },
+      "explores": {}
+     },
+     "m2": {
+      "views": {
+       "orders": {
+        "sql_table_name": "c"
+       }
+      },
+      "explores": {}
+     }
+    },
+    "absent_views": []
+   },
+   "files": [
+    {
+     "path": "m1.model.lkml",
+     "content": "connection: \"wh\"\ninclude: \"/orders.view\"\ninclude: \"/ra.lkml\"\nexplore: orders {}\n"
+    },
+    {
+     "path": "m2.model.lkml",
+     "content": "connection: \"wh\"\ninclude: \"/orders.view\"\ninclude: \"/ra.lkml\"\ninclude: \"/rc.lkml\"\nexplore: orders {}\n"
+    },
+    {
+     "path": "orders.view.lkml",
+     "content": "view: orders {\n  sql_table_name: raw.orders ;;\n  dimension: id {\n    type: number\n    sql: ${TABLE}.id ;;\n  }\n}\n"
+    },
+    {
+     "path": "ra.lkml",
+     "content": "include: \"/orders.view\"\ninclude: \"/rb.lkml\"\nview: +orders { sql_table_name: a ;; }\n"
+    },
+    {
+     "path": "rb.lkml",
+     "content": "include: \"/orders.view\"\nview: +orders {\n  sql_table_name: b ;;\n}\n"
+    },
+    {
+     "path": "rc.lkml",
+     "content": "include: \"/orders.view\"\nview: +orders {\n  sql_table_name: c ;;\n}\n"
+    }
+   ],
+   "verdicts": {
+    "node-lookml-parser": {
+     "outcome": "fail",
+     "reasons": [
+      "m1.orders.sql_table_name: expected 'a', got 'b'"
+     ]
+    },
+    "openmetadata": {
+     "outcome": "fail",
+     "reasons": [
+      "m1.orders.sql_table_name: expected 'a', got 'raw.orders'",
+      "m2.orders.sql_table_name: expected 'c', got 'raw.orders'"
+     ]
+    },
+    "datahub": {
+     "outcome": "fail",
+     "reasons": [
+      "m1.orders.sql_table_name: expected 'a', got 'raw.orders'",
+      "m2.orders.sql_table_name: expected 'c', got 'raw.orders'"
+     ]
+    },
+    "dagster": {
+     "outcome": "fail",
+     "reasons": [
+      "m1.orders.sql_table_name: expected 'a', got 'raw.orders'",
+      "m2.orders.sql_table_name: expected 'c', got 'raw.orders'"
+     ]
+    }
+   }
+  },
+  {
+   "id": "i03_file_included_twice_keeps_first_position",
+   "category": "includes",
+   "title": "Including the same file twice does not move it to the later position",
+   "rule": "A file is applied once, at the position of its first include.",
+   "status": "provisional",
+   "citations": [
+    {
+     "url": "https://docs.cloud.google.com/looker/docs/lookml-refinements#order",
+     "quote": "Within a project, refinements are applied in the order in which their files are included.",
+     "label": "lookml-refinements#order"
+    }
+   ],
+   "rationale": null,
+   "provisional": {
+    "question": "Does a second include of the same file move its refinements to the later position?",
+    "pinned_to": "node-lookml-parser 9.1.0"
+   },
+   "invalid_in_looker": false,
+   "expect": {
+    "models": {
+     "m": {
+      "views": {
+       "orders": {
+        "sql_table_name": "a"
+       }
+      },
+      "explores": {}
+     }
+    },
+    "absent_views": []
+   },
+   "files": [
+    {
+     "path": "m.model.lkml",
+     "content": "connection: \"wh\"\ninclude: \"/orders.view\"\ninclude: \"/rb.lkml\"\ninclude: \"/ra.lkml\"\ninclude: \"/rb.lkml\"\nexplore: orders {}\n"
+    },
+    {
+     "path": "orders.view.lkml",
+     "content": "view: orders {\n  sql_table_name: raw.orders ;;\n  dimension: id {\n    type: number\n    sql: ${TABLE}.id ;;\n  }\n}\n"
+    },
+    {
+     "path": "ra.lkml",
+     "content": "include: \"/orders.view\"\nview: +orders {\n  sql_table_name: a ;;\n}\n"
+    },
+    {
+     "path": "rb.lkml",
+     "content": "include: \"/orders.view\"\nview: +orders {\n  sql_table_name: b ;;\n}\n"
+    }
+   ],
+   "verdicts": {
+    "node-lookml-parser": {
+     "outcome": "pass",
+     "reasons": []
+    },
+    "openmetadata": {
+     "outcome": "fail",
+     "reasons": [
+      "m.orders.sql_table_name: expected 'a', got 'raw.orders'"
+     ]
+    },
+    "datahub": {
+     "outcome": "fail",
+     "reasons": [
+      "m.orders.sql_table_name: expected 'a', got 'raw.orders'"
+     ]
+    },
+    "dagster": {
+     "outcome": "fail",
+     "reasons": [
+      "m.orders.sql_table_name: expected 'a', got 'raw.orders'"
+     ]
+    }
+   }
+  },
+  {
+   "id": "i04_relative_include_resolves_from_the_including_file",
+   "category": "includes",
+   "title": "Relative include paths resolve from the directory of the including file",
+   "rule": "An include path without a leading / is resolved from the including file's directory.",
+   "status": "confirmed",
+   "citations": [
+    {
+     "url": "https://docs.cloud.google.com/looker/docs/reference/param-model-include#path_syntax",
+     "quote": "Relative path starting from current file's location.",
+     "label": "param-model-include#path_syntax"
+    },
+    {
+     "url": "https://docs.cloud.google.com/looker/docs/reference/param-model-include#path_syntax",
+     "quote": "Absolute path starting from current project's root.",
+     "label": "param-model-include#path_syntax"
+    }
+   ],
+   "rationale": null,
+   "provisional": null,
+   "invalid_in_looker": false,
+   "expect": {
+    "models": {
+     "m": {
+      "views": {
+       "orders": {
+        "sql_table_name": "rel"
+       }
+      },
+      "explores": {}
+     }
+    },
+    "absent_views": []
+   },
+   "files": [
+    {
+     "path": "models/m.model.lkml",
+     "content": "connection: \"wh\"\ninclude: \"../views/*.view\"\nexplore: orders {}\n"
+    },
+    {
+     "path": "views/orders.view.lkml",
+     "content": "view: orders {\n  sql_table_name: raw.orders ;;\n  dimension: id {\n    type: number\n    sql: ${TABLE}.id ;;\n  }\n}\n"
+    },
+    {
+     "path": "views/r.view.lkml",
+     "content": "include: \"orders.view\"\nview: +orders { sql_table_name: rel ;; }\n"
+    }
+   ],
+   "verdicts": {
+    "node-lookml-parser": {
+     "outcome": "pass",
+     "reasons": []
+    },
+    "openmetadata": {
+     "outcome": "fail",
+     "reasons": [
+      "m.orders.sql_table_name: expected 'rel', got 'raw.orders'"
+     ]
+    },
+    "datahub": {
+     "outcome": "fail",
+     "reasons": [
+      "m.orders.sql_table_name: expected 'rel', got 'raw.orders'"
+     ]
+    },
+    "dagster": {
+     "outcome": "pass",
+     "reasons": []
+    }
+   }
+  },
+  {
+   "id": "i05_project_wildcards_do_not_reach_imported_projects",
+   "category": "includes",
+   "title": "A project wildcard include never matches files of an imported project",
+   "rule": "An include starting with / only matches files of the current project, never files of imported projects.",
+   "status": "confirmed",
+   "citations": [
+    {
+     "url": "https://docs.cloud.google.com/looker/docs/reference/param-model-include#path_syntax",
+     "quote": "Absolute path starting from current project's root.",
+     "label": "param-model-include#path_syntax"
+    },
+    {
+     "url": "https://docs.cloud.google.com/looker/docs/importing-projects#include_files_from_an_imported_project",
+     "quote": "To include a file from another project, use the filename with two forward slashes (//)",
+     "label": "importing-projects#include_files_from_an_imported_project"
+    }
+   ],
+   "rationale": "Imported project files are reached through // includes. The suite places them under imported_projects/<name>/, the folder the IDE shows them in, which a / wildcard must not match.",
+   "provisional": null,
+   "invalid_in_looker": false,
+   "expect": {
+    "models": {
+     "m": {
+      "views": {
+       "orders": {
+        "sql_table_name": "raw.orders"
+       }
+      },
+      "explores": {}
+     }
+    },
+    "absent_views": []
+   },
+   "files": [
+    {
+     "path": "imported_projects/shared/views/r.view.lkml",
+     "content": "include: \"/views/orders.view\"\nview: +orders { sql_table_name: imported ;; }\n"
+    },
+    {
+     "path": "m.model.lkml",
+     "content": "connection: \"wh\"\ninclude: \"/**/*.view\"\nexplore: orders {}\n"
+    },
+    {
+     "path": "views/orders.view.lkml",
+     "content": "view: orders {\n  sql_table_name: raw.orders ;;\n  dimension: id {\n    type: number\n    sql: ${TABLE}.id ;;\n  }\n}\n"
+    }
+   ],
+   "verdicts": {
+    "node-lookml-parser": {
+     "outcome": "fail",
+     "reasons": [
+      "m.orders.sql_table_name: expected 'raw.orders', got 'imported'"
+     ]
+    },
+    "openmetadata": {
+     "outcome": "pass",
+     "reasons": []
+    },
+    "datahub": {
+     "outcome": "pass",
+     "reasons": []
+    },
+    "dagster": {
+     "outcome": "fail",
+     "reasons": [
+      "m.orders.sql_table_name: expected 'raw.orders', got 'imported'"
+     ]
+    }
+   }
+  },
+  {
+   "id": "i06_imported_project_view_can_be_refined",
+   "category": "includes",
+   "title": "A view from an imported project can be refined locally",
+   "rule": "A refinement in the importing project applies to a view included from an imported project.",
+   "status": "confirmed",
+   "citations": [
+    {
+     "url": "https://docs.cloud.google.com/looker/docs/lookml-refinements#example",
+     "quote": "Because the aircraft Explore is an imported file, you can't edit it directly.",
+     "label": "lookml-refinements#example"
+    },
+    {
+     "url": "https://docs.cloud.google.com/looker/docs/lookml-refinements#example",
+     "quote": "Instead, you can add a refinement to it.",
+     "label": "lookml-refinements#example"
+    },
+    {
+     "url": "https://docs.cloud.google.com/looker/docs/lookml-refinements",
+     "quote": "With LookML refinements, you can adapt an existing view or Explore without editing the LookML file that contains it.",
+     "label": "lookml-refinements"
+    }
+   ],
+   "rationale": null,
+   "provisional": null,
+   "invalid_in_looker": false,
+   "expect": {
+    "models": {
+     "m": {
+      "views": {
+       "orders": {
+        "sql_table_name": "local.orders"
+       }
+      },
+      "explores": {}
+     }
+    },
+    "absent_views": []
+   },
+   "files": [
+    {
+     "path": "imported_projects/shared/views/orders.view.lkml",
+     "content": "view: orders {\n  sql_table_name: raw.orders ;;\n  dimension: id {\n    type: number\n    sql: ${TABLE}.id ;;\n  }\n}\n"
+    },
+    {
+     "path": "m.model.lkml",
+     "content": "connection: \"wh\"\ninclude: \"//shared/views/orders.view\"\ninclude: \"/r.lkml\"\nexplore: orders {}\n"
+    },
+    {
+     "path": "r.lkml",
+     "content": "include: \"//shared/views/orders.view\"\nview: +orders { sql_table_name: local.orders ;; }\n"
+    }
+   ],
+   "verdicts": {
+    "node-lookml-parser": {
+     "outcome": "pass",
+     "reasons": []
+    },
+    "openmetadata": {
+     "outcome": "fail",
+     "reasons": [
+      "m.orders.sql_table_name: expected 'local.orders', got 'raw.orders'"
+     ]
+    },
+    "datahub": {
+     "outcome": "fail",
+     "reasons": [
+      "m.orders.sql_table_name: expected 'local.orders', got 'raw.orders'"
+     ]
+    },
+    "dagster": {
+     "outcome": "fail",
+     "reasons": [
+      "m.orders.sql_table_name: expected 'local.orders', got 'raw.orders'"
+     ]
+    }
+   }
+  },
+  {
+   "id": "i07_absolute_include_inside_an_imported_project",
+   "category": "includes",
+   "title": "An absolute include inside an imported project file resolves against that project",
+   "rule": "A path starting with / inside an imported project's file resolves from that project's root.",
+   "status": "confirmed",
+   "citations": [
+    {
+     "url": "https://docs.cloud.google.com/looker/docs/importing-projects#including_files_that_include_other_files",
+     "quote": "When you include a file that includes other files, all the includes are resolved before the file is passed on to the next project that includes it.",
+     "label": "importing-projects#including_files_that_include_other_files"
+    },
+    {
+     "url": "https://docs.cloud.google.com/looker/docs/reference/param-model-include#path_syntax",
+     "quote": "Absolute path starting from current project's root.",
+     "label": "param-model-include#path_syntax"
+    }
+   ],
+   "rationale": "The includes of an imported file are resolved within its own project before the file reaches the importing project, and / is the root of the current project.",
+   "provisional": null,
+   "invalid_in_looker": false,
+   "expect": {
+    "models": {
+     "m": {
+      "views": {
+       "orders": {
+        "sql_table_name": "shared.orders"
+       }
+      },
+      "explores": {}
+     }
+    },
+    "absent_views": []
+   },
+   "files": [
+    {
+     "path": "imported_projects/shared/r.lkml",
+     "content": "include: \"/views/orders.view\"\n"
+    },
+    {
+     "path": "imported_projects/shared/views/orders.view.lkml",
+     "content": "view: orders {\n  sql_table_name: shared.orders ;;\n  dimension: id {\n    type: number\n    sql: ${TABLE}.id ;;\n  }\n}\n"
+    },
+    {
+     "path": "m.model.lkml",
+     "content": "connection: \"wh\"\ninclude: \"//shared/r.lkml\"\nexplore: orders {}\n"
+    },
+    {
+     "path": "views/orders.view.lkml",
+     "content": "view: orders {\n  sql_table_name: raw.orders ;;\n  dimension: id {\n    type: number\n    sql: ${TABLE}.id ;;\n  }\n}\n"
+    }
+   ],
+   "verdicts": {
+    "node-lookml-parser": {
+     "outcome": "pass",
+     "reasons": []
+    },
+    "openmetadata": {
+     "outcome": "pass",
+     "reasons": []
+    },
+    "datahub": {
+     "outcome": "pass",
+     "reasons": []
+    },
+    "dagster": {
+     "outcome": "pass",
+     "reasons": []
+    }
+   }
+  },
+  {
+   "id": "i08_include_cycle_terminates",
+   "category": "includes",
+   "title": "Mutually including files are processed once each",
+   "rule": "Files that include each other are each processed once and resolution terminates.",
+   "status": "provisional",
+   "citations": [
+    {
+     "url": "https://docs.cloud.google.com/looker/docs/lookml-refinements#order",
+     "quote": "Within a project, refinements are applied in the order in which their files are included.",
+     "label": "lookml-refinements#order"
+    }
+   ],
+   "rationale": null,
+   "provisional": {
+    "question": "Looker's resulting order for mutually including files is not documented. The tool must terminate either way.",
+    "pinned_to": "node-lookml-parser 9.1.0"
+   },
+   "invalid_in_looker": false,
+   "expect": {
+    "models": {
+     "m": {
+      "views": {
+       "orders": {
+        "sql_table_name": "b"
+       }
+      },
+      "explores": {}
+     }
+    },
+    "absent_views": []
+   },
+   "files": [
+    {
+     "path": "a.view.lkml",
+     "content": "include: \"/b.view\"\nview: orders {\n  sql_table_name: raw.orders ;;\n  dimension: id {\n    type: number\n    sql: ${TABLE}.id ;;\n  }\n}\n"
+    },
+    {
+     "path": "b.view.lkml",
+     "content": "include: \"/a.view\"\nview: +orders { sql_table_name: b ;; }\n"
+    },
+    {
+     "path": "m.model.lkml",
+     "content": "connection: \"wh\"\ninclude: \"/a.view\"\nexplore: orders {}\n"
+    }
+   ],
+   "verdicts": {
+    "node-lookml-parser": {
+     "outcome": "pass",
+     "reasons": []
+    },
+    "openmetadata": {
+     "outcome": "fail",
+     "reasons": [
+      "m.orders.sql_table_name: expected 'b', got 'raw.orders'"
+     ]
+    },
+    "datahub": {
+     "outcome": "fail",
+     "reasons": [
+      "m.orders.sql_table_name: expected 'b', got 'raw.orders'"
+     ]
+    },
+    "dagster": {
+     "outcome": "pass",
+     "reasons": []
+    }
+   }
+  },
+  {
+   "id": "i09_dashboard_files_are_not_views",
+   "category": "includes",
+   "title": "Included .dashboard files do not affect view resolution",
+   "rule": "Including LookML dashboard files makes dashboards available to the model and does not add or change views.",
+   "status": "confirmed",
+   "citations": [
+    {
+     "url": "https://docs.cloud.google.com/looker/docs/reference/param-model-include#including_views_and_dashboards_in_a_model",
+     "quote": "In the include parameter, use the extension .view for view files and the extension .dashboard for dashboards.",
+     "label": "param-model-include#including_views_and_dashboards_in_a_model"
+    },
+    {
+     "url": "https://docs.cloud.google.com/looker/docs/reference/param-model-include#including_views_and_dashboards_in_a_model",
+     "quote": "Use the include parameter in a model file to specify the dashboard and view files that will be available to that model.",
+     "label": "param-model-include#including_views_and_dashboards_in_a_model"
+    }
+   ],
+   "rationale": null,
+   "provisional": null,
+   "invalid_in_looker": false,
+   "expect": {
+    "models": {
+     "m": {
+      "views": {
+       "orders": {
+        "sql_table_name": "raw.orders",
+        "fields": [
+         "id"
+        ]
+       }
+      },
+      "explores": {}
+     }
+    },
+    "absent_views": []
+   },
+   "files": [
+    {
+     "path": "m.model.lkml",
+     "content": "connection: \"wh\"\ninclude: \"/*.view\"\ninclude: \"/*.dashboard\"\nexplore: orders {}\n"
+    },
+    {
+     "path": "orders.view.lkml",
+     "content": "view: orders {\n  sql_table_name: raw.orders ;;\n  dimension: id {\n    type: number\n    sql: ${TABLE}.id ;;\n  }\n}\n"
+    },
+    {
+     "path": "overview.dashboard.lkml",
+     "content": "- dashboard: overview\n  title: Overview\n  elements: []\n"
+    }
+   ],
+   "verdicts": {
+    "node-lookml-parser": {
+     "outcome": "pass",
+     "reasons": []
+    },
+    "openmetadata": {
+     "outcome": "pass",
+     "reasons": []
+    },
+    "datahub": {
+     "outcome": "pass",
+     "reasons": []
+    },
+    "dagster": {
+     "outcome": "pass",
+     "reasons": []
+    }
+   }
+  },
+  {
+   "id": "e01_extends_inherits_the_refined_base",
+   "category": "extends",
+   "title": "A view that extends a refined view inherits the refinement",
+   "rule": "A view that extends another view inherits that view's refinements in the same model.",
+   "status": "provisional",
+   "citations": [
+    {
+     "url": "https://docs.cloud.google.com/looker/docs/lookml-refinements",
+     "quote": "With LookML refinements, you can adapt an existing view or Explore without editing the LookML file that contains it.",
+     "label": "lookml-refinements"
+    },
+    {
+     "url": "https://docs.cloud.google.com/looker/docs/reusing-code-with-extends",
+     "quote": "If there are any conflicts, the extending object will take precedence and override the settings of the object that is being extended.",
+     "label": "reusing-code-with-extends"
+    }
+   ],
+   "rationale": null,
+   "provisional": {
+    "question": "The documentation does not say whether extends copies a view before or after its refinements are applied.",
+    "pinned_to": "node-lookml-parser 9.1.0"
+   },
+   "invalid_in_looker": false,
+   "expect": {
+    "models": {
+     "main": {
+      "views": {
+       "orders": {
+        "sql_table_name": "analytics.orders_clean"
+       },
+       "orders_ext": {
+        "sql_table_name": "analytics.orders_clean",
+        "fields": [
+         "extra",
+         "id"
+        ],
+        "extends": [
+         "orders"
+        ]
+       }
+      },
+      "explores": {}
+     }
+    },
+    "absent_views": []
+   },
+   "files": [
+    {
+     "path": "main.model.lkml",
+     "content": "connection: \"wh\"\ninclude: \"/views/orders.view.lkml\"\ninclude: \"/views/refine.view.lkml\"\ninclude: \"/views/ext.view.lkml\"\nexplore: orders {}\nexplore: orders_ext {}\n"
+    },
+    {
+     "path": "views/ext.view.lkml",
+     "content": "include: \"/views/orders.view.lkml\"\nview: orders_ext {\n  extends: [orders]\n  dimension: extra { sql: ${TABLE}.extra ;; }\n}\n"
+    },
+    {
+     "path": "views/orders.view.lkml",
+     "content": "view: orders {\n  sql_table_name: raw.orders ;;\n  dimension: id {\n    type: number\n    sql: ${TABLE}.id ;;\n  }\n}\n"
+    },
+    {
+     "path": "views/refine.view.lkml",
+     "content": "include: \"/views/orders.view.lkml\"\nview: +orders {\n  sql_table_name: analytics.orders_clean ;;\n}\n"
+    }
+   ],
+   "verdicts": {
+    "node-lookml-parser": {
+     "outcome": "pass",
+     "reasons": []
+    },
+    "openmetadata": {
+     "outcome": "fail",
+     "reasons": [
+      "main.orders.sql_table_name: expected 'analytics.orders_clean', got 'raw.orders'",
+      "main.orders_ext.sql_table_name: expected 'analytics.orders_clean', got None",
+      "main.orders_ext.fields: expected ['extra', 'id'], got ['extra']"
+     ]
+    },
+    "datahub": {
+     "outcome": "fail",
+     "reasons": [
+      "main.orders.sql_table_name: expected 'analytics.orders_clean', got 'raw.orders'",
+      "main.orders_ext.sql_table_name: expected 'analytics.orders_clean', got 'raw.orders'"
+     ]
+    },
+    "dagster": {
+     "outcome": "pass",
+     "reasons": []
+    }
+   }
+  },
+  {
+   "id": "e02_extends_is_additive_under_refinement",
+   "category": "extends",
+   "title": "extends listed in a refinement are added to the base view's extends",
+   "rule": "extends in a refinement is appended to the view's extends, and the last listed view wins conflicts.",
+   "status": "confirmed",
+   "citations": [
+    {
+     "url": "https://docs.cloud.google.com/looker/docs/lookml-refinements#additive",
+     "quote": "When extends is used in a refinement, the value in the extends parameter is appended",
+     "label": "lookml-refinements#additive"
+    },
+    {
+     "url": "https://docs.cloud.google.com/looker/docs/lookml-refinements#additive",
+     "quote": "to the list of items extended in the original object or in previous refinements, if any.",
+     "label": "lookml-refinements#additive"
+    },
+    {
+     "url": "https://docs.cloud.google.com/looker/docs/lookml-refinements#additive",
+     "quote": "Then, if there are any conflicts, priority is given to the last item in the chain of extends.",
+     "label": "lookml-refinements#additive"
+    }
+   ],
+   "rationale": null,
+   "provisional": null,
+   "invalid_in_looker": false,
+   "expect": {
+    "models": {
+     "m": {
+      "views": {
+       "orders": {
+        "extends": [
+         "base_a",
+         "base_b"
+        ],
+        "sql_table_name": "b.t",
+        "fields": [
+         "a_field",
+         "b_field",
+         "id"
+        ]
+       }
+      },
+      "explores": {}
+     }
+    },
+    "absent_views": []
+   },
+   "files": [
+    {
+     "path": "bases.view.lkml",
+     "content": "view: base_a {\n  sql_table_name: a.t ;;\n  dimension: a_field { sql: ${TABLE}.a ;; }\n}\nview: base_b {\n  sql_table_name: b.t ;;\n  dimension: b_field { sql: ${TABLE}.b ;; }\n}\n"
+    },
+    {
+     "path": "m.model.lkml",
+     "content": "connection: \"wh\"\ninclude: \"/bases.view\"\ninclude: \"/orders.view\"\ninclude: \"/r.lkml\"\nexplore: orders {}\n"
+    },
+    {
+     "path": "orders.view.lkml",
+     "content": "include: \"/bases.view\"\nview: orders {\n  extends: [base_a]\n  dimension: id { sql: ${TABLE}.id ;; }\n}\n"
+    },
+    {
+     "path": "r.lkml",
+     "content": "include: \"/orders.view\"\nview: +orders { extends: [base_b] }\n"
+    }
+   ],
+   "verdicts": {
+    "node-lookml-parser": {
+     "outcome": "fail",
+     "reasons": [
+      "m.orders.extends: expected ['base_a', 'base_b'], got ['base_b']"
+     ]
+    },
+    "openmetadata": {
+     "outcome": "fail",
+     "reasons": [
+      "m.orders.sql_table_name: expected 'b.t', got None",
+      "m.orders.fields: expected ['a_field', 'b_field', 'id'], got ['id']",
+      "m.orders.extends: expected ['base_a', 'base_b'], got ['base_a']"
+     ]
+    },
+    "datahub": {
+     "outcome": "fail",
+     "reasons": [
+      "m.orders.sql_table_name: expected 'b.t', got 'a.t'",
+      "m.orders.fields: expected ['a_field', 'b_field', 'id'], got ['a_field', 'id']",
+      "m.orders.extends: expected ['base_a', 'base_b'], got ['base_a']"
+     ]
+    },
+    "dagster": {
+     "outcome": "fail",
+     "reasons": [
+      "m.orders.sql_table_name: expected 'b.t', got 'a.t'",
+      "m.orders.fields: expected ['a_field', 'b_field', 'id'], got ['a_field', 'id']",
+      "m.orders.extends: expected ['base_a', 'base_b'], got ['base_a']"
+     ]
+    }
+   }
+  },
+  {
+   "id": "e03_multiple_extends_last_listed_wins",
+   "category": "extends",
+   "title": "With several extends, the last listed view wins conflicting parameters",
+   "rule": "When a view extends several views, the view listed last wins parameters that conflict.",
+   "status": "confirmed",
+   "citations": [
+    {
+     "url": "https://docs.cloud.google.com/looker/docs/reusing-code-with-extends#extending_more_than_one_object_at_the_same_time",
+     "quote": "priority is given to the items listed last",
+     "label": "reusing-code-with-extends#extending_more_than_one_object_at_the_same_time"
+    }
+   ],
+   "rationale": null,
+   "provisional": null,
+   "invalid_in_looker": false,
+   "expect": {
+    "models": {
+     "m": {
+      "views": {
+       "combined": {
+        "sql_table_name": "b.t",
+        "fields": [
+         "a_field",
+         "b_field",
+         "own",
+         "shared"
+        ],
+        "field_params": {
+         "shared": {
+          "sql": "${TABLE}.from_b"
+         }
+        }
+       }
+      },
+      "explores": {}
+     }
+    },
+    "absent_views": []
+   },
+   "files": [
+    {
+     "path": "bases.view.lkml",
+     "content": "view: base_a {\n  sql_table_name: a.t ;;\n  dimension: shared { sql: ${TABLE}.from_a ;; }\n  dimension: a_field { sql: ${TABLE}.a ;; }\n}\nview: base_b {\n  sql_table_name: b.t ;;\n  dimension: shared { sql: ${TABLE}.from_b ;; }\n  dimension: b_field { sql: ${TABLE}.b ;; }\n}\n"
+    },
+    {
+     "path": "combined.view.lkml",
+     "content": "include: \"/bases.view\"\nview: combined {\n  extends: [base_a, base_b]\n  dimension: own { sql: ${TABLE}.own ;; }\n}\n"
+    },
+    {
+     "path": "m.model.lkml",
+     "content": "connection: \"wh\"\ninclude: \"/bases.view\"\ninclude: \"/combined.view\"\nexplore: combined {}\n"
+    }
+   ],
+   "verdicts": {
+    "node-lookml-parser": {
+     "outcome": "pass",
+     "reasons": []
+    },
+    "openmetadata": {
+     "outcome": "fail",
+     "reasons": [
+      "m.combined.sql_table_name: expected 'b.t', got None",
+      "m.combined.fields: expected ['a_field', 'b_field', 'own', 'shared'], got ['own']",
+      "m.combined.shared: field not resolved"
+     ]
+    },
+    "datahub": {
+     "outcome": "fail",
+     "reasons": [
+      "m.combined.fields: expected ['a_field', 'b_field', 'own', 'shared'], got ['b_field', 'own', 'shared']"
+     ]
+    },
+    "dagster": {
+     "outcome": "pass",
+     "reasons": []
+    }
+   }
+  },
+  {
+   "id": "e04_child_overrides_extended_bases",
+   "category": "extends",
+   "title": "A view's own parameters and fields override every view it extends",
+   "rule": "The extending view's own declarations win over every extended view, merged parameter by parameter.",
+   "status": "confirmed",
+   "citations": [
+    {
+     "url": "https://docs.cloud.google.com/looker/docs/reusing-code-with-extends",
+     "quote": "If there are any conflicts, the extending object will take precedence and override the settings of the object that is being extended.",
+     "label": "reusing-code-with-extends"
+    },
+    {
+     "url": "https://docs.cloud.google.com/looker/docs/reusing-code-with-extends#step-2-merge",
+     "quote": "any explicitly written LookML gets merged",
+     "label": "reusing-code-with-extends#step-2-merge"
+    },
+    {
+     "url": "https://docs.cloud.google.com/looker/docs/reusing-code-with-extends#step-3-resolve-conflicts",
+     "quote": "the version in the extending object is used",
+     "label": "reusing-code-with-extends#step-3-resolve-conflicts"
+    }
+   ],
+   "rationale": "The documentation's implementation example merges a status dimension from both views: it keeps sql from the extended view and takes type from the extending view.",
+   "provisional": null,
+   "invalid_in_looker": false,
+   "expect": {
+    "models": {
+     "m": {
+      "views": {
+       "child": {
+        "sql_table_name": "child.t",
+        "fields": [
+         "a_only",
+         "id"
+        ],
+        "field_params": {
+         "id": {
+          "sql": "${TABLE}.b_id",
+          "label": "Child ID"
+         }
+        }
+       }
+      },
+      "explores": {}
+     }
+    },
+    "absent_views": []
+   },
+   "files": [
+    {
+     "path": "bases.view.lkml",
+     "content": "view: base_a {\n  sql_table_name: a.t ;;\n  dimension: id { sql: ${TABLE}.a_id ;; label: \"A ID\" }\n  dimension: a_only { sql: ${TABLE}.a ;; }\n}\nview: base_b {\n  sql_table_name: b.t ;;\n  dimension: id { sql: ${TABLE}.b_id ;; }\n}\n"
+    },
+    {
+     "path": "child.view.lkml",
+     "content": "include: \"/bases.view\"\nview: child {\n  extends: [base_a, base_b]\n  sql_table_name: child.t ;;\n  dimension: id { label: \"Child ID\" }\n}\n"
+    },
+    {
+     "path": "m.model.lkml",
+     "content": "connection: \"wh\"\ninclude: \"/bases.view\"\ninclude: \"/child.view\"\nexplore: child {}\n"
+    }
+   ],
+   "verdicts": {
+    "node-lookml-parser": {
+     "outcome": "pass",
+     "reasons": []
+    },
+    "openmetadata": {
+     "outcome": "fail",
+     "reasons": [
+      "m.child.fields: expected ['a_only', 'id'], got ['id']",
+      "m.child.id.sql: expected '${TABLE}.b_id', got None"
+     ]
+    },
+    "datahub": {
+     "outcome": "fail",
+     "reasons": [
+      "m.child.fields: expected ['a_only', 'id'], got ['id']",
+      "m.child.id.sql: expected '${TABLE}.b_id', got None"
+     ]
+    },
+    "dagster": {
+     "outcome": "fail",
+     "reasons": [
+      "m.child.id.sql: expected '${TABLE}.b_id', got None"
+     ]
+    }
+   }
+  },
+  {
+   "id": "m01_model_without_the_refinement_sees_the_base",
+   "category": "model_scope",
+   "title": "A model that does not include a refinement sees the unrefined view",
+   "rule": "A refinement does not leak into a model that does not include the refining file.",
+   "status": "confirmed",
+   "citations": [
+    {
+     "url": "https://docs.cloud.google.com/looker/docs/lookml-refinements#using_refinements_in_your_lookml_project",
+     "quote": "In your model file, include the files where your refinements are defined.",
+     "label": "lookml-refinements#using_refinements_in_your_lookml_project"
+    },
+    {
+     "url": "https://docs.cloud.google.com/looker/docs/reference/param-model-include#including_views_and_dashboards_in_a_model",
+     "quote": "Use the include parameter in a model file to specify the dashboard and view files that will be available to that model.",
+     "label": "param-model-include#including_views_and_dashboards_in_a_model"
+    }
+   ],
+   "rationale": null,
+   "provisional": null,
+   "invalid_in_looker": false,
+   "expect": {
+    "models": {
+     "refined": {
+      "views": {
+       "orders": {
+        "sql_table_name": "analytics.orders_clean"
+       }
+      },
+      "explores": {}
+     },
+     "plain": {
+      "views": {
+       "orders": {
+        "sql_table_name": "raw.orders"
+       }
+      },
+      "explores": {}
+     }
+    },
+    "absent_views": [
+     "+orders"
+    ]
+   },
+   "files": [
+    {
+     "path": "plain.model.lkml",
+     "content": "connection: \"wh\"\ninclude: \"/views/orders.view.lkml\"\nexplore: orders {}\n"
+    },
+    {
+     "path": "refined.model.lkml",
+     "content": "connection: \"wh\"\ninclude: \"/views/orders.view.lkml\"\ninclude: \"/views/refine.view.lkml\"\nexplore: orders {}\n"
+    },
+    {
+     "path": "views/orders.view.lkml",
+     "content": "view: orders {\n  sql_table_name: raw.orders ;;\n  dimension: id {\n    type: number\n    sql: ${TABLE}.id ;;\n  }\n}\n"
+    },
+    {
+     "path": "views/refine.view.lkml",
+     "content": "include: \"/views/orders.view.lkml\"\nview: +orders {\n  sql_table_name: analytics.orders_clean ;;\n}\n"
+    }
+   ],
+   "verdicts": {
+    "node-lookml-parser": {
+     "outcome": "pass",
+     "reasons": []
+    },
+    "openmetadata": {
+     "outcome": "fail",
+     "reasons": [
+      "refined.orders.sql_table_name: expected 'analytics.orders_clean', got 'raw.orders'",
+      "views that must not exist were exposed: ['+orders']"
+     ]
+    },
+    "datahub": {
+     "outcome": "fail",
+     "reasons": [
+      "refined.orders.sql_table_name: expected 'analytics.orders_clean', got 'raw.orders'"
+     ]
+    },
+    "dagster": {
+     "outcome": "fail",
+     "reasons": [
+      "plain.orders.sql_table_name: expected 'raw.orders', got 'analytics.orders_clean'"
+     ]
+    }
+   }
+  },
+  {
+   "id": "x01_explore_view_name_binds_base_view",
+   "category": "explores",
+   "title": "An explore with view_name resolves its base view and its refinements",
+   "rule": "view_name binds an explore to a view of a different name, and +explore refinements apply to that explore.",
+   "status": "confirmed",
+   "citations": [
+    {
+     "url": "https://docs.cloud.google.com/looker/docs/reference/param-explore-view-name",
+     "quote": "view_name determines the view that will define the fields of an Explore.",
+     "label": "param-explore-view-name"
+    },
+    {
+     "url": "https://docs.cloud.google.com/looker/docs/lookml-refinements",
+     "quote": "With LookML refinements, you can adapt an existing view or Explore without editing the LookML file that contains it.",
+     "label": "lookml-refinements"
+    }
+   ],
+   "rationale": null,
+   "provisional": null,
+   "invalid_in_looker": false,
+   "expect": {
+    "models": {
+     "m": {
+      "views": {
+       "orders": {
+        "sql_table_name": "raw.orders"
+       }
+      },
+      "explores": {
+       "customer_orders": {
+        "view_name": "orders",
+        "label": "Customer Orders"
+       }
+      }
+     }
+    },
+    "absent_views": []
+   },
+   "files": [
+    {
+     "path": "m.model.lkml",
+     "content": "connection: \"wh\"\ninclude: \"/orders.view\"\ninclude: \"/r_explore.lkml\"\nexplore: customer_orders {\n  view_name: orders\n}\n"
+    },
+    {
+     "path": "orders.view.lkml",
+     "content": "view: orders {\n  sql_table_name: raw.orders ;;\n  dimension: id {\n    type: number\n    sql: ${TABLE}.id ;;\n  }\n}\n"
+    },
+    {
+     "path": "r_explore.lkml",
+     "content": "explore: +customer_orders {\n  label: \"Customer Orders\"\n}\n"
+    }
+   ],
+   "verdicts": {
+    "node-lookml-parser": {
+     "outcome": "pass",
+     "reasons": []
+    },
+    "openmetadata": {
+     "outcome": "n/a",
+     "reasons": [
+      "adapter does not support explores"
+     ]
+    },
+    "datahub": {
+     "outcome": "fail",
+     "reasons": [
+      "m.explore.customer_orders.label: expected 'Customer Orders', got None"
+     ]
+    },
+    "dagster": {
+     "outcome": "fail",
+     "reasons": [
+      "m.explore.customer_orders.label: expected 'Customer Orders', got None"
+     ]
+    }
+   }
+  },
+  {
+   "id": "x02_explore_from_and_join_from_bind_views",
+   "category": "explores",
+   "title": "An explore with from, and a join with from, bind the aliased views",
+   "rule": "from on an explore or a join binds it to the named view while the explore or join name becomes the alias.",
+   "status": "confirmed",
+   "citations": [
+    {
+     "url": "https://docs.cloud.google.com/looker/docs/reference/param-explore-from",
+     "quote": "from determines the view that will define the fields of an Explore.",
+     "label": "param-explore-from"
+    },
+    {
+     "url": "https://docs.cloud.google.com/looker/docs/reference/param-explore-from",
+     "quote": "the generated SQL aliases the original table name",
+     "label": "param-explore-from"
+    },
+    {
+     "url": "https://docs.cloud.google.com/looker/docs/reference/param-explore-join-from",
+     "quote": "from specifies the view to use in a join.",
+     "label": "param-explore-join-from"
+    },
+    {
+     "url": "https://docs.cloud.google.com/looker/docs/reference/param-explore-join-from",
+     "quote": "Typically from is used only if you want the join and its fields to have a different name than the underlying view.",
+     "label": "param-explore-join-from"
+    }
+   ],
+   "rationale": null,
+   "provisional": null,
+   "invalid_in_looker": false,
+   "expect": {
+    "models": {
+     "m": {
+      "views": {
+       "orders": {
+        "sql_table_name": "raw.orders"
+       },
+       "users": {
+        "sql_table_name": "raw.users"
+       }
+      },
+      "explores": {
+       "buyer_orders": {
+        "view_name": "orders",
+        "from": "orders",
+        "joins": {
+         "buyer": {
+          "from": "users",
+          "relationship": "many_to_one",
+          "sql_on": "${buyer_orders.user_id} = ${buyer.id}"
+         }
+        }
+       }
+      }
+     }
+    },
+    "absent_views": []
+   },
+   "files": [
+    {
+     "path": "m.model.lkml",
+     "content": "connection: \"wh\"\ninclude: \"/*.view\"\nexplore: buyer_orders {\n  from: orders\n  join: buyer {\n    from: users\n    sql_on: ${buyer_orders.user_id} = ${buyer.id} ;;\n    relationship: many_to_one\n  }\n}\n"
+    },
+    {
+     "path": "orders.view.lkml",
+     "content": "view: orders {\n  sql_table_name: raw.orders ;;\n  dimension: id {\n    type: number\n    sql: ${TABLE}.id ;;\n  }\n}\n"
+    },
+    {
+     "path": "users.view.lkml",
+     "content": "view: users {\n  sql_table_name: raw.users ;;\n  dimension: id { sql: ${TABLE}.id ;; }\n}\n"
+    }
+   ],
+   "verdicts": {
+    "node-lookml-parser": {
+     "outcome": "pass",
+     "reasons": []
+    },
+    "openmetadata": {
+     "outcome": "n/a",
+     "reasons": [
+      "adapter does not support explores"
+     ]
+    },
+    "datahub": {
+     "outcome": "pass",
+     "reasons": []
+    },
+    "dagster": {
+     "outcome": "pass",
+     "reasons": []
+    }
+   }
+  },
+  {
+   "id": "c01_manifest_constant_in_sql_table_name",
+   "category": "constants",
+   "title": "A manifest constant in sql_table_name resolves to its value",
+   "rule": "@{NAME} in sql_table_name is replaced with the value of the manifest constant NAME.",
+   "status": "confirmed",
+   "citations": [
+    {
+     "url": "https://docs.cloud.google.com/looker/docs/reference/param-manifest-constant",
+     "quote": "Constants may then be used throughout a project using @{constant_name} syntax.",
+     "label": "param-manifest-constant"
+    },
+    {
+     "url": "https://docs.cloud.google.com/looker/docs/reference/param-manifest-constant",
+     "quote": "This creates a view called Users that is based on the users table from the schema 02349_sfo.",
+     "label": "param-manifest-constant"
+    }
+   ],
+   "rationale": null,
+   "provisional": null,
+   "invalid_in_looker": false,
+   "expect": {
+    "models": {
+     "m": {
+      "views": {
+       "orders": {
+        "sql_table_name": "analytics_prod.orders"
+       }
+      },
+      "explores": {}
+     }
+    },
+    "absent_views": []
+   },
+   "files": [
+    {
+     "path": "m.model.lkml",
+     "content": "connection: \"wh\"\ninclude: \"/orders.view\"\nexplore: orders {}\n"
+    },
+    {
+     "path": "manifest.lkml",
+     "content": "project_name: \"p\"\nconstant: ANALYTICS_SCHEMA {\n  value: \"analytics_prod\"\n}\n"
+    },
+    {
+     "path": "orders.view.lkml",
+     "content": "view: orders {\n  sql_table_name: @{ANALYTICS_SCHEMA}.orders ;;\n  dimension: id { sql: ${TABLE}.id ;; }\n}\n"
+    }
+   ],
+   "verdicts": {
+    "node-lookml-parser": {
+     "outcome": "fail",
+     "reasons": [
+      "m.orders.sql_table_name: expected 'analytics_prod.orders', got '@{ANALYTICS_SCHEMA}.orders'"
+     ]
+    },
+    "openmetadata": {
+     "outcome": "pass",
+     "reasons": []
+    },
+    "datahub": {
+     "outcome": "pass",
+     "reasons": []
+    },
+    "dagster": {
+     "outcome": "fail",
+     "reasons": [
+      "m.orders.sql_table_name: expected 'analytics_prod.orders', got '@{ANALYTICS_SCHEMA}.orders'"
+     ]
+    }
+   }
+  },
+  {
+   "id": "c02_manifest_constant_in_derived_table_sql",
+   "category": "constants",
+   "title": "A manifest constant in derived_table SQL resolves to its value",
+   "rule": "@{NAME} inside derived_table SQL is replaced with the value of the manifest constant NAME.",
+   "status": "confirmed",
+   "citations": [
+    {
+     "url": "https://docs.cloud.google.com/looker/docs/reference/param-manifest-constant",
+     "quote": "Constants may then be used throughout a project using @{constant_name} syntax.",
+     "label": "param-manifest-constant"
+    },
+    {
+     "url": "https://docs.cloud.google.com/looker/docs/reference/param-manifest-constant",
+     "quote": "Constants can be referenced anywhere in the model where strings are accepted",
+     "label": "param-manifest-constant"
+    }
+   ],
+   "rationale": null,
+   "provisional": null,
+   "invalid_in_looker": false,
+   "expect": {
+    "models": {
+     "m": {
+      "views": {
+       "orders": {
+        "derived_table": {
+         "sql": "SELECT id FROM `bq_project.raw.orders`"
+        }
+       }
+      },
+      "explores": {}
+     }
+    },
+    "absent_views": []
+   },
+   "files": [
+    {
+     "path": "m.model.lkml",
+     "content": "connection: \"wh\"\ninclude: \"/orders.view\"\nexplore: orders {}\n"
+    },
+    {
+     "path": "manifest.lkml",
+     "content": "project_name: \"p\"\nconstant: RAW_DATASET {\n  value: \"bq_project.raw\"\n}\n"
+    },
+    {
+     "path": "orders.view.lkml",
+     "content": "view: orders {\n  derived_table: {\n    sql: SELECT id FROM `@{RAW_DATASET}.orders` ;;\n  }\n  dimension: id { sql: ${TABLE}.id ;; }\n}\n"
+    }
+   ],
+   "verdicts": {
+    "node-lookml-parser": {
+     "outcome": "fail",
+     "reasons": [
+      "m.orders.derived_table.sql: expected 'SELECT id FROM `bq_project.raw.orders`', got 'SELECT id FROM `@{RAW_DATASET}.orders`'"
+     ]
+    },
+    "openmetadata": {
+     "outcome": "pass",
+     "reasons": []
+    },
+    "datahub": {
+     "outcome": "pass",
+     "reasons": []
+    },
+    "dagster": {
+     "outcome": "fail",
+     "reasons": [
+      "m.orders.derived_table.sql: expected 'SELECT id FROM `bq_project.raw.orders`', got 'SELECT id FROM `@{RAW_DATASET}.orders`'"
+     ]
+    }
+   }
+  },
+  {
+   "id": "p01_single_semicolon_inside_sql_block",
+   "category": "syntax",
+   "title": "A single semicolon inside a SQL block is kept verbatim",
+   "rule": "SQL blocks end only at ;;, so a single ; inside the SQL is part of the SQL.",
+   "status": "confirmed",
+   "citations": [
+    {
+     "url": "https://community.looker.com/technical-tips-tricks-1021/when-are-semicolons-used-in-lookml-25425",
+     "quote": "The double semicolon is used to end SQL and HTML blocks.",
+     "label": "when-are-semicolons-used-in-lookml-25425"
+    }
+   ],
+   "rationale": null,
+   "provisional": null,
+   "invalid_in_looker": false,
+   "expect": {
+    "models": {
+     "m": {
+      "views": {
+       "orders": {
+        "derived_table": {
+         "sql": "SELECT id FROM raw.orders WHERE note != ';'"
+        },
+        "fields": [
+         "cleaned"
+        ],
+        "field_params": {
+         "cleaned": {
+          "sql": "REGEXP_REPLACE(${TABLE}.note, ';', '')"
+         }
+        }
+       }
+      },
+      "explores": {}
+     }
+    },
+    "absent_views": []
+   },
+   "files": [
+    {
+     "path": "m.model.lkml",
+     "content": "connection: \"wh\"\ninclude: \"/orders.view\"\nexplore: orders {}\n"
+    },
+    {
+     "path": "orders.view.lkml",
+     "content": "view: orders {\n  derived_table: {\n    sql: SELECT id FROM raw.orders WHERE note != ';' ;;\n  }\n  dimension: cleaned {\n    sql: REGEXP_REPLACE(${TABLE}.note, ';', '') ;;\n  }\n}\n"
+    }
+   ],
+   "verdicts": {
+    "node-lookml-parser": {
+     "outcome": "fail",
+     "reasons": [
+      "m.orders.derived_table.sql: expected \"SELECT id FROM raw.orders WHERE note != ';'\", got \"SELECT id FROM raw.orders WHERE note != ';,'\"",
+      "m.orders.cleaned.sql: expected \"REGEXP_REPLACE(${TABLE}.note, ';', '')\", got \"REGEXP_REPLACE(${TABLE}.note, ';,', '')\""
+     ]
+    },
+    "openmetadata": {
+     "outcome": "pass",
+     "reasons": []
+    },
+    "datahub": {
+     "outcome": "pass",
+     "reasons": []
+    },
+    "dagster": {
+     "outcome": "pass",
+     "reasons": []
+    }
+   }
+  },
+  {
+   "id": "p02_hash_inside_sql_block_is_not_lookml_comment",
+   "category": "syntax",
+   "title": "A # inside a SQL block is SQL, not a LookML comment",
+   "rule": "# starts a LookML comment outside SQL blocks; inside a SQL block it is part of the SQL.",
+   "status": "confirmed",
+   "citations": [
+    {
+     "url": "https://docs.cloud.google.com/looker/docs/looker-ide#adding_comments",
+     "quote": "To add a single comment, use the # character:",
+     "label": "looker-ide#adding_comments"
+    },
+    {
+     "url": "https://docs.cloud.google.com/looker/docs/looker-ide",
+     "quote": "If you are commenting out lines that are entirely within a SQL code block, manually add SQL comment notation.",
+     "label": "looker-ide"
+    }
+   ],
+   "rationale": "Commenting out SQL requires SQL comment notation because # inside a SQL block is passed to the database as SQL.",
+   "provisional": null,
+   "invalid_in_looker": false,
+   "expect": {
+    "models": {
+     "m": {
+      "views": {
+       "orders": {
+        "sql_table_name": "raw.orders",
+        "fields": [
+         "tag_hash"
+        ],
+        "field_params": {
+         "tag_hash": {
+          "sql": "CONCAT('#', ${TABLE}.tag)"
+         }
+        }
+       }
+      },
+      "explores": {}
+     }
+    },
+    "absent_views": []
+   },
+   "files": [
+    {
+     "path": "m.model.lkml",
+     "content": "connection: \"wh\"\ninclude: \"/orders.view\"\nexplore: orders {}\n"
+    },
+    {
+     "path": "orders.view.lkml",
+     "content": "view: orders {\n  # LookML comment outside block\n  sql_table_name: raw.orders ;;\n  dimension: tag_hash {\n    sql: CONCAT('#', ${TABLE}.tag) ;;\n  }\n}\n"
+    }
+   ],
+   "verdicts": {
+    "node-lookml-parser": {
+     "outcome": "pass",
+     "reasons": []
+    },
+    "openmetadata": {
+     "outcome": "pass",
+     "reasons": []
+    },
+    "datahub": {
+     "outcome": "pass",
+     "reasons": []
+    },
+    "dagster": {
+     "outcome": "pass",
+     "reasons": []
+    }
+   }
+  },
+  {
+   "id": "p03_named_fields_errors_and_info",
+   "category": "syntax",
+   "title": "Fields named errors or info are ordinary fields",
+   "rule": "errors and info are valid field names and resolve like any other field.",
+   "status": "confirmed",
+   "citations": [
+    {
+     "url": "https://docs.cloud.google.com/looker/docs/reference/param-field-dimension",
+     "quote": "It must consist of characters a through z, 0 through 9, or _.",
+     "label": "param-field-dimension"
+    },
+    {
+     "url": "https://docs.cloud.google.com/looker/docs/reference/param-field-dimension",
+     "quote": "It must start with a letter.",
+     "label": "param-field-dimension"
+    }
+   ],
+   "rationale": "Both names meet the naming rules, so a tool must not confuse them with its own metadata keys.",
+   "provisional": null,
+   "invalid_in_looker": false,
+   "expect": {
+    "models": {
+     "m": {
+      "views": {
+       "orders": {
+        "sql_table_name": "raw.orders",
+        "fields": [
+         "errors",
+         "info"
+        ],
+        "field_params": {
+         "info": {
+          "type": "string",
+          "sql": "${TABLE}.info"
+         },
+         "errors": {
+          "type": "count"
+         }
+        }
+       }
+      },
+      "explores": {}
+     }
+    },
+    "absent_views": []
+   },
+   "files": [
+    {
+     "path": "m.model.lkml",
+     "content": "connection: \"wh\"\ninclude: \"/orders.view\"\nexplore: orders {}\n"
+    },
+    {
+     "path": "orders.view.lkml",
+     "content": "view: orders {\n  sql_table_name: raw.orders ;;\n  dimension: info {\n    type: string\n    sql: ${TABLE}.info ;;\n  }\n  measure: errors {\n    type: count\n  }\n}\n"
+    }
+   ],
+   "verdicts": {
+    "node-lookml-parser": {
+     "outcome": "fail",
+     "reasons": [
+      "m.orders.info.type: expected 'string', got None",
+      "m.orders.info.sql: expected '${TABLE}.info', got None",
+      "m.orders.errors.type: expected 'count', got None"
+     ]
+    },
+    "openmetadata": {
+     "outcome": "pass",
+     "reasons": []
+    },
+    "datahub": {
+     "outcome": "pass",
+     "reasons": []
+    },
+    "dagster": {
+     "outcome": "pass",
+     "reasons": []
+    }
+   }
+  }
+ ]
+}
