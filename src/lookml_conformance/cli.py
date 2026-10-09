@@ -12,6 +12,8 @@ from pathlib import Path
 
 from lookml_conformance import __version__
 from lookml_conformance.cases import Case, SuiteError, load_cases
+from lookml_conformance.catalog import render_catalog
+from lookml_conformance.citations import check_citations
 from lookml_conformance.judge import Verdict
 from lookml_conformance.runner import AdapterSpec, RegistryError, load_registry, run_suite, select_adapters
 from lookml_conformance.scorecard import Scorecard, render_markdown, render_text
@@ -91,6 +93,16 @@ def build_parser() -> argparse.ArgumentParser:
         help="registry used for tool labels, if present",
     )
     report.set_defaults(handler=cmd_report)
+
+    catalog = commands.add_parser("catalog", help="write CASES.md from the case files")
+    catalog.add_argument("--output", "-o", type=Path, default=Path("CASES.md"), help="default: ./CASES.md")
+    catalog.add_argument("--check", action="store_true", help="exit with 1 if the file is out of date")
+    catalog.set_defaults(handler=cmd_catalog)
+
+    citations = commands.add_parser(
+        "check-citations", help="check that every quote still appears on the page it cites (needs network)"
+    )
+    citations.set_defaults(handler=cmd_check_citations)
     return parser
 
 
@@ -137,6 +149,28 @@ def cmd_report(args: argparse.Namespace) -> int:
         labels = {adapter.name: adapter.display_name for adapter in load_registry(args.registry)}
     print(render_markdown(scorecard, labels), end="")
     return EXIT_OK
+
+
+def cmd_catalog(args: argparse.Namespace) -> int:
+    rendered = render_catalog(load_cases(args.cases), cases_path=args.cases.as_posix())
+    if args.check:
+        current = args.output.read_text(encoding="utf-8") if args.output.is_file() else ""
+        if current != rendered:
+            print(f"{args.output} is out of date; run: lookml-conformance catalog", file=sys.stderr)
+            return EXIT_FAILURES
+        return EXIT_OK
+    _write(args.output, rendered)
+    return EXIT_OK
+
+
+def cmd_check_citations(args: argparse.Namespace) -> int:
+    cases = load_cases(args.cases)
+    problems = check_citations(cases)
+    for problem in problems:
+        print(f"{problem.case_id}: {problem.reason}\n  {problem.url}\n  > {problem.quote}")
+    total = sum(len(case.citations) for case in cases)
+    print(f"{total - len(problems)} of {total} citations found")
+    return EXIT_FAILURES if problems else EXIT_OK
 
 
 def _adapters_for(args: argparse.Namespace) -> list[AdapterSpec]:

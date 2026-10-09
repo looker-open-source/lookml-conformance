@@ -159,3 +159,29 @@ def test_version(capsys: pytest.CaptureFixture[str]) -> None:
     with pytest.raises(SystemExit):
         main(["--version"])
     assert capsys.readouterr().out.startswith("lookml-conformance ")
+
+
+def test_catalog_writes_and_checks(
+    cases_dir: Path, tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    output = tmp_path / "CASES.md"
+
+    assert main(["--cases", str(cases_dir), "catalog", "--check", "-o", str(output)]) == EXIT_FAILURES
+    assert main(["--cases", str(cases_dir), "catalog", "-o", str(output)]) == EXIT_OK
+    assert main(["--cases", str(cases_dir), "catalog", "--check", "-o", str(output)]) == EXIT_OK
+    assert "### `r01_a`" in output.read_text(encoding="utf-8")
+    assert "out of date" in capsys.readouterr().err
+
+
+def test_check_citations(
+    cases_dir: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    page = "<p>In most cases a refinement will override the original settings of an object.</p>"
+    monkeypatch.setattr("lookml_conformance.citations.fetch_url", lambda url: page)
+
+    assert main(["--cases", str(cases_dir), "check-citations"]) == EXIT_OK
+    assert capsys.readouterr().out == "2 of 2 citations found\n"
+
+    monkeypatch.setattr("lookml_conformance.citations.fetch_url", lambda url: "<p>nothing</p>")
+    assert main(["--cases", str(cases_dir), "check-citations"]) == EXIT_FAILURES
+    assert "r01_a: quote not found on the page" in capsys.readouterr().out
