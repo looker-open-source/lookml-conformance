@@ -32,6 +32,7 @@ class Capabilities:
     explores: bool = True
     imported_projects: bool = True
     constants: bool = True
+    lineage: bool = True
 
     @classmethod
     def from_dict(cls, data: Any) -> Capabilities:
@@ -52,15 +53,47 @@ class Capabilities:
         return getattr(self, capability, True) is False
 
 
+UPSTREAM_KINDS = ("table", "view", "explore")
+
+
+@dataclass(frozen=True)
+class Upstream:
+    """One direct upstream of a view in the tool's lineage: a warehouse table, a view or an explore."""
+
+    kind: str
+    name: str
+
+    @classmethod
+    def from_dict(cls, data: Any, where: str) -> Upstream:
+        data = _object(data, where)
+        if len(data) != 1 or (kind := next(iter(data))) not in UPSTREAM_KINDS:
+            raise ProtocolError(f"{where} must have exactly one of the keys {', '.join(UPSTREAM_KINDS)}")
+        name = data[kind]
+        if not isinstance(name, str) or not name:
+            raise ProtocolError(f"{where}.{kind} must be a non-empty string")
+        return cls(kind=kind, name=name)
+
+    def to_dict(self) -> JSONObject:
+        return {self.kind: self.name}
+
+    def __str__(self) -> str:
+        return f"{self.kind} {self.name}"
+
+
 @dataclass(frozen=True)
 class ViewOutput:
-    """A view as the tool resolved it. ``error`` is set when the tool failed on this view alone."""
+    """A view as the tool resolved it. ``error`` is set when the tool failed on this view alone.
+
+    ``upstream`` holds the view's direct upstreams in the tool's lineage, or ``None`` when the tool
+    reported no lineage for the view.
+    """
 
     sql_table_name: str | None = None
     derived_table: Mapping[str, str] | None = None
     fields: tuple[str, ...] = ()
     field_params: Mapping[str, Mapping[str, Any]] = field(default_factory=dict)
     extends: tuple[str, ...] | None = None
+    upstream: tuple[Upstream, ...] | None = None
     error: str | None = None
 
     @classmethod
@@ -82,6 +115,9 @@ class ViewOutput:
             extends=None
             if data.get("extends") is None
             else tuple(_str_list(data["extends"], f"{where}.extends")),
+            upstream=None
+            if data.get("upstream") is None
+            else _upstream(data["upstream"], f"{where}.upstream"),
         )
 
     def to_dict(self) -> JSONObject:
@@ -93,6 +129,7 @@ class ViewOutput:
             "fields": sorted(self.fields),
             "field_params": {name: dict(params) for name, params in sorted(self.field_params.items())},
             "extends": None if self.extends is None else list(self.extends),
+            "upstream": None if self.upstream is None else [edge.to_dict() for edge in self.upstream],
         }
 
 
@@ -223,6 +260,12 @@ class AdapterOutput:
             "models": {name: model.to_dict() for name, model in sorted(self.models.items())},
             "errors": list(self.errors),
         }
+
+
+def _upstream(value: Any, where: str) -> tuple[Upstream, ...]:
+    if not isinstance(value, list):
+        raise ProtocolError(f"{where} must be a list")
+    return tuple(Upstream.from_dict(item, f"{where}[{index}]") for index, item in enumerate(value))
 
 
 def _object_or_empty(value: Any, where: str) -> JSONObject:

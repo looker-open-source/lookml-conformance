@@ -9,7 +9,7 @@ from typing import Any
 
 from lookml_conformance.cases import Case, ModelExpectation
 from lookml_conformance.normalize import collapse_whitespace
-from lookml_conformance.protocol import AdapterOutput, ExploreOutput, ModelOutput, ViewOutput
+from lookml_conformance.protocol import AdapterOutput, ExploreOutput, ModelOutput, Upstream, ViewOutput
 
 
 class Outcome(str, Enum):
@@ -74,6 +74,8 @@ def _check_model(name: str, expected: ModelExpectation, got: ModelOutput | None)
             yield f"{where}: {view.error}"
         else:
             yield from _check_view(where, expected_view, view)
+            if "upstream_tables" in expected_view:
+                yield from _check_upstream(where, expected_view["upstream_tables"], view, got)
     for explore_name, expected_explore in expected.explores.items():
         where = f"{name}.explore.{explore_name}"
         explore = got.explores.get(explore_name)
@@ -105,6 +107,59 @@ def _check_view(where: str, expected: Mapping[str, Any], got: ViewOutput) -> Ite
         yield _mismatch(
             f"{where}.extends", expected["extends"], None if got.extends is None else list(got.extends)
         )
+
+
+def _check_upstream(where: str, expected: list[str], view: ViewOutput, model: ModelOutput) -> Iterator[str]:
+    want = sorted({_table_key(name) for name in expected})
+    if view.upstream is None:
+        yield f"{where}.upstream_tables: expected {want!r}, got no lineage"
+        return
+    tables, unresolved = upstream_tables(view, model)
+    if sorted(tables) != want:
+        reported = [str(edge) for edge in view.upstream]
+        detail = f"; reported upstream: {reported}" + (f"; not resolved: {unresolved}" if unresolved else "")
+        yield _mismatch(f"{where}.upstream_tables", want, sorted(tables)) + detail
+
+
+def upstream_tables(view: ViewOutput, model: ModelOutput) -> tuple[set[str], list[str]]:
+    """The warehouse tables a view reads, following the tool's own view and explore upstreams.
+
+    A view upstream contributes that view's tables; an explore contributes the tables of its base
+    view and joined views, as the tool resolved the explore. Returns the tables, and the upstream
+    views and explores the tool reported but did not resolve.
+    """
+    tables: set[str] = set()
+    unresolved: set[str] = set()
+    seen: set[Upstream] = set()
+    pending = list(view.upstream or ())
+    while pending:
+        edge = pending.pop()
+        if edge.kind == "table":
+            tables.add(_table_key(edge.name))
+            continue
+        if edge in seen:
+            continue
+        seen.add(edge)
+        if edge.kind == "view":
+            upstream_view = model.views.get(edge.name)
+            if upstream_view is None or upstream_view.upstream is None:
+                unresolved.add(str(edge))
+            else:
+                pending.extend(upstream_view.upstream)
+        elif (explore := model.explores.get(edge.name)) is None:
+            unresolved.add(str(edge))
+        else:
+            pending.extend(Upstream("view", name) for name in _explore_views(edge.name, explore))
+    return tables, sorted(unresolved)
+
+
+def _explore_views(name: str, explore: ExploreOutput) -> list[str]:
+    base = explore.from_view or explore.view_name or name
+    return [base, *((join.get("from") or join_name) for join_name, join in explore.joins.items())]
+
+
+def _table_key(name: str) -> str:
+    return (collapse_whitespace(name) or "").lower()
 
 
 def _compare_field_param(where: str, param: str, expected: Any, actual: Any) -> Iterator[str]:

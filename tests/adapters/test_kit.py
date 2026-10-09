@@ -5,7 +5,7 @@ from pathlib import Path
 import pytest
 
 from lookml_conformance.adapters import kit
-from lookml_conformance.protocol import ViewOutput
+from lookml_conformance.protocol import Upstream, ViewOutput
 
 
 def test_flatten_repeated() -> None:
@@ -93,6 +93,13 @@ def test_view_output_overrides() -> None:
     assert output.derived_table == {"sql": "resolved"}
     assert output.fields == ("only",)
     assert output.extends == ("merged",)
+    assert output.upstream is None
+
+
+def test_view_output_keeps_the_tool_upstream() -> None:
+    output = kit.view_output({"name": "v"}, upstream=iter([Upstream("view", "orders")]))
+
+    assert output.upstream == (Upstream("view", "orders"),)
 
 
 def test_model_files_skip_imported_projects(tmp_path: Path) -> None:

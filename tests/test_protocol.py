@@ -10,6 +10,7 @@ from lookml_conformance.protocol import (
     ExploreOutput,
     ModelOutput,
     ProtocolError,
+    Upstream,
     ViewOutput,
 )
 
@@ -26,6 +27,7 @@ FULL_OUTPUT: dict[str, Any] = {
                     "fields": ["status", "id"],
                     "field_params": {"id": {"sql": "${TABLE}.id", "filters": [{"status": "x"}]}},
                     "extends": ["base"],
+                    "upstream": [{"table": "raw.orders"}, {"view": "base"}],
                 },
                 "broken": {"error": "boom"},
             },
@@ -57,6 +59,7 @@ def test_parses_full_output() -> None:
         fields=("status", "id"),
         field_params={"id": {"sql": "${TABLE}.id", "filters": [{"status": "x"}]}},
         extends=("base",),
+        upstream=(Upstream("table", "raw.orders"), Upstream("view", "base")),
     )
     assert model.views["broken"].error == "boom"
     assert model.explores["orders"] == ExploreOutput(
@@ -99,6 +102,24 @@ def test_error_output_is_a_failure() -> None:
     assert output.to_dict() == {"adapter": "tool", "version": "1", "error": "crashed"}
 
 
+def test_view_without_upstream_reports_no_lineage() -> None:
+    view = ViewOutput.from_dict({"sql_table_name": "raw.orders"}, "v")
+
+    assert view.upstream is None
+    assert view.to_dict()["upstream"] is None
+
+
+def test_empty_upstream_is_lineage_without_upstreams() -> None:
+    assert ViewOutput.from_dict({"upstream": []}, "v").upstream == ()
+
+
+def test_upstream_round_trips_and_prints_its_kind() -> None:
+    edge = Upstream.from_dict({"explore": "orders"}, "e")
+
+    assert edge.to_dict() == {"explore": "orders"}
+    assert str(edge) == "explore orders"
+
+
 def test_capabilities_lacks_only_declared_false() -> None:
     capabilities = Capabilities.from_dict({"explores": False, "unknown_flag": False})
 
@@ -124,6 +145,22 @@ def test_capabilities_lacks_only_declared_false() -> None:
         (
             {"adapter": "t", "models": {"m": {"explores": {"e": {"joins": []}}}}},
             "models.m.explores.e.joins must be",
+        ),
+        (
+            {"adapter": "t", "models": {"m": {"views": {"v": {"upstream": {"table": "x"}}}}}},
+            "models.m.views.v.upstream must be a list",
+        ),
+        (
+            {"adapter": "t", "models": {"m": {"views": {"v": {"upstream": [{"table": "x", "view": "y"}]}}}}},
+            r"upstream\[0\] must have exactly one of the keys",
+        ),
+        (
+            {"adapter": "t", "models": {"m": {"views": {"v": {"upstream": [{"dataset": "x"}]}}}}},
+            "must have exactly one of the keys table, view, explore",
+        ),
+        (
+            {"adapter": "t", "models": {"m": {"views": {"v": {"upstream": [{"view": ""}]}}}}},
+            r"upstream\[0\].view must be a non-empty string",
         ),
     ],
 )

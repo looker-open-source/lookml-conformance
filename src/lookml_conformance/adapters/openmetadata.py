@@ -6,15 +6,24 @@ The connector reads views from the repository with ``BulkLkmlParser`` and takes 
 Looker API, so the adapter reports views only. ``BulkLkmlParser`` has no model scope, so the views
 are reported as one project-wide model. ``@{constant}`` references are substituted with the
 function the connector applies to ``sql_table_name`` and derived table SQL.
+
+A view's upstream is the lineage the connector draws for it. The adapter runs the connector's own
+view-lineage method on each view, with the calls to the OpenMetadata server replaced by recorders:
+a table lineage request becomes a table upstream, and a view-to-view request (for ``extends``) a
+view upstream. The connector draws lineage view by view in the order ``os.walk`` lists the view
+files, which depends on the file system; the adapter uses path order so that results reproduce.
 """
 
 from __future__ import annotations
 
+from collections.abc import Iterable
 from pathlib import Path
 from types import SimpleNamespace
 from typing import Any
 
 import lkml
+import networkx as nx
+from metadata.ingestion.lineage.models import Dialect
 from metadata.ingestion.source.dashboard.looker.bulk_parser import BulkLkmlParser
 from metadata.ingestion.source.dashboard.looker.metadata import LookerSource
 from metadata.ingestion.source.dashboard.looker.models import LookMLManifest
@@ -23,7 +32,7 @@ from metadata.utils.singleton import Singleton
 
 from lookml_conformance.adapter import Adapter
 from lookml_conformance.adapters import kit
-from lookml_conformance.protocol import Capabilities, ModelOutput, ViewOutput
+from lookml_conformance.protocol import Capabilities, ModelOutput, Upstream, ViewOutput
 
 PROJECT_WIDE = "*"
 
@@ -39,22 +48,34 @@ class OpenMetadataAdapter(Adapter):
         constants = manifest_constants(project)
         # Every view the connector would ingest, including refinements it indexes as "+name" views.
         names = indexed_view_names(parser)
-        views = {name: self._view(parser, name, constants) for name in names}
+        models = [kit.model_name(path) for path in kit.model_files(project)]
+        lineage = OfflineLineage(constants, names)
+        for diagnostic in lineage.run(indexed_views(parser), models[0] if models else "default"):
+            self.warn(diagnostic)
+        views = {name: self._view(parser, name, constants, lineage.upstream.get(name)) for name in names}
         return {
             PROJECT_WIDE: ModelOutput(
                 views={name: view for name, view in views.items() if view is not None}, all_views=tuple(names)
             )
         }
 
-    def _view(self, parser: BulkLkmlParser, name: str, constants: dict[str, str]) -> ViewOutput | None:
+    def _view(
+        self,
+        parser: BulkLkmlParser,
+        name: str,
+        constants: dict[str, str],
+        upstream: tuple[Upstream, ...] | None,
+    ) -> ViewOutput | None:
         try:
             view = parser.find_view(name)
-            return None if view is None else summarize_view(view, constants)
+            return None if view is None else summarize_view(view, constants, upstream)
         except Exception as exc:  # reported for this view only
             return ViewOutput(error=repr(exc))
 
 
-def summarize_view(view: Any, constants: dict[str, str]) -> ViewOutput:
+def summarize_view(
+    view: Any, constants: dict[str, str], upstream: tuple[Upstream, ...] | None = None
+) -> ViewOutput:
     # Released versions model dimensions and measures but not dimension groups.
     fields = [*view.dimensions, *(getattr(view, "dimension_groups", None) or []), *view.measures]
     raw = view.model_dump(by_alias=True, exclude_none=True)
@@ -64,6 +85,7 @@ def summarize_view(view: Any, constants: dict[str, str]) -> ViewOutput:
         sql_table_name=substitute_constants(view.sql_table_name, constants, strip_unresolved=True),
         derived_table_sql=substitute_constants(derived.get("sql"), constants, strip_unresolved=False),
         fields=[field.model_dump(exclude_none=True) for field in fields],
+        upstream=upstream,
     )
 
 
@@ -76,13 +98,67 @@ def manifest_constants(project: Path) -> dict[str, str]:
     return {constant["name"]: constant.get("value", "") for constant in parsed.constants or []}
 
 
-# Private OpenMetadata APIs. Both are pinned by the version in adapters.json and exercised by
+# Private OpenMetadata APIs. They are pinned by the version in adapters.json and exercised by
 # `pytest -m integration`; check them first when upgrading the tool.
 
 
 def indexed_view_names(parser: BulkLkmlParser) -> list[str]:
     """Names of every view the parser indexed. ``BulkLkmlParser`` has no public way to list them."""
     return sorted(parser._views_cache)
+
+
+def indexed_views(parser: BulkLkmlParser) -> list[tuple[str, Any]]:
+    """The indexed views in path order of their files, keeping the order within a file."""
+    return sorted(parser._views_cache.items(), key=lambda item: str(item[1].source_file))
+
+
+class OfflineLineage(LookerSource):
+    """``LookerSource`` view lineage without an OpenMetadata server.
+
+    Only the attributes the lineage methods read are set, and the methods that call the server are
+    replaced: lineage requests are recorded as upstreams instead of being sent.
+    """
+
+    def __init__(self, constants: dict[str, str], view_names: Iterable[str]) -> None:
+        # LookerSource.__init__ connects to Looker and OpenMetadata, so it is not called.
+        self._lookml_constants_map = constants
+        self._parsed_views: dict[str, str] = {}
+        self._unparsed_views: dict[str, str] = {}
+        self._derived_dependencies = nx.DiGraph()
+        self._views_cache = {name: SimpleNamespace(name=name) for name in view_names}
+        self._view_data_model = None
+        self.source_config = SimpleNamespace(queryParserConfig=None)
+        self.upstream: dict[str, tuple[Upstream, ...]] = {}
+
+    def run(self, views: Iterable[tuple[str, Any]], model_name: str) -> list[str]:
+        """Draw lineage for each view in order; returns the errors the connector reported."""
+        errors = []
+        for name, view in views:
+            self._view_data_model = SimpleNamespace(name=name)
+            self.upstream[name] = ()
+            for result in self._add_standalone_view_lineage(view, "conformance_project", model_name):
+                if getattr(result, "left", None) is not None:
+                    errors.append(f"{name}: {result.left.error}")
+        return errors
+
+    def get_db_service_prefixes(self) -> list[str]:
+        return ["warehouse"]
+
+    def _get_db_dialect(self, db_service_name: Any) -> Dialect:
+        return Dialect.ANSI
+
+    def _build_data_model(self, datamodel_name: str) -> None:
+        return None
+
+    def build_lineage_request(self, source: str, db_service_prefix: Any, to_entity: Any, **_: Any) -> None:
+        self._record(to_entity.name, Upstream("table", str(source)))
+
+    def _get_add_lineage_request(self, from_entity: Any, to_entity: Any, column_lineage: Any) -> None:
+        self._record(to_entity.name, Upstream("view", from_entity.name))
+
+    def _record(self, view_name: str, edge: Upstream) -> None:
+        if edge not in self.upstream.get(view_name, ()):
+            self.upstream[view_name] = (*self.upstream.get(view_name, ()), edge)
 
 
 def substitute_constants(

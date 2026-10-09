@@ -7,6 +7,10 @@ each model file, walks the model's resolved includes, applies refinements with
 ``LookerRefinementResolver`` and reads each view through ``LookerViewContext``. DataHub's
 ``process_refinements`` option defaults to false; the adapter turns it on so that the refinement
 resolver is exercised. Directories under ``imported_projects/`` become ``project_dependencies``.
+
+A view's upstream is what ``create_view_upstream`` returns for it, the lineage ``LookMLSource``
+emits: warehouse tables, other Looker views (for ``${view.SQL_TABLE_NAME}``) and explores (for
+native derived tables).
 """
 
 from __future__ import annotations
@@ -22,15 +26,18 @@ from datahub.ingestion.source.looker.looker_config import LookerConnectionDefini
 from datahub.ingestion.source.looker.looker_connection import get_connection_def_based_on_connection_string
 from datahub.ingestion.source.looker.looker_dataclasses import LookerModel
 from datahub.ingestion.source.looker.looker_file_loader import LookerViewFileLoader
+from datahub.ingestion.source.looker.looker_view_id_cache import LookerViewIdCache
 from datahub.ingestion.source.looker.lookml_concept_context import LookerViewContext
 from datahub.ingestion.source.looker.lookml_config import BASE_PROJECT_NAME, LookMLSourceConfig
 from datahub.ingestion.source.looker.lookml_refinement import LookerRefinementResolver
 from datahub.ingestion.source.looker.lookml_source import LookMLSource
+from datahub.ingestion.source.looker.view_upstream import create_view_upstream
+from datahub.utilities.urns.dataset_urn import DatasetUrn
 
 from lookml_conformance.adapter import Adapter
 from lookml_conformance.adapters import kit
 from lookml_conformance.normalize import collapse_whitespace
-from lookml_conformance.protocol import ExploreOutput, ModelOutput, ViewOutput
+from lookml_conformance.protocol import ExploreOutput, ModelOutput, Upstream, ViewOutput
 
 # The suite checks LookML resolution only, so every connection maps to one placeholder warehouse.
 PLACEHOLDER_CONNECTION = LookerConnectionDefinition(
@@ -106,13 +113,25 @@ class Project:
             source_config=self.source.source_config,
             reporter=self.source.reporter,
         )
+        view_ids = LookerViewIdCache(
+            project_name=self.source.source_config.project_name,
+            model_name=kit.model_name(model_file),
+            looker_model=model,
+            looker_viewfile_loader=self.loader,
+            reporter=self.source.reporter,
+        )
         return ModelOutput(
-            views=self._views(model, connection, resolver),
+            views=self._views(model, connection, resolver, view_ids, warn),
             explores=self._explores(kit.model_name(model_file), model, resolver, warn),
         )
 
     def _views(
-        self, model: LookerModel, connection: Any, resolver: LookerRefinementResolver
+        self,
+        model: LookerModel,
+        connection: Any,
+        resolver: LookerRefinementResolver,
+        view_ids: LookerViewIdCache,
+        warn: Any,
     ) -> dict[str, ViewOutput]:
         folders = self.source.base_projects_folder
         views: dict[str, ViewOutput] = {}
@@ -144,10 +163,27 @@ class Project:
                     continue  # LookMLSource does not emit refinements as views
                 try:
                     refined = resolver.apply_view_refinement(raw_view=raw_view)
-                    views[name] = summarize_view(LookerViewContext(raw_view=refined, **context))
+                    view = LookerViewContext(raw_view=refined, **context)
+                    views[name] = summarize_view(view, self._upstream(view, view_ids, warn))
                 except Exception as exc:  # reported for this view only
                     views[name] = ViewOutput(error=repr(exc))
         return views
+
+    def _upstream(
+        self, view: LookerViewContext, view_ids: LookerViewIdCache, warn: Any
+    ) -> tuple[Upstream, ...] | None:
+        try:
+            lineage = create_view_upstream(
+                view_context=view,
+                looker_view_id_cache=view_ids,
+                config=self.source.source_config,
+                ctx=self.source.ctx,
+                reporter=self.source.reporter,
+            )
+            return tuple(upstream_from_urn(urn) for urn in lineage.get_upstream_dataset_urn())
+        except Exception as exc:  # reported as no lineage for this view; the view still resolves
+            warn(f"{view.name()} lineage: {exc!r}")
+            return None
 
     def _explores(
         self, model_name: str, model: LookerModel, resolver: LookerRefinementResolver, warn: Any
@@ -168,7 +204,7 @@ class Project:
         return explores
 
 
-def summarize_view(view: LookerViewContext) -> ViewOutput:
+def summarize_view(view: LookerViewContext, upstream: tuple[Upstream, ...] | None = None) -> ViewOutput:
     sql_table_name = view.get_including_extends(field="sql_table_name")
     if sql_table_name is not None:
         # DataHub emits lineage for the table name after its own constant substitution.
@@ -185,7 +221,24 @@ def summarize_view(view: LookerViewContext) -> ViewOutput:
         sql_table_name=sql_table_name,
         derived_table_sql=derived_table_sql,
         fields=[*view.dimensions(), *view.dimension_groups(), *view.measures()],
+        upstream=upstream,
     )
+
+
+def upstream_from_urn(urn: str) -> Upstream:
+    """A lineage edge from a dataset urn: a Looker view or explore, or a warehouse table."""
+    dataset = DatasetUrn.from_string(urn)
+    name = dataset.name
+    if dataset.platform.endswith(":looker"):
+        for kind in ("view", "explore"):
+            # Looker urns are named <project>.view.<name> and <model>.explore.<name>.
+            prefix, separator, short_name = name.partition(f".{kind}.")
+            if separator and prefix:
+                return Upstream(kind, short_name)
+    # Drop the placeholder database and schema of PLACEHOLDER_CONNECTION, which the adapter set.
+    for placeholder in (f"{PLACEHOLDER_CONNECTION.default_db}.", f"{PLACEHOLDER_CONNECTION.default_schema}."):
+        name = name.removeprefix(placeholder)
+    return Upstream("table", name)
 
 
 def summarize_explore(explore: LookerExplore, raw: dict[str, Any]) -> ExploreOutput:

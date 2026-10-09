@@ -115,6 +115,10 @@ def test_confirmed_case_rejects_provenance(make_case: MakeCase) -> None:
             {"expect": {"models": {"m": {"views": {"orders": {"fields": []}}}}, "absent_views": "x"}},
             "absent_views' must be a list",
         ),
+        (
+            {"expect": {"models": {"m": {"views": {"orders": {"upstream_tables": "raw.orders"}}}}}},
+            "upstream_tables must be a list of strings",
+        ),
     ],
 )
 def test_rejects_invalid_case_files(make_case: MakeCase, overrides: dict[str, object], expected: str) -> None:
@@ -181,6 +185,7 @@ def test_rejects_non_object_json(tmp_path: Path) -> None:
             {"models": {"m": {"views": {"orders": {"fields": []}}}}},
             set(),
         ),
+        (None, {"models": {"m": {"views": {"orders": {"upstream_tables": ["raw.orders"]}}}}}, {"lineage"}),
     ],
 )
 def test_requires_is_derived_from_the_case(

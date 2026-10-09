@@ -15,6 +15,8 @@ const fs = require('fs');
 const path = require('path');
 
 const ADAPTER = 'node-lookml-parser';
+// The parser resolves LookML but builds no lineage graph.
+const CAPABILITIES = { lineage: false };
 const FIELD_TYPES = ['dimension', 'dimension_group', 'measure'];
 
 const parserPath = process.env.LOOKML_PARSER_PATH
@@ -72,9 +74,12 @@ function summarizeView(view) {
   }
   let derivedTable = null;
   if (view.derived_table) {
-    derivedTable = { sql: norm(view.derived_table.sql) };
+    // Scalar parameters only; a native derived table has explore_source instead of sql.
+    derivedTable = {};
     for (const [key, value] of ownEntries(view.derived_table)) {
-      if (key !== 'sql' && value != null && typeof value !== 'object') derivedTable[key] = String(value);
+      if (key === 'sql') {
+        if (value != null) derivedTable.sql = norm(value);
+      } else if (value != null && typeof value !== 'object') derivedTable[key] = String(value);
     }
   }
   return {
@@ -125,6 +130,7 @@ async function resolve(projectArg) {
   const project = await lookmlParser.parseFiles({ source, modelAssembly: true, strings: false, console: silent });
   const models = Object.fromEntries(ownEntries(project.model).map(([name, model]) => [name, summarizeModel(model)]));
   return {
+    capabilities: CAPABILITIES,
     models,
     errors: asList(project.errors).map((error) => error.message || String(error)),
   };

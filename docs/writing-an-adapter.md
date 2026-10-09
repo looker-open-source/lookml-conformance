@@ -55,7 +55,7 @@ Helpers in `lookml_conformance.adapters.kit`:
 
 | Helper | Use |
 | --- | --- |
-| `kit.view_output(view, ...)` | Build a view from an lkml-style dictionary (`sql_table_name`, `derived_table`, `dimensions`, `dimension_groups`, `measures`, `extends`). Keyword arguments override values the tool computes separately, such as a table name after constant substitution. |
+| `kit.view_output(view, ...)` | Build a view from an lkml-style dictionary (`sql_table_name`, `derived_table`, `dimensions`, `dimension_groups`, `measures`, `extends`). Keyword arguments override values the tool computes separately, such as a table name after constant substitution. `upstream=` takes the view's lineage edges as `Upstream("table" \| "view" \| "explore", name)`. |
 | `kit.model_files(project)`, `kit.model_name(path)` | The project's `.model.lkml` files, excluding imported projects. |
 | `kit.imported_projects(project)` | Imported projects, keyed by name, for tools that take them as configuration. |
 | `kit.field_params(field)`, `kit.derived_table(raw)` | The pieces `view_output` uses, for tools with their own view objects. |
@@ -64,7 +64,7 @@ Other hooks on `Adapter`:
 
 | Hook | Use |
 | --- | --- |
-| `capabilities = Capabilities(...)` | Set a capability to `False` only when the tool never produces that output: `per_model=False` for a tool without model scoping (return one model), `explores=False` for a tool that does not read explores. |
+| `capabilities = Capabilities(...)` | Set a capability to `False` only when the tool never produces that output: `per_model=False` for a tool without model scoping (return one model), `explores=False` for a tool that does not read explores, `lineage=False` for a tool that builds no lineage. |
 | `add_arguments(parser)` | Add tool options; read them from `self.options`. |
 | `self.warn(message)` | Report a diagnostic while still returning a result. |
 

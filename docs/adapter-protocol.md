@@ -34,7 +34,7 @@ timeout is 300 seconds per project. `lookml-conformance run --no-batch`, or `"ba
   "adapter": "datahub",
   "version": "1.7.0.14",
   "project": "/path/to/cases/refinements/r01_refinement_overrides_sql_table_name/project",
-  "capabilities": {"per_model": true, "explores": true, "imported_projects": true, "constants": true},
+  "capabilities": {"per_model": true, "explores": true, "imported_projects": true, "constants": true, "lineage": true},
   "models": {
     "ecommerce": {
       "views": {
@@ -43,14 +43,23 @@ timeout is 300 seconds per project. `lookml-conformance run --no-batch`, or `"ba
           "derived_table": null,
           "fields": ["id", "status"],
           "field_params": {"id": {"sql": "${TABLE}.id", "type": "number"}},
-          "extends": null
+          "extends": null,
+          "upstream": [{"table": "analytics.orders_clean"}]
+        },
+        "order_facts": {
+          "sql_table_name": null,
+          "derived_table": {"sql": "SELECT customer_id, COUNT(*) FROM ${orders.SQL_TABLE_NAME} GROUP BY 1"},
+          "fields": ["customer_id"],
+          "field_params": {},
+          "extends": null,
+          "upstream": [{"view": "orders"}]
         },
         "users": {"error": "KeyError('dimensions')"}
       },
       "explores": {
         "orders": {"view_name": "orders", "from": null, "label": null, "joins": {}}
       },
-      "all_views": ["orders", "users"]
+      "all_views": ["order_facts", "orders", "users"]
     }
   },
   "errors": []
@@ -64,11 +73,25 @@ timeout is 300 seconds per project. `lookml-conformance run --no-batch`, or `"ba
 | `project` | The project path as received. Required when the adapter is given several projects. |
 | `capabilities` | Optional; every capability defaults to `true`. Set one to `false` only when the tool produces no output of that kind, for example explores for a tool that reads them from the Looker API. Cases that need it are scored N/A. |
 | `models` | One entry per model, keyed by model name. |
-| `models.*.views` | Each resolved view. `field_params` holds the parameters the cases check: `sql`, `label`, `type`, `timeframes`, `filters` (a list of one-key objects). A view the tool failed on can be reported as `{"error": "..."}`. |
+| `models.*.views` | Each resolved view. `field_params` holds the parameters the cases check: `sql`, `label`, `type`, `timeframes`, `filters` (a list of one-key objects). `upstream` is described below. A view the tool failed on can be reported as `{"error": "..."}`. |
 | `models.*.explores` | Each resolved explore, with joins keyed by join name. |
 | `models.*.all_views` | Every view the tool would expose, including refinements it mistakes for views. Defaults to the keys of `views`. |
 | `errors` | Diagnostics the tool reported while still producing a result. They do not affect the verdict. |
 | `error` | Set instead of `models` when the tool produced no result for this project. The case is scored as an adapter error. |
+
+### Lineage
+
+`upstream` lists a view's direct upstreams in the tool's lineage graph, each as one of:
+
+| Entry | Meaning |
+| --- | --- |
+| `{"table": "raw.orders"}` | A warehouse table, as the tool names it. |
+| `{"view": "orders"}` | A view of the same model, for example from `${orders.SQL_TABLE_NAME}`. |
+| `{"explore": "orders"}` | An explore of the same model, for example the `explore_source` of a native derived table. |
+
+Report the edges the tool draws, not the tables they lead to: the judge follows view and explore
+entries through the rest of the output. `null` (or no key) means the tool reported no lineage for
+the view; `[]` means it reported lineage with no upstream.
 
 [`adapter-output.schema.json`](adapter-output.schema.json) is the same format as a JSON Schema
 (draft 2020-12), for adapters written in any language.

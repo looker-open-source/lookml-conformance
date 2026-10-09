@@ -19,7 +19,8 @@
         "per_model": {"type": "boolean"},
         "explores": {"type": "boolean"},
         "imported_projects": {"type": "boolean"},
-        "constants": {"type": "boolean"}
+        "constants": {"type": "boolean"},
+        "lineage": {"type": "boolean"}
       }
     },
     "models": {
@@ -69,8 +70,24 @@
           "additionalProperties": {"$ref": "#/$defs/field"}
         },
         "extends": {"type": ["array", "null"], "items": {"type": "string"}},
+        "upstream": {
+          "type": ["array", "null"],
+          "items": {"$ref": "#/$defs/upstream"},
+          "description": "The view's direct upstreams in the tool's lineage. null when the tool reports no lineage for the view."
+        },
         "error": {"type": "string", "description": "Set instead of the other keys when the tool failed on this view."}
       }
+    },
+    "upstream": {
+      "type": "object",
+      "minProperties": 1,
+      "maxProperties": 1,
+      "properties": {
+        "table": {"type": "string", "minLength": 1, "description": "A warehouse table."},
+        "view": {"type": "string", "minLength": 1, "description": "A view of the same model."},
+        "explore": {"type": "string", "minLength": 1, "description": "An explore of the same model."}
+      },
+      "additionalProperties": false
     },
     "field": {
       "type": "object",

@@ -6,8 +6,15 @@ from typing import Any
 import pytest
 
 from lookml_conformance.cases import Case, Citation, ModelExpectation, Status
-from lookml_conformance.judge import Outcome, Verdict, judge
-from lookml_conformance.protocol import AdapterOutput, Capabilities, ExploreOutput, ModelOutput, ViewOutput
+from lookml_conformance.judge import Outcome, Verdict, judge, upstream_tables
+from lookml_conformance.protocol import (
+    AdapterOutput,
+    Capabilities,
+    ExploreOutput,
+    ModelOutput,
+    Upstream,
+    ViewOutput,
+)
 
 
 def make_case(
@@ -225,3 +232,81 @@ def test_missing_capability_is_not_applicable(tmp_path: Path) -> None:
     assert verdict == Verdict(Outcome.NOT_APPLICABLE, ("adapter does not support explores",))
     assert not verdict.outcome.applicable
     assert not verdict.failed
+
+
+def table(name: str) -> Upstream:
+    return Upstream("table", name)
+
+
+def view(name: str) -> Upstream:
+    return Upstream("view", name)
+
+
+def lineage_case(tmp_path: Path, tables: list[str]) -> Case:
+    return make_case(tmp_path, views={"facts": {"upstream_tables": tables}})
+
+
+def test_upstream_tables_follow_view_references(tmp_path: Path) -> None:
+    result = output(
+        {
+            "facts": ViewOutput(upstream=(view("rollup"), table("RAW.customers"))),
+            "rollup": ViewOutput(upstream=(view("orders"),)),
+            "orders": ViewOutput(upstream=(table("raw.orders"),)),
+        }
+    )
+
+    assert judge(lineage_case(tmp_path, ["raw.customers", "raw.orders"]), result) == Verdict(Outcome.PASS)
+
+
+def test_upstream_tables_follow_an_explore_to_its_views(tmp_path: Path) -> None:
+    result = output(
+        {
+            "facts": ViewOutput(upstream=(Upstream("explore", "buyers"),)),
+            "orders": ViewOutput(upstream=(table("raw.orders"),)),
+            "users": ViewOutput(upstream=(table("raw.users"),)),
+        },
+        explores={"buyers": ExploreOutput(from_view="orders", joins={"buyer": {"from": "users"}})},
+    )
+
+    assert judge(lineage_case(tmp_path, ["raw.orders", "raw.users"]), result).outcome is Outcome.PASS
+
+
+def test_upstream_tables_stop_at_cycles_and_report_unresolved_references() -> None:
+    model = ModelOutput(
+        views={
+            "a": ViewOutput(upstream=(view("b"), view("missing"), Upstream("explore", "gone"))),
+            "b": ViewOutput(upstream=(view("a"), table("t"))),
+            "no_lineage": ViewOutput(),
+        }
+    )
+
+    tables, unresolved = upstream_tables(model.views["a"], model)
+
+    assert tables == {"t"}
+    assert unresolved == ["explore gone", "view missing"]
+    assert upstream_tables(ViewOutput(upstream=(view("no_lineage"),)), model) == (set(), ["view no_lineage"])
+
+
+def test_upstream_mismatch_names_what_the_tool_reported(tmp_path: Path) -> None:
+    result = output({"facts": ViewOutput(upstream=(view("orders"),))})
+
+    verdict = judge(lineage_case(tmp_path, ["raw.orders"]), result)
+
+    assert verdict.reasons == (
+        "m.facts.upstream_tables: expected ['raw.orders'], got []; "
+        "reported upstream: ['view orders']; not resolved: ['view orders']",
+    )
+
+
+def test_view_without_lineage_fails_an_upstream_assertion(tmp_path: Path) -> None:
+    verdict = judge(lineage_case(tmp_path, ["raw.orders"]), output({"facts": ViewOutput()}))
+
+    assert verdict.reasons == ("m.facts.upstream_tables: expected ['raw.orders'], got no lineage",)
+
+
+def test_lineage_cases_are_not_applicable_without_lineage(tmp_path: Path) -> None:
+    case = lineage_case(tmp_path, ["raw.orders"])
+
+    verdict = judge(case, output(capabilities=Capabilities(lineage=False)))
+
+    assert verdict == Verdict(Outcome.NOT_APPLICABLE, ("adapter does not support lineage",))

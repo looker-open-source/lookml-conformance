@@ -12,7 +12,7 @@ from typing import Any
 
 from lookml_conformance.cases import IMPORTED_PROJECTS_DIR, MODEL_SUFFIX
 from lookml_conformance.normalize import collapse_whitespace
-from lookml_conformance.protocol import ViewOutput
+from lookml_conformance.protocol import Upstream, ViewOutput
 
 FIELD_TEXT_PARAMS = ("sql", "label", "type")
 FIELD_COLLECTIONS = ("dimensions", "dimension_groups", "measures")
@@ -72,11 +72,13 @@ def view_output(
     sql_table_name: str | None = None,
     derived_table_sql: str | None = None,
     fields: Sequence[Mapping[str, Any]] | None = None,
+    upstream: Iterable[Upstream] | None = None,
 ) -> ViewOutput:
     """Build a view from an lkml-style view dictionary.
 
     Keyword arguments replace what the tool computes separately from the raw dictionary, such as a
-    table name after the tool's own constant substitution.
+    table name after the tool's own constant substitution. ``upstream`` is the view's direct
+    upstreams in the tool's lineage; leave it ``None`` when the tool reports no lineage.
     """
     if fields is None:
         fields = [
@@ -95,6 +97,7 @@ def view_output(
         fields=tuple(sorted(str(field["name"]) for field in fields)),
         field_params={str(field["name"]): field_params(field) for field in fields},
         extends=tuple(str(item) for item in extends) or None,
+        upstream=None if upstream is None else tuple(upstream),
     )
 
 

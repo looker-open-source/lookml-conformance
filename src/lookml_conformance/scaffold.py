@@ -32,7 +32,8 @@ class {class_name}(Adapter):
     name = "{name}"
     distribution = "{distribution}"  # the installed package whose version is reported
     # Set a capability to False only when the tool never produces that output,
-    # e.g. Capabilities(per_model=False) for a tool without model scoping.
+    # e.g. Capabilities(per_model=False) for a tool without model scoping, or
+    # Capabilities(lineage=False) for a tool that builds no lineage.
     capabilities = Capabilities()
 
     def resolve(self, project: Path) -> dict[str, ModelOutput]:
@@ -40,7 +41,9 @@ class {class_name}(Adapter):
         for model_file in kit.model_files(project):
             # TODO: run {name} on this model and collect the views it resolved,
             # as lkml-style dictionaries: {{"name": ..., "sql_table_name": ...,
-            # "dimensions": [...], ...}}.
+            # "dimensions": [...], ...}}. If the tool builds lineage, pass each view's
+            # upstreams to kit.view_output as upstream=[Upstream("table", ...), ...]
+            # (Upstream is in lookml_conformance.protocol).
             views: dict[str, dict[str, Any]] = {{}}
             models[kit.model_name(model_file)] = ModelOutput(
                 views={{name: kit.view_output(view) for name, view in views.items()}},

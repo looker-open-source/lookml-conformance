@@ -26,9 +26,11 @@ IMPORTED_PROJECTS_DIR = "imported_projects"
 MODEL_SUFFIX = ".model.lkml"
 
 CATEGORIES = ("refinements", "includes", "extends", "model_scope", "explores", "constants", "syntax")
-CAPABILITIES = ("explores", "imported_projects", "constants")
+CAPABILITIES = ("explores", "imported_projects", "constants", "lineage")
 
-VIEW_KEYS = frozenset({"sql_table_name", "derived_table", "fields", "field_params", "extends"})
+VIEW_KEYS = frozenset(
+    {"sql_table_name", "derived_table", "fields", "field_params", "extends", "upstream_tables"}
+)
 EXPLORE_KEYS = frozenset({"view_name", "from", "label", "joins"})
 JOIN_KEYS = frozenset({"from", "view_label", "sql_on", "relationship", "type"})
 FIELD_LIST_PARAMS = frozenset({"timeframes"})
@@ -117,6 +119,8 @@ class Case:
         needed = set()
         if any(model.explores for model in self.models.values()):
             needed.add("explores")
+        if any("upstream_tables" in view for model in self.models.values() for view in model.views.values()):
+            needed.add("lineage")
         if (self.project / IMPORTED_PROJECTS_DIR).is_dir():
             needed.add("imported_projects")
         manifest = self.project / "manifest.lkml"
@@ -335,7 +339,7 @@ class _Checker:
             and not _is_str_map(raw["derived_table"])
         ):
             self.problem(f"{where}.derived_table must map parameter names to strings, or be null")
-        for key in ("fields", "extends"):
+        for key in ("fields", "extends", "upstream_tables"):
             if key in raw and not _is_list_of(raw[key], str):
                 self.problem(f"{where}.{key} must be a list of strings")
         for field_name, params in _as_dict(raw.get("field_params", {})).items():

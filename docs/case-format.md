@@ -7,9 +7,9 @@ case.json     the rule, the documentation it comes from, and the expected resolu
 project/      a minimal LookML project
 ```
 
-Categories: `refinements`, `includes`, `extends`, `model_scope`, `explores`, `constants`, `syntax`.
-Ids start with the category letter (`r`, `i`, `e`, `m`, `x`, `c`, `p`), two digits and a snake_case
-summary, and match the directory name.
+Categories: `refinements`, `includes`, `extends`, `model_scope`, `explores`, `constants`, `lineage`,
+`syntax`. Ids start with the category letter (`r`, `i`, `e`, `m`, `x`, `c`, `l`, `p`), two digits and
+a snake_case summary, and match the directory name.
 
 `lookml-conformance validate` checks every case against this format.
 
@@ -57,7 +57,8 @@ Expectations are per model. A model name is the file name of a `<name>.model.lkm
           "fields": ["id", "status"],
           "field_params": {"id": {"label": "Order ID", "sql": "${TABLE}.id", "timeframes": ["date"]}},
           "extends": ["base_a", "base_b"]
-        }
+        },
+        "order_facts": {"upstream_tables": ["raw.orders"]}
       },
       "explores": {
         "buyer_orders": {
@@ -80,6 +81,7 @@ Expectations are per model. A model name is the file name of a `<name>.model.lkm
 | `fields` | Set of dimension, dimension group and measure names. |
 | `field_params` | Per field, per listed parameter. `filters` is an ordered list of one-key objects; `timeframes` is compared as a set; anything else as text. |
 | `extends` | Ordered list. |
+| `upstream_tables` | Set of warehouse tables the view reads, lower-cased. The tool's view and explore upstreams are followed to their tables (see [adapter-protocol.md](adapter-protocol.md#lineage)). |
 | explore `view_name`, `from`, `label` | Text. |
 | explore `joins` | Per join, per listed parameter (`from`, `view_label`, `sql_on`, `relationship`, `type`), as text. |
 | `absent_views` | Names that no model may expose as a view, such as a refinement mistaken for a view (`+orders`). |
@@ -100,5 +102,6 @@ Some tools do not produce a kind of output at all. A case needs a capability whe
 | `explores` | it asserts an explore |
 | `imported_projects` | its project has an `imported_projects/` directory |
 | `constants` | its `manifest.lkml` declares a `constant` |
+| `lineage` | it asserts `upstream_tables` |
 
 An adapter that declares the capability `false` is scored N/A on those cases.
