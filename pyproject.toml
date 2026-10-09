@@ -32,7 +32,7 @@ datahub = "lookml_conformance.adapters.datahub:DataHubAdapter"
 openmetadata = "lookml_conformance.adapters.openmetadata:OpenMetadataAdapter"
 
 [dependency-groups]
-dev = ["pytest>=8.3", "pytest-cov>=5", "ruff>=0.6", "mypy>=1.11"]
+dev = ["pytest>=8.3", "pytest-cov>=5", "ruff>=0.6", "mypy>=1.11", "jsonschema>=4.20"]
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/lookml_conformance"]

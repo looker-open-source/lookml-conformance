@@ -7,6 +7,8 @@ is missing are skipped.
 from __future__ import annotations
 
 import json
+import os
+import subprocess
 from pathlib import Path
 
 import pytest
@@ -44,3 +46,24 @@ def test_adapter_reproduces_the_published_scorecard(adapter: AdapterSpec) -> Non
     assert {case: verdict.outcome for case, verdict in outcomes.items()} == {
         result.case_id: result.verdicts[adapter.name].outcome for result in PUBLISHED.results
     }
+
+
+@pytest.mark.integration
+@pytest.mark.parametrize("adapter", REGISTRY, ids=lambda adapter: adapter.name)
+def test_adapter_output_matches_the_schema(adapter: AdapterSpec) -> None:
+    if not installed(adapter):
+        pytest.skip(f"{adapter.name} is not installed; run: lookml-conformance setup {adapter.name}")
+    from jsonschema import Draft202012Validator
+
+    schema = json.loads((REPO_ROOT / "docs" / "adapter-output.schema.json").read_text(encoding="utf-8"))
+    projects = [str(case.project.resolve()) for case in load_cases(CASES_ROOT)]
+    env = os.environ | {key: str(REPO_ROOT / value) for key, value in adapter.env.items()}
+
+    completed = subprocess.run(
+        [*adapter.command, *projects], capture_output=True, text=True, cwd=REPO_ROOT, env=env, check=True
+    )
+
+    outputs = [json.loads(line) for line in completed.stdout.splitlines() if line.startswith("{")]
+    assert [output["project"] for output in outputs] == projects
+    for output in outputs:
+        Draft202012Validator(schema).validate(output)

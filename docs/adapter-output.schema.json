@@ -1,0 +1,111 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/josephaxisa/lookml-conformance/blob/main/docs/adapter-output.schema.json",
+  "title": "lookml-conformance adapter output",
+  "description": "One JSON line an adapter prints per project. See docs/adapter-protocol.md.",
+  "type": "object",
+  "required": ["adapter"],
+  "properties": {
+    "adapter": {"type": "string", "minLength": 1, "description": "The adapter's name."},
+    "version": {"type": ["string", "null"], "description": "The tool version that ran."},
+    "project": {
+      "type": "string",
+      "description": "The project path exactly as the adapter received it. Required when the adapter receives several projects."
+    },
+    "capabilities": {
+      "type": "object",
+      "description": "Kinds of output the tool produces. Each defaults to true.",
+      "properties": {
+        "per_model": {"type": "boolean"},
+        "explores": {"type": "boolean"},
+        "imported_projects": {"type": "boolean"},
+        "constants": {"type": "boolean"}
+      }
+    },
+    "models": {
+      "type": "object",
+      "description": "Each model the tool resolved, keyed by model name.",
+      "additionalProperties": {"$ref": "#/$defs/model"}
+    },
+    "errors": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "Diagnostics the tool reported while still producing a result."
+    },
+    "error": {
+      "type": "string",
+      "description": "Set instead of models when the tool produced no result for this project."
+    }
+  },
+  "$defs": {
+    "model": {
+      "type": "object",
+      "properties": {
+        "views": {"type": "object", "additionalProperties": {"$ref": "#/$defs/view"}},
+        "explores": {"type": "object", "additionalProperties": {"$ref": "#/$defs/explore"}},
+        "all_views": {
+          "type": "array",
+          "items": {"type": "string"},
+          "description": "Every view the tool would expose, including refinements mistaken for views. Defaults to the keys of views."
+        }
+      }
+    },
+    "view": {
+      "type": "object",
+      "properties": {
+        "sql_table_name": {"type": ["string", "null"]},
+        "derived_table": {
+          "type": ["object", "null"],
+          "additionalProperties": {"type": "string"},
+          "description": "Scalar derived_table parameters, such as sql and datagroup_trigger."
+        },
+        "fields": {
+          "type": "array",
+          "items": {"type": "string"},
+          "description": "Names of the view's dimensions, dimension groups and measures."
+        },
+        "field_params": {
+          "type": "object",
+          "additionalProperties": {"$ref": "#/$defs/field"}
+        },
+        "extends": {"type": ["array", "null"], "items": {"type": "string"}},
+        "error": {"type": "string", "description": "Set instead of the other keys when the tool failed on this view."}
+      }
+    },
+    "field": {
+      "type": "object",
+      "properties": {
+        "sql": {"type": "string"},
+        "label": {"type": "string"},
+        "type": {"type": "string"},
+        "timeframes": {"type": "array", "items": {"type": "string"}},
+        "filters": {
+          "type": "array",
+          "items": {"type": "object", "minProperties": 1, "maxProperties": 1, "additionalProperties": {"type": "string"}},
+          "description": "Ordered one-key objects, e.g. [{\"status\": \"complete\"}]."
+        }
+      }
+    },
+    "explore": {
+      "type": "object",
+      "properties": {
+        "view_name": {"type": ["string", "null"]},
+        "from": {"type": ["string", "null"]},
+        "label": {"type": ["string", "null"]},
+        "joins": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "from": {"type": ["string", "null"]},
+              "view_label": {"type": ["string", "null"]},
+              "sql_on": {"type": ["string", "null"]},
+              "relationship": {"type": ["string", "null"]},
+              "type": {"type": ["string", "null"]}
+            }
+          }
+        }
+      }
+    }
+  }
+}

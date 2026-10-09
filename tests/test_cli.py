@@ -1,12 +1,14 @@
 from __future__ import annotations
 
+import importlib.metadata
 import json
 import sys
 from pathlib import Path
 
 import pytest
 
-from lookml_conformance.cli import EXIT_FAILURES, EXIT_OK, EXIT_USAGE, main
+from lookml_conformance.cli import EXIT_FAILURES, EXIT_OK, EXIT_USAGE, installed_adapter_spec, main
+from lookml_conformance.runner import AdapterSpec
 from tests.conftest import MakeCase
 
 ADAPTER = """\
@@ -216,3 +218,134 @@ def test_run_without_batching(cases_dir: Path, tmp_path: Path) -> None:
     command = fake_adapter(tmp_path, "raw.orders")
 
     assert main(["--cases", str(cases_dir), "run", "-q", "--no-batch", "--command", command]) == EXIT_OK
+
+
+def test_run_falls_back_to_installed_adapters(
+    cases_dir: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    monkeypatch.setattr("lookml_conformance.cli.installed_adapters", lambda: {"plugin": object()})
+    monkeypatch.setattr(
+        "lookml_conformance.cli.installed_adapter_spec",
+        lambda name: AdapterSpec(name, tuple(fake_adapter(tmp_path, "raw.orders").split())),
+    )
+
+    code = main(
+        [
+            "--cases",
+            str(cases_dir),
+            "run",
+            "-q",
+            "--registry",
+            str(tmp_path / "none.json"),
+            "--adapter",
+            "plugin",
+        ]
+    )
+
+    assert code == EXIT_OK
+    assert capsys.readouterr().out.splitlines()[-1].startswith("plugin")
+
+
+def test_run_without_registry_or_adapter(
+    cases_dir: Path, tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    assert main(["--cases", str(cases_dir), "run", "--registry", str(tmp_path / "none.json")]) == EXIT_USAGE
+    assert "pass --adapter NAME or --command CMD" in capsys.readouterr().err
+
+
+def test_installed_adapter_spec_uses_this_interpreter() -> None:
+    spec = installed_adapter_spec("datahub")
+
+    assert spec.command == (sys.executable, "-m", "lookml_conformance.adapters", "datahub")
+
+
+def test_check_adapter_passes_valid_output_even_when_cases_fail(
+    cases_dir: Path, tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    code = main(
+        [
+            "--cases",
+            str(cases_dir),
+            "check-adapter",
+            "--command",
+            fake_adapter(tmp_path, "wrong"),
+            "--name",
+            "t",
+        ]
+    )
+
+    assert code == EXIT_OK
+    out = capsys.readouterr().out
+    assert "t: 0 of 2 applicable cases pass; version: 1" in out
+    assert "the output follows the protocol on all 2 cases" in out
+
+
+def test_check_adapter_reports_unusable_output(
+    cases_dir: Path, tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    broken = tmp_path / "broken.py"
+    broken.write_text('print(\'{"adapter": "t", "models": []}\')\n', encoding="utf-8")
+
+    code = main(
+        ["--cases", str(cases_dir), "check-adapter", "--command", f"{sys.executable} {broken}", "--name", "t"]
+    )
+
+    assert code == EXIT_FAILURES
+    out = capsys.readouterr().out
+    assert "t r01_a: output does not follow the protocol: models must be an object" in out
+    assert "version: no version reported" in out
+    assert "2 case runs produced no usable output" in out
+
+
+def test_adapters_lists_registry_and_installed(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    registry = tmp_path / "adapters.json"
+    adapters = [
+        {"name": "ready", "command": ["python"]},
+        {"name": "missing", "command": [".envs/missing/bin/python"]},
+    ]
+    registry.write_text(json.dumps({"adapters": adapters}), encoding="utf-8")
+    entry_point = importlib.metadata.EntryPoint("plugin", "pkg.mod:Adapter", "lookml_conformance.adapters")
+    monkeypatch.setattr("lookml_conformance.cli.installed_adapters", lambda: {"plugin": entry_point})
+
+    assert main(["adapters", "--registry", str(registry)]) == EXIT_OK
+
+    out = capsys.readouterr().out.splitlines()
+    assert out[0].split() == ["ready", "registry", "ready"]
+    assert "not set up; run: lookml-conformance setup missing" in out[1]
+    assert out[2].split() == ["plugin", "entry", "point", "pkg.mod:Adapter"]
+
+
+def test_adapters_when_none_exist(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    monkeypatch.setattr("lookml_conformance.cli.installed_adapters", dict)
+
+    assert main(["adapters", "--registry", str(tmp_path / "none.json")]) == EXIT_OK
+    assert capsys.readouterr().out == "no adapters found\n"
+
+
+def test_new_adapter(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    monkeypatch.chdir(tmp_path)
+
+    assert main(["new-adapter", "my-tool", "--distribution", "my-tool-core"]) == EXIT_OK
+    assert 'distribution = "my-tool-core"' in (tmp_path / "my_tool.py").read_text(encoding="utf-8")
+    assert 'my-tool = "<your module>:MyToolAdapter"' in capsys.readouterr().out
+
+    assert main(["new-adapter", "my-tool"]) == EXIT_USAGE
+    assert "already exists" in capsys.readouterr().err
+    assert main(["new-adapter", "Bad Name"]) == EXIT_USAGE
+    assert "lowercase letters" in capsys.readouterr().err
+
+
+def test_new_adapter_inside_the_repository_goes_next_to_the_bundled_ones(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    (tmp_path / "src" / "lookml_conformance" / "adapters").mkdir(parents=True)
+    monkeypatch.chdir(tmp_path)
+
+    assert main(["new-adapter", "my-tool"]) == EXIT_OK
+    assert (tmp_path / "src" / "lookml_conformance" / "adapters" / "my_tool.py").is_file()
