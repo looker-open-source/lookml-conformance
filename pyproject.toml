@@ -33,7 +33,7 @@ packages = ["src/lookml_conformance"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = ["--strict-markers"]
+addopts = ["--strict-markers", "-m", "not integration"]
 markers = ["integration: runs a real tool through its adapter (skipped when the tool is not installed)"]
 
 [tool.coverage.run]

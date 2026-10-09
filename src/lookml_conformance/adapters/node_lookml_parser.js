@@ -1,0 +1,138 @@
+#!/usr/bin/env node
+// Adapter for node-lookml-parser (https://github.com/fabio-looker/node-lookml-parser).
+//
+//   node src/lookml_conformance/adapters/node_lookml_parser.js <project>
+//
+// Parses every .lkml file of the project except LookML dashboards with
+// parseFiles({modelAssembly: true}) and prints one JSON line in the format of
+// docs/adapter-protocol.md. The parser is loaded with require('lookml-parser');
+// set LOOKML_PARSER_PATH to test another copy, such as a local checkout. The
+// parser maps `//project/...` includes to `imported_projects/project/...`,
+// which is the layout the suite uses.
+'use strict';
+
+const fs = require('fs');
+const path = require('path');
+
+const ADAPTER = 'node-lookml-parser';
+const FIELD_TYPES = ['dimension', 'dimension_group', 'measure'];
+
+const parserPath = process.env.LOOKML_PARSER_PATH
+  ? path.resolve(process.env.LOOKML_PARSER_PATH)
+  : 'lookml-parser';
+const lookmlParser = require(parserPath);
+const { version } = require(path.join(parserPath, 'package.json'));
+
+function norm(value) {
+  return value == null ? null : String(value).replace(/\s+/g, ' ').trim();
+}
+
+function asList(value) {
+  return value == null ? [] : Array.isArray(value) ? value : [value];
+}
+
+// The parser annotates objects with `$`-prefixed metadata keys ($name, $type, ...).
+function ownEntries(object) {
+  return Object.entries(object || {}).filter(([key]) => !key.startsWith('$'));
+}
+
+function lkmlFiles(dir) {
+  return fs.readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
+    const fullPath = path.join(dir, entry.name);
+    if (entry.isDirectory()) return entry.name === '.git' ? [] : lkmlFiles(fullPath);
+    return entry.name.endsWith('.lkml') && !entry.name.endsWith('.dashboard.lkml') ? [fullPath] : [];
+  });
+}
+
+function fieldParams(field) {
+  const params = {};
+  for (const key of ['sql', 'label', 'type']) {
+    if (field[key] != null) params[key] = norm(field[key]);
+  }
+  if (field.timeframes != null) params.timeframes = asList(field.timeframes).map(String);
+  if (field.filters != null) {
+    // Accepts both the map form (`{status: "complete"}`) and `[{field, value}]` entries.
+    params.filters = asList(field.filters).flatMap((filter) => {
+      if (!filter || typeof filter !== 'object' || Array.isArray(filter)) return [];
+      if ('field' in filter && 'value' in filter) return [{ [filter.field]: String(filter.value) }];
+      return ownEntries(filter).map(([key, value]) => ({ [key]: String(value) }));
+    });
+  }
+  return params;
+}
+
+function summarizeView(view) {
+  const fieldNames = [];
+  const fieldParamsByName = {};
+  for (const type of FIELD_TYPES) {
+    for (const [name, field] of ownEntries(view[type])) {
+      fieldNames.push(name);
+      fieldParamsByName[name] = fieldParams(field);
+    }
+  }
+  let derivedTable = null;
+  if (view.derived_table) {
+    derivedTable = { sql: norm(view.derived_table.sql) };
+    for (const [key, value] of ownEntries(view.derived_table)) {
+      if (key !== 'sql' && value != null && typeof value !== 'object') derivedTable[key] = String(value);
+    }
+  }
+  return {
+    sql_table_name: norm(view.sql_table_name),
+    derived_table: derivedTable,
+    fields: fieldNames.sort(),
+    field_params: fieldParamsByName,
+    extends: view.extends == null ? null : asList(view.extends).map(String),
+  };
+}
+
+function summarizeExplore(name, explore) {
+  const joins = {};
+  for (const [joinName, join] of ownEntries(explore.join)) {
+    joins[joinName] = {
+      from: norm(join.from),
+      view_label: norm(join.view_label),
+      sql_on: norm(join.sql_on),
+      relationship: norm(join.relationship),
+      type: norm(join.type),
+    };
+  }
+  return {
+    view_name: norm(explore.view_name || explore.from || name),
+    from: norm(explore.from),
+    label: norm(explore.label),
+    joins,
+  };
+}
+
+function summarizeModel(model) {
+  const views = Object.fromEntries(ownEntries(model.view).map(([name, view]) => [name, summarizeView(view)]));
+  const explores = Object.fromEntries(
+    ownEntries(model.explore)
+      .filter(([name]) => !name.startsWith('+'))
+      .map(([name, explore]) => [name, summarizeExplore(name, explore)]),
+  );
+  return { views, explores, all_views: Object.keys(views).sort() };
+}
+
+async function main() {
+  const root = path.resolve(process.argv[2]);
+  const source = lkmlFiles(root).map((file) => ({
+    path: path.relative(root, file),
+    content: fs.readFileSync(file, 'utf8'),
+  }));
+  const silent = { log() {}, warn() {}, error() {} };
+  const project = await lookmlParser.parseFiles({ source, modelAssembly: true, strings: false, console: silent });
+  const models = Object.fromEntries(ownEntries(project.model).map(([name, model]) => [name, summarizeModel(model)]));
+  return {
+    adapter: ADAPTER,
+    version,
+    capabilities: { imported_projects: true, per_model: true, explores: true, constants: true },
+    models,
+    errors: asList(project.errors).map((error) => error.message || String(error)),
+  };
+}
+
+main()
+  .then((result) => console.log(JSON.stringify(result)))
+  .catch((error) => console.log(JSON.stringify({ adapter: ADAPTER, version, error: String(error.stack || error) })));

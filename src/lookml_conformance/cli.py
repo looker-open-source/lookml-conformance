@@ -14,6 +14,7 @@ from lookml_conformance import __version__
 from lookml_conformance.cases import Case, SuiteError, load_cases
 from lookml_conformance.catalog import render_catalog
 from lookml_conformance.citations import check_citations
+from lookml_conformance.environments import SetupError, setup
 from lookml_conformance.judge import Verdict
 from lookml_conformance.runner import AdapterSpec, RegistryError, load_registry, run_suite, select_adapters
 from lookml_conformance.scorecard import Scorecard, render_markdown, render_text
@@ -26,7 +27,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     args = parser.parse_args(argv)
     try:
         return int(args.handler(args))
-    except (SuiteError, RegistryError) as exc:
+    except (SuiteError, RegistryError, SetupError) as exc:
         print(f"error: {exc}", file=sys.stderr)
         return EXIT_USAGE
 
@@ -103,6 +104,16 @@ def build_parser() -> argparse.ArgumentParser:
         "check-citations", help="check that every quote still appears on the page it cites (needs network)"
     )
     citations.set_defaults(handler=cmd_check_citations)
+
+    setup_cmd = commands.add_parser(
+        "setup", help="install the tool versions from the registry into .envs/ (needs uv or venv, and npm)"
+    )
+    setup_cmd.add_argument("adapters", nargs="*", metavar="NAME", help="adapters to set up (default: all)")
+    setup_cmd.add_argument("--registry", type=Path, default=Path("adapters.json"))
+    setup_cmd.add_argument(
+        "--python", default="python3", help="interpreter for the Python tools (default: python3)"
+    )
+    setup_cmd.set_defaults(handler=cmd_setup)
     return parser
 
 
@@ -171,6 +182,14 @@ def cmd_check_citations(args: argparse.Namespace) -> int:
     total = sum(len(case.citations) for case in cases)
     print(f"{total - len(problems)} of {total} citations found")
     return EXIT_FAILURES if problems else EXIT_OK
+
+
+def cmd_setup(args: argparse.Namespace) -> int:
+    adapters = load_registry(args.registry)
+    if args.adapters:
+        adapters = select_adapters(adapters, args.adapters)
+    setup(adapters, root=args.registry.parent.resolve(), python=args.python)
+    return EXIT_OK
 
 
 def _adapters_for(args: argparse.Namespace) -> list[AdapterSpec]:

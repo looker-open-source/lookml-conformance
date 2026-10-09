@@ -185,3 +185,28 @@ def test_check_citations(
     monkeypatch.setattr("lookml_conformance.citations.fetch_url", lambda url: "<p>nothing</p>")
     assert main(["--cases", str(cases_dir), "check-citations"]) == EXIT_FAILURES
     assert "r01_a: quote not found on the page" in capsys.readouterr().out
+
+
+def test_setup_uses_the_registry(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    registry = tmp_path / "adapters.json"
+    adapters = [
+        {"name": "a", "command": ["x"], "install": {"npm": "a@1"}},
+        {"name": "b", "command": ["x"], "install": {"npm": "b@1"}},
+    ]
+    registry.write_text(json.dumps({"adapters": adapters}), encoding="utf-8")
+    calls: list[tuple[list[str], Path, str]] = []
+    monkeypatch.setattr(
+        "lookml_conformance.cli.setup",
+        lambda selected, root, python: calls.append(([a.name for a in selected], root, python)),
+    )
+
+    assert main(["setup", "--registry", str(registry), "--python", "python3.11", "b"]) == EXIT_OK
+    assert calls == [(["b"], tmp_path.resolve(), "python3.11")]
+
+
+def test_setup_reports_bad_registry_entries(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    registry = tmp_path / "adapters.json"
+    registry.write_text(json.dumps({"adapters": [{"name": "a", "command": ["x"]}]}), encoding="utf-8")
+
+    assert main(["setup", "--registry", str(registry)]) == EXIT_USAGE
+    assert "no 'install' entry" in capsys.readouterr().err

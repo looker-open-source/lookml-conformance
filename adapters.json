@@ -1,0 +1,41 @@
+{
+  "adapters": [
+    {
+      "name": "node-lookml-parser",
+      "label": "node-lookml-parser",
+      "kind": "Parser",
+      "language": "JavaScript",
+      "url": "https://github.com/fabio-looker/node-lookml-parser",
+      "install": {"npm": "lookml-parser@9.1.0"},
+      "command": ["node", "src/lookml_conformance/adapters/node_lookml_parser.js"],
+      "env": {"LOOKML_PARSER_PATH": ".envs/node-lookml-parser/node_modules/lookml-parser"}
+    },
+    {
+      "name": "openmetadata",
+      "label": "OpenMetadata",
+      "kind": "Metadata catalog",
+      "language": "Python",
+      "url": "https://github.com/open-metadata/OpenMetadata",
+      "install": {"pip": "openmetadata-ingestion[looker]==2.0.5.0"},
+      "command": [".envs/openmetadata/bin/python", "-m", "lookml_conformance.adapters.openmetadata"]
+    },
+    {
+      "name": "datahub",
+      "label": "DataHub",
+      "kind": "Metadata catalog",
+      "language": "Python",
+      "url": "https://github.com/datahub-project/datahub",
+      "install": {"pip": "acryl-datahub[lookml]==1.7.0.14"},
+      "command": [".envs/datahub/bin/python", "-m", "lookml_conformance.adapters.datahub"]
+    },
+    {
+      "name": "dagster",
+      "label": "Dagster",
+      "kind": "Orchestrator",
+      "language": "Python",
+      "url": "https://github.com/dagster-io/dagster",
+      "install": {"pip": "dagster-looker==0.29.25"},
+      "command": [".envs/dagster/bin/python", "-m", "lookml_conformance.adapters.dagster"]
+    }
+  ]
+}

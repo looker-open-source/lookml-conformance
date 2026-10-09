@@ -30,6 +30,7 @@ class AdapterSpec:
 
     ``command`` receives the project directory as its final argument. Relative paths in it and in
     ``env`` are resolved against ``cwd``, which for a registry file is the file's directory.
+    ``install`` maps a package manager (``pip`` or ``npm``) to the pinned package of the tool.
     """
 
     name: str
@@ -41,6 +42,7 @@ class AdapterSpec:
     kind: str | None = None
     language: str | None = None
     url: str | None = None
+    install: Mapping[str, str] = field(default_factory=dict)
 
     @property
     def display_name(self) -> str:
@@ -99,6 +101,7 @@ def load_registry(path: Path) -> list[AdapterSpec]:
                 kind=entry.get("kind"),
                 language=entry.get("language"),
                 url=entry.get("url"),
+                install=dict(entry.get("install", {})),
             )
             for entry in entries
         ]
