@@ -1,0 +1,34 @@
+{
+  "id": "e03_multiple_extends_last_listed_wins",
+  "title": "With several extends, the last listed view wins conflicting parameters",
+  "rule": "When a view extends several views, the view listed last wins parameters that conflict.",
+  "status": "confirmed",
+  "citations": [
+    {
+      "url": "https://docs.cloud.google.com/looker/docs/reusing-code-with-extends#extending_more_than_one_object_at_the_same_time",
+      "quote": "priority is given to the items listed last"
+    }
+  ],
+  "expect": {
+    "models": {
+      "m": {
+        "views": {
+          "combined": {
+            "sql_table_name": "b.t",
+            "fields": [
+              "a_field",
+              "b_field",
+              "own",
+              "shared"
+            ],
+            "field_params": {
+              "shared": {
+                "sql": "${TABLE}.from_b"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

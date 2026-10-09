@@ -1,0 +1,37 @@
+{
+  "id": "m01_model_without_the_refinement_sees_the_base",
+  "title": "A model that does not include a refinement sees the unrefined view",
+  "rule": "A refinement does not leak into a model that does not include the refining file.",
+  "status": "confirmed",
+  "citations": [
+    {
+      "url": "https://docs.cloud.google.com/looker/docs/lookml-refinements#using_refinements_in_your_lookml_project",
+      "quote": "In your model file, include the files where your refinements are defined."
+    },
+    {
+      "url": "https://docs.cloud.google.com/looker/docs/reference/param-model-include#including_views_and_dashboards_in_a_model",
+      "quote": "Use the include parameter in a model file to specify the dashboard and view files that will be available to that model."
+    }
+  ],
+  "expect": {
+    "models": {
+      "refined": {
+        "views": {
+          "orders": {
+            "sql_table_name": "analytics.orders_clean"
+          }
+        }
+      },
+      "plain": {
+        "views": {
+          "orders": {
+            "sql_table_name": "raw.orders"
+          }
+        }
+      }
+    },
+    "absent_views": [
+      "+orders"
+    ]
+  }
+}

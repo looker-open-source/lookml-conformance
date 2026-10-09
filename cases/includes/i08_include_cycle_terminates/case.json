@@ -1,0 +1,27 @@
+{
+  "id": "i08_include_cycle_terminates",
+  "title": "Mutually including files are processed once each",
+  "rule": "Files that include each other are each processed once and resolution terminates.",
+  "status": "provisional",
+  "provisional": {
+    "question": "Looker's resulting order for mutually including files is not documented. The tool must terminate either way.",
+    "pinned_to": "node-lookml-parser 9.1.0"
+  },
+  "citations": [
+    {
+      "url": "https://docs.cloud.google.com/looker/docs/lookml-refinements#order",
+      "quote": "Within a project, refinements are applied in the order in which their files are included."
+    }
+  ],
+  "expect": {
+    "models": {
+      "m": {
+        "views": {
+          "orders": {
+            "sql_table_name": "b"
+          }
+        }
+      }
+    }
+  }
+}

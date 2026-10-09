@@ -1,0 +1,29 @@
+{
+  "id": "r08_refinement_adds_fields",
+  "title": "A refinement adds dimensions and dimension groups and keeps existing measures",
+  "rule": "Fields declared in a refinement are added to the fields of the base view.",
+  "status": "confirmed",
+  "citations": [
+    {
+      "url": "https://docs.cloud.google.com/looker/docs/lookml-refinements",
+      "quote": "This refinement adds an air_carrier dimension to the existing flights view"
+    }
+  ],
+  "expect": {
+    "models": {
+      "m": {
+        "views": {
+          "orders": {
+            "sql_table_name": "raw.orders",
+            "fields": [
+              "created",
+              "id",
+              "n",
+              "status"
+            ]
+          }
+        }
+      }
+    }
+  }
+}

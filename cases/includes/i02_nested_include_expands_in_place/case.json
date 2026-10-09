@@ -1,0 +1,38 @@
+{
+  "id": "i02_nested_include_expands_in_place",
+  "title": "A nested include is expanded where its include statement appears",
+  "rule": "A file included by an included file is applied at the position of its include statement, before the including file's own declarations.",
+  "status": "provisional",
+  "provisional": {
+    "question": "Where do the declarations of a nested include land in the include order? node-lookml-parser places them after the including file's own declarations (m1 resolves b).",
+    "pinned_to": "DataHub test fixture metadata-ingestion/tests/integration/looker/lookml/lkml_refinement_samples/sample1"
+  },
+  "citations": [
+    {
+      "url": "https://docs.cloud.google.com/looker/docs/importing-projects#including_files_that_include_other_files",
+      "quote": "then file B will be included into file A before file A is imported into the current project."
+    },
+    {
+      "url": "https://docs.cloud.google.com/looker/docs/reference/param-model-include#wildcard_examples",
+      "quote": "LookML refinements leverage the order of includes"
+    }
+  ],
+  "expect": {
+    "models": {
+      "m1": {
+        "views": {
+          "orders": {
+            "sql_table_name": "a"
+          }
+        }
+      },
+      "m2": {
+        "views": {
+          "orders": {
+            "sql_table_name": "c"
+          }
+        }
+      }
+    }
+  }
+}

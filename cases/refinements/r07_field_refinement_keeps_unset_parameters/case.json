@@ -1,0 +1,38 @@
+{
+  "id": "r07_field_refinement_keeps_unset_parameters",
+  "title": "Refining a field changes only the parameters the refinement sets",
+  "rule": "Refining an existing field overrides the parameters the refinement sets and keeps the others.",
+  "status": "confirmed",
+  "citations": [
+    {
+      "url": "https://docs.cloud.google.com/looker/docs/lookml-refinements#refinements_override_parameters",
+      "quote": "in most cases a refinement will override the original settings of an object"
+    },
+    {
+      "url": "https://docs.cloud.google.com/looker/docs/lookml-refinements#refinements_override_parameters",
+      "quote": "The last refinement takes precedence, so hidden: no is applied and the dimension will be displayed in the final view."
+    }
+  ],
+  "rationale": "The documentation's example refines only hidden on an existing dimension and the dimension stays in the view, so its other parameters are kept.",
+  "expect": {
+    "models": {
+      "m": {
+        "views": {
+          "orders": {
+            "sql_table_name": "raw.orders",
+            "fields": [
+              "id"
+            ],
+            "field_params": {
+              "id": {
+                "label": "Order ID",
+                "sql": "${TABLE}.id",
+                "type": "number"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

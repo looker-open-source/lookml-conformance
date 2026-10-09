@@ -1,0 +1,41 @@
+{
+  "id": "p03_named_fields_errors_and_info",
+  "title": "Fields named errors or info are ordinary fields",
+  "rule": "errors and info are valid field names and resolve like any other field.",
+  "status": "confirmed",
+  "citations": [
+    {
+      "url": "https://docs.cloud.google.com/looker/docs/reference/param-field-dimension",
+      "quote": "It must consist of characters a through z, 0 through 9, or _."
+    },
+    {
+      "url": "https://docs.cloud.google.com/looker/docs/reference/param-field-dimension",
+      "quote": "It must start with a letter."
+    }
+  ],
+  "rationale": "Both names meet the naming rules, so a tool must not confuse them with its own metadata keys.",
+  "expect": {
+    "models": {
+      "m": {
+        "views": {
+          "orders": {
+            "sql_table_name": "raw.orders",
+            "fields": [
+              "errors",
+              "info"
+            ],
+            "field_params": {
+              "info": {
+                "type": "string",
+                "sql": "${TABLE}.info"
+              },
+              "errors": {
+                "type": "count"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "id": "i03_file_included_twice_keeps_first_position",
+  "title": "Including the same file twice does not move it to the later position",
+  "rule": "A file is applied once, at the position of its first include.",
+  "status": "provisional",
+  "provisional": {
+    "question": "Does a second include of the same file move its refinements to the later position?",
+    "pinned_to": "node-lookml-parser 9.1.0"
+  },
+  "citations": [
+    {
+      "url": "https://docs.cloud.google.com/looker/docs/lookml-refinements#order",
+      "quote": "Within a project, refinements are applied in the order in which their files are included."
+    }
+  ],
+  "expect": {
+    "models": {
+      "m": {
+        "views": {
+          "orders": {
+            "sql_table_name": "a"
+          }
+        }
+      }
+    }
+  }
+}

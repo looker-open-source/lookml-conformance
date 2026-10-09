@@ -1,0 +1,27 @@
+{
+  "id": "i04_relative_include_resolves_from_the_including_file",
+  "title": "Relative include paths resolve from the directory of the including file",
+  "rule": "An include path without a leading / is resolved from the including file's directory.",
+  "status": "confirmed",
+  "citations": [
+    {
+      "url": "https://docs.cloud.google.com/looker/docs/reference/param-model-include#path_syntax",
+      "quote": "Relative path starting from current file's location."
+    },
+    {
+      "url": "https://docs.cloud.google.com/looker/docs/reference/param-model-include#path_syntax",
+      "quote": "Absolute path starting from current project's root."
+    }
+  ],
+  "expect": {
+    "models": {
+      "m": {
+        "views": {
+          "orders": {
+            "sql_table_name": "rel"
+          }
+        }
+      }
+    }
+  }
+}

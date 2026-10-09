@@ -1,0 +1,34 @@
+{
+  "id": "r01_refinement_overrides_sql_table_name",
+  "title": "A refinement overrides sql_table_name and adds a field",
+  "rule": "A +view refinement replaces the parameters it sets on the base view and adds the fields it declares.",
+  "status": "confirmed",
+  "citations": [
+    {
+      "url": "https://docs.cloud.google.com/looker/docs/lookml-refinements#refinements_override_parameters",
+      "quote": "in most cases a refinement will override the original settings of an object"
+    },
+    {
+      "url": "https://docs.cloud.google.com/looker/docs/lookml-refinements",
+      "quote": "This refinement adds an air_carrier dimension to the existing flights view"
+    }
+  ],
+  "expect": {
+    "models": {
+      "ecommerce": {
+        "views": {
+          "orders": {
+            "sql_table_name": "analytics.orders_clean",
+            "fields": [
+              "id",
+              "status"
+            ]
+          }
+        }
+      }
+    },
+    "absent_views": [
+      "+orders"
+    ]
+  }
+}

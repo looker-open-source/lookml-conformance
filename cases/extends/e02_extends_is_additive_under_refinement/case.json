@@ -1,0 +1,40 @@
+{
+  "id": "e02_extends_is_additive_under_refinement",
+  "title": "extends listed in a refinement are added to the base view's extends",
+  "rule": "extends in a refinement is appended to the view's extends, and the last listed view wins conflicts.",
+  "status": "confirmed",
+  "citations": [
+    {
+      "url": "https://docs.cloud.google.com/looker/docs/lookml-refinements#additive",
+      "quote": "When extends is used in a refinement, the value in the extends parameter is appended"
+    },
+    {
+      "url": "https://docs.cloud.google.com/looker/docs/lookml-refinements#additive",
+      "quote": "to the list of items extended in the original object or in previous refinements, if any."
+    },
+    {
+      "url": "https://docs.cloud.google.com/looker/docs/lookml-refinements#additive",
+      "quote": "Then, if there are any conflicts, priority is given to the last item in the chain of extends."
+    }
+  ],
+  "expect": {
+    "models": {
+      "m": {
+        "views": {
+          "orders": {
+            "extends": [
+              "base_a",
+              "base_b"
+            ],
+            "sql_table_name": "b.t",
+            "fields": [
+              "a_field",
+              "b_field",
+              "id"
+            ]
+          }
+        }
+      }
+    }
+  }
+}

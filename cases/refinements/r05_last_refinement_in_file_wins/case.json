@@ -1,0 +1,23 @@
+{
+  "id": "r05_last_refinement_in_file_wins",
+  "title": "Within one file, refinements apply top to bottom",
+  "rule": "Two refinements of the same view in one file apply in order, so the lower one wins.",
+  "status": "confirmed",
+  "citations": [
+    {
+      "url": "https://docs.cloud.google.com/looker/docs/lookml-refinements#order",
+      "quote": "Within a single file, refinements are applied line by line going downwards."
+    }
+  ],
+  "expect": {
+    "models": {
+      "m": {
+        "views": {
+          "orders": {
+            "sql_table_name": "second"
+          }
+        }
+      }
+    }
+  }
+}

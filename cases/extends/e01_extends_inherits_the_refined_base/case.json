@@ -1,0 +1,41 @@
+{
+  "id": "e01_extends_inherits_the_refined_base",
+  "title": "A view that extends a refined view inherits the refinement",
+  "rule": "A view that extends another view inherits that view's refinements in the same model.",
+  "status": "provisional",
+  "provisional": {
+    "question": "The documentation does not say whether extends copies a view before or after its refinements are applied.",
+    "pinned_to": "node-lookml-parser 9.1.0"
+  },
+  "citations": [
+    {
+      "url": "https://docs.cloud.google.com/looker/docs/lookml-refinements",
+      "quote": "With LookML refinements, you can adapt an existing view or Explore without editing the LookML file that contains it."
+    },
+    {
+      "url": "https://docs.cloud.google.com/looker/docs/reusing-code-with-extends",
+      "quote": "If there are any conflicts, the extending object will take precedence and override the settings of the object that is being extended."
+    }
+  ],
+  "expect": {
+    "models": {
+      "main": {
+        "views": {
+          "orders": {
+            "sql_table_name": "analytics.orders_clean"
+          },
+          "orders_ext": {
+            "sql_table_name": "analytics.orders_clean",
+            "fields": [
+              "extra",
+              "id"
+            ],
+            "extends": [
+              "orders"
+            ]
+          }
+        }
+      }
+    }
+  }
+}

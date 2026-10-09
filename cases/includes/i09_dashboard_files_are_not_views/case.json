@@ -1,0 +1,30 @@
+{
+  "id": "i09_dashboard_files_are_not_views",
+  "title": "Included .dashboard files do not affect view resolution",
+  "rule": "Including LookML dashboard files makes dashboards available to the model and does not add or change views.",
+  "status": "confirmed",
+  "citations": [
+    {
+      "url": "https://docs.cloud.google.com/looker/docs/reference/param-model-include#including_views_and_dashboards_in_a_model",
+      "quote": "In the include parameter, use the extension .view for view files and the extension .dashboard for dashboards."
+    },
+    {
+      "url": "https://docs.cloud.google.com/looker/docs/reference/param-model-include#including_views_and_dashboards_in_a_model",
+      "quote": "Use the include parameter in a model file to specify the dashboard and view files that will be available to that model."
+    }
+  ],
+  "expect": {
+    "models": {
+      "m": {
+        "views": {
+          "orders": {
+            "sql_table_name": "raw.orders",
+            "fields": [
+              "id"
+            ]
+          }
+        }
+      }
+    }
+  }
+}

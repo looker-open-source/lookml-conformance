@@ -1,0 +1,44 @@
+{
+  "id": "r09_field_filters_are_additive",
+  "title": "filters on a measure accumulate across the base view and a refinement",
+  "rule": "filters on a field is additive under refinement: the refinement's filters are appended to the base filters.",
+  "status": "confirmed",
+  "citations": [
+    {
+      "url": "https://docs.cloud.google.com/looker/docs/lookml-refinements#some_parameters_are_additive",
+      "quote": "The following parameters are additive:"
+    },
+    {
+      "url": "https://docs.cloud.google.com/looker/docs/lookml-refinements#some_parameters_are_additive",
+      "quote": "meaning that the values from the base object are used in conjunction with the values from the refined object"
+    }
+  ],
+  "rationale": "The additive list on that page includes filters for dimensions and measures.",
+  "expect": {
+    "models": {
+      "m": {
+        "views": {
+          "orders": {
+            "fields": [
+              "n",
+              "region",
+              "status"
+            ],
+            "field_params": {
+              "n": {
+                "filters": [
+                  {
+                    "status": "complete"
+                  },
+                  {
+                    "region": "EU"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

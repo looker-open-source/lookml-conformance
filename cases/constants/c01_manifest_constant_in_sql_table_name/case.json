@@ -1,0 +1,27 @@
+{
+  "id": "c01_manifest_constant_in_sql_table_name",
+  "title": "A manifest constant in sql_table_name resolves to its value",
+  "rule": "@{NAME} in sql_table_name is replaced with the value of the manifest constant NAME.",
+  "status": "confirmed",
+  "citations": [
+    {
+      "url": "https://docs.cloud.google.com/looker/docs/reference/param-manifest-constant",
+      "quote": "Constants may then be used throughout a project using @{constant_name} syntax."
+    },
+    {
+      "url": "https://docs.cloud.google.com/looker/docs/reference/param-manifest-constant",
+      "quote": "This creates a view called Users that is based on the users table from the schema 02349_sfo."
+    }
+  ],
+  "expect": {
+    "models": {
+      "m": {
+        "views": {
+          "orders": {
+            "sql_table_name": "analytics_prod.orders"
+          }
+        }
+      }
+    }
+  }
+}

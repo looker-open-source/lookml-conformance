@@ -1,0 +1,33 @@
+{
+  "id": "p01_single_semicolon_inside_sql_block",
+  "title": "A single semicolon inside a SQL block is kept verbatim",
+  "rule": "SQL blocks end only at ;;, so a single ; inside the SQL is part of the SQL.",
+  "status": "confirmed",
+  "citations": [
+    {
+      "url": "https://community.looker.com/technical-tips-tricks-1021/when-are-semicolons-used-in-lookml-25425",
+      "quote": "The double semicolon is used to end SQL and HTML blocks."
+    }
+  ],
+  "expect": {
+    "models": {
+      "m": {
+        "views": {
+          "orders": {
+            "derived_table": {
+              "sql": "SELECT id FROM raw.orders WHERE note != ';'"
+            },
+            "fields": [
+              "cleaned"
+            ],
+            "field_params": {
+              "cleaned": {
+                "sql": "REGEXP_REPLACE(${TABLE}.note, ';', '')"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

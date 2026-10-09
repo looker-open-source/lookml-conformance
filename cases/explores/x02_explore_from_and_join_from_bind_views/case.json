@@ -1,0 +1,51 @@
+{
+  "id": "x02_explore_from_and_join_from_bind_views",
+  "title": "An explore with from, and a join with from, bind the aliased views",
+  "rule": "from on an explore or a join binds it to the named view while the explore or join name becomes the alias.",
+  "status": "confirmed",
+  "citations": [
+    {
+      "url": "https://docs.cloud.google.com/looker/docs/reference/param-explore-from",
+      "quote": "from determines the view that will define the fields of an Explore."
+    },
+    {
+      "url": "https://docs.cloud.google.com/looker/docs/reference/param-explore-from",
+      "quote": "the generated SQL aliases the original table name"
+    },
+    {
+      "url": "https://docs.cloud.google.com/looker/docs/reference/param-explore-join-from",
+      "quote": "from specifies the view to use in a join."
+    },
+    {
+      "url": "https://docs.cloud.google.com/looker/docs/reference/param-explore-join-from",
+      "quote": "Typically from is used only if you want the join and its fields to have a different name than the underlying view."
+    }
+  ],
+  "expect": {
+    "models": {
+      "m": {
+        "views": {
+          "orders": {
+            "sql_table_name": "raw.orders"
+          },
+          "users": {
+            "sql_table_name": "raw.users"
+          }
+        },
+        "explores": {
+          "buyer_orders": {
+            "view_name": "orders",
+            "from": "orders",
+            "joins": {
+              "buyer": {
+                "from": "users",
+                "relationship": "many_to_one",
+                "sql_on": "${buyer_orders.user_id} = ${buyer.id}"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

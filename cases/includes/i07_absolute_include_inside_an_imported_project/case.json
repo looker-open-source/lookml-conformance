@@ -1,0 +1,28 @@
+{
+  "id": "i07_absolute_include_inside_an_imported_project",
+  "title": "An absolute include inside an imported project file resolves against that project",
+  "rule": "A path starting with / inside an imported project's file resolves from that project's root.",
+  "status": "confirmed",
+  "citations": [
+    {
+      "url": "https://docs.cloud.google.com/looker/docs/importing-projects#including_files_that_include_other_files",
+      "quote": "When you include a file that includes other files, all the includes are resolved before the file is passed on to the next project that includes it."
+    },
+    {
+      "url": "https://docs.cloud.google.com/looker/docs/reference/param-model-include#path_syntax",
+      "quote": "Absolute path starting from current project's root."
+    }
+  ],
+  "rationale": "The includes of an imported file are resolved within its own project before the file reaches the importing project, and / is the root of the current project.",
+  "expect": {
+    "models": {
+      "m": {
+        "views": {
+          "orders": {
+            "sql_table_name": "shared.orders"
+          }
+        }
+      }
+    }
+  }
+}

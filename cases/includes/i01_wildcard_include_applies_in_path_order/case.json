@@ -1,0 +1,31 @@
+{
+  "id": "i01_wildcard_include_applies_in_path_order",
+  "title": "Files matched by a wildcard include are applied in path order",
+  "rule": "Refinement files matched by one wildcard include apply in lexical path order.",
+  "status": "provisional",
+  "provisional": {
+    "question": "The documentation discourages wildcards with refinements and says their order cannot be controlled. Which order does Looker use?",
+    "pinned_to": "node-lookml-parser 9.1.0 (lexical path order)"
+  },
+  "citations": [
+    {
+      "url": "https://docs.cloud.google.com/looker/docs/lookml-refinements#order",
+      "quote": "But with refinements in particular, using wildcards in your includes is not recommended."
+    },
+    {
+      "url": "https://docs.cloud.google.com/looker/docs/reference/param-model-include#wildcard_examples",
+      "quote": "does not allow you to control the order in which each file is included"
+    }
+  ],
+  "expect": {
+    "models": {
+      "m": {
+        "views": {
+          "orders": {
+            "sql_table_name": "from_b"
+          }
+        }
+      }
+    }
+  }
+}

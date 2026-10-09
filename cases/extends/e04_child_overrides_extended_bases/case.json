@@ -1,0 +1,42 @@
+{
+  "id": "e04_child_overrides_extended_bases",
+  "title": "A view's own parameters and fields override every view it extends",
+  "rule": "The extending view's own declarations win over every extended view, merged parameter by parameter.",
+  "status": "confirmed",
+  "citations": [
+    {
+      "url": "https://docs.cloud.google.com/looker/docs/reusing-code-with-extends",
+      "quote": "If there are any conflicts, the extending object will take precedence and override the settings of the object that is being extended."
+    },
+    {
+      "url": "https://docs.cloud.google.com/looker/docs/reusing-code-with-extends#step-2-merge",
+      "quote": "any explicitly written LookML gets merged"
+    },
+    {
+      "url": "https://docs.cloud.google.com/looker/docs/reusing-code-with-extends#step-3-resolve-conflicts",
+      "quote": "the version in the extending object is used"
+    }
+  ],
+  "rationale": "The documentation's implementation example merges a status dimension from both views: it keeps sql from the extended view and takes type from the extending view.",
+  "expect": {
+    "models": {
+      "m": {
+        "views": {
+          "child": {
+            "sql_table_name": "child.t",
+            "fields": [
+              "a_only",
+              "id"
+            ],
+            "field_params": {
+              "id": {
+                "sql": "${TABLE}.b_id",
+                "label": "Child ID"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

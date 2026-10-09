@@ -1,0 +1,25 @@
+{
+  "id": "r10_final_refinement_blocks_later_ones",
+  "title": "After a refinement with final: yes, a later refinement must not change the view",
+  "rule": "final: yes on a refinement stops any later refinement of the same view from applying.",
+  "status": "confirmed",
+  "citations": [
+    {
+      "url": "https://docs.cloud.google.com/looker/docs/lookml-refinements#final",
+      "quote": "The Looker IDE will return a LookML error if there are existing refinements that would be applied after this final refinement"
+    }
+  ],
+  "rationale": "Looker rejects the project with a LookML error. A tool may report an error, but must not resolve the view with the later refinement applied.",
+  "invalid_in_looker": true,
+  "expect": {
+    "models": {
+      "m": {
+        "views": {
+          "orders": {
+            "sql_table_name": "a.final"
+          }
+        }
+      }
+    }
+  }
+}

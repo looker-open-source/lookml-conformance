@@ -1,0 +1,31 @@
+{
+  "id": "r12_refinement_without_a_base_view",
+  "title": "A refinement of a view that does not exist creates no view",
+  "rule": "A refinement whose base view is never defined does not create a view.",
+  "status": "provisional",
+  "provisional": {
+    "question": "Does Looker report an error or ignore the refinement? The suite only requires that no view named ghost or +ghost appears.",
+    "pinned_to": "node-lookml-parser 9.1.0"
+  },
+  "citations": [
+    {
+      "url": "https://docs.cloud.google.com/looker/docs/lookml-refinements#using_refinements_in_your_lookml_project",
+      "quote": "The Looker IDE will give you warnings if you try to refine an object that is not included."
+    }
+  ],
+  "expect": {
+    "models": {
+      "m": {
+        "views": {
+          "orders": {
+            "sql_table_name": "raw.orders"
+          }
+        }
+      }
+    },
+    "absent_views": [
+      "ghost",
+      "+ghost"
+    ]
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "id": "i06_imported_project_view_can_be_refined",
+  "title": "A view from an imported project can be refined locally",
+  "rule": "A refinement in the importing project applies to a view included from an imported project.",
+  "status": "confirmed",
+  "citations": [
+    {
+      "url": "https://docs.cloud.google.com/looker/docs/lookml-refinements#example",
+      "quote": "Because the aircraft Explore is an imported file, you can't edit it directly."
+    },
+    {
+      "url": "https://docs.cloud.google.com/looker/docs/lookml-refinements#example",
+      "quote": "Instead, you can add a refinement to it."
+    },
+    {
+      "url": "https://docs.cloud.google.com/looker/docs/lookml-refinements",
+      "quote": "With LookML refinements, you can adapt an existing view or Explore without editing the LookML file that contains it."
+    }
+  ],
+  "expect": {
+    "models": {
+      "m": {
+        "views": {
+          "orders": {
+            "sql_table_name": "local.orders"
+          }
+        }
+      }
+    }
+  }
+}

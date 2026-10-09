@@ -1,0 +1,36 @@
+{
+  "id": "p02_hash_inside_sql_block_is_not_lookml_comment",
+  "title": "A # inside a SQL block is SQL, not a LookML comment",
+  "rule": "# starts a LookML comment outside SQL blocks; inside a SQL block it is part of the SQL.",
+  "status": "confirmed",
+  "citations": [
+    {
+      "url": "https://docs.cloud.google.com/looker/docs/looker-ide#adding_comments",
+      "quote": "To add a single comment, use the # character:"
+    },
+    {
+      "url": "https://docs.cloud.google.com/looker/docs/looker-ide",
+      "quote": "If you are commenting out lines that are entirely within a SQL code block, manually add SQL comment notation."
+    }
+  ],
+  "rationale": "Commenting out SQL requires SQL comment notation because # inside a SQL block is passed to the database as SQL.",
+  "expect": {
+    "models": {
+      "m": {
+        "views": {
+          "orders": {
+            "sql_table_name": "raw.orders",
+            "fields": [
+              "tag_hash"
+            ],
+            "field_params": {
+              "tag_hash": {
+                "sql": "CONCAT('#', ${TABLE}.tag)"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

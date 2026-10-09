@@ -1,0 +1,26 @@
+{
+  "id": "r02_refinement_in_non_view_file",
+  "title": "A refinement in a file that is not a .view file still applies",
+  "rule": "A refinement applies wherever it is declared, including files without the .view extension.",
+  "status": "confirmed",
+  "citations": [
+    {
+      "url": "https://docs.cloud.google.com/looker/docs/lookml-refinements#using_refinements_in_your_lookml_project",
+      "quote": "You can add refinements in any existing LookML file, or you can create separate LookML files for your refinements."
+    }
+  ],
+  "expect": {
+    "models": {
+      "ecommerce": {
+        "views": {
+          "orders": {
+            "sql_table_name": "analytics.orders_clean"
+          }
+        }
+      }
+    },
+    "absent_views": [
+      "+orders"
+    ]
+  }
+}

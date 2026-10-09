@@ -1,0 +1,27 @@
+{
+  "id": "r04_later_include_wins",
+  "title": "Refinements apply in include order: the file included last wins",
+  "rule": "When two included files refine the same view, the file included last wins.",
+  "status": "confirmed",
+  "citations": [
+    {
+      "url": "https://docs.cloud.google.com/looker/docs/lookml-refinements#order",
+      "quote": "Within a project, refinements are applied in the order in which their files are included."
+    },
+    {
+      "url": "https://docs.cloud.google.com/looker/docs/lookml-refinements#order",
+      "quote": "Refinements from files included last will override refinements from files included earlier."
+    }
+  ],
+  "expect": {
+    "models": {
+      "m": {
+        "views": {
+          "orders": {
+            "sql_table_name": "from_a"
+          }
+        }
+      }
+    }
+  }
+}

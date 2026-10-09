@@ -1,0 +1,29 @@
+{
+  "id": "c02_manifest_constant_in_derived_table_sql",
+  "title": "A manifest constant in derived_table SQL resolves to its value",
+  "rule": "@{NAME} inside derived_table SQL is replaced with the value of the manifest constant NAME.",
+  "status": "confirmed",
+  "citations": [
+    {
+      "url": "https://docs.cloud.google.com/looker/docs/reference/param-manifest-constant",
+      "quote": "Constants may then be used throughout a project using @{constant_name} syntax."
+    },
+    {
+      "url": "https://docs.cloud.google.com/looker/docs/reference/param-manifest-constant",
+      "quote": "Constants can be referenced anywhere in the model where strings are accepted"
+    }
+  ],
+  "expect": {
+    "models": {
+      "m": {
+        "views": {
+          "orders": {
+            "derived_table": {
+              "sql": "SELECT id FROM `bq_project.raw.orders`"
+            }
+          }
+        }
+      }
+    }
+  }
+}

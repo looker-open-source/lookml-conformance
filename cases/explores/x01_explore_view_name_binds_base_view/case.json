@@ -1,0 +1,33 @@
+{
+  "id": "x01_explore_view_name_binds_base_view",
+  "title": "An explore with view_name resolves its base view and its refinements",
+  "rule": "view_name binds an explore to a view of a different name, and +explore refinements apply to that explore.",
+  "status": "confirmed",
+  "citations": [
+    {
+      "url": "https://docs.cloud.google.com/looker/docs/reference/param-explore-view-name",
+      "quote": "view_name determines the view that will define the fields of an Explore."
+    },
+    {
+      "url": "https://docs.cloud.google.com/looker/docs/lookml-refinements",
+      "quote": "With LookML refinements, you can adapt an existing view or Explore without editing the LookML file that contains it."
+    }
+  ],
+  "expect": {
+    "models": {
+      "m": {
+        "views": {
+          "orders": {
+            "sql_table_name": "raw.orders"
+          }
+        },
+        "explores": {
+          "customer_orders": {
+            "view_name": "orders",
+            "label": "Customer Orders"
+          }
+        }
+      }
+    }
+  }
+}

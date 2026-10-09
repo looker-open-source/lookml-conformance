@@ -1,0 +1,31 @@
+{
+  "id": "r06_refinement_included_before_its_base",
+  "title": "A refinement whose file is included before the base view still applies",
+  "rule": "A refinement applies even when the model includes the refining file before the file that defines the view.",
+  "status": "provisional",
+  "provisional": {
+    "question": "The refining file does not include the base view, which the documentation requires and the IDE warns about. Only the model includes both, refinement first. Does Looker still apply the refinement?",
+    "pinned_to": "node-lookml-parser 9.1.0"
+  },
+  "citations": [
+    {
+      "url": "https://docs.cloud.google.com/looker/docs/lookml-refinements#using_refinements_in_your_lookml_project",
+      "quote": "In the file where you write your refinements, you must include the files of the LookML that you're refining."
+    },
+    {
+      "url": "https://docs.cloud.google.com/looker/docs/lookml-refinements#using_refinements_in_your_lookml_project",
+      "quote": "The Looker IDE will give you warnings if you try to refine an object that is not included."
+    }
+  ],
+  "expect": {
+    "models": {
+      "m": {
+        "views": {
+          "orders": {
+            "sql_table_name": "refined"
+          }
+        }
+      }
+    }
+  }
+}

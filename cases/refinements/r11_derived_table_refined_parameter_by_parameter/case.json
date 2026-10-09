@@ -1,0 +1,36 @@
+{
+  "id": "r11_derived_table_refined_parameter_by_parameter",
+  "title": "Refining a derived_table adds parameters without dropping its SQL",
+  "rule": "A refinement of derived_table merges the sub-parameters it sets into the base derived_table.",
+  "status": "confirmed",
+  "citations": [
+    {
+      "url": "https://docs.cloud.google.com/looker/docs/lookml-refinements",
+      "quote": "However, you can add refinements to the PDT's view, since refinements don't create a new copy of the object being refined."
+    },
+    {
+      "url": "https://docs.cloud.google.com/looker/docs/lookml-refinements#refinements_override_parameters",
+      "quote": "in most cases a refinement will override the original settings of an object"
+    },
+    {
+      "url": "https://docs.cloud.google.com/looker/docs/lookml-refinements#some_parameters_are_additive",
+      "quote": "The following parameters are additive:"
+    }
+  ],
+  "rationale": "The documentation recommends refinements for adding to persistent derived tables, and lists derived-table sub-parameters among the additive parameters, which only works if derived_table is merged parameter by parameter.",
+  "expect": {
+    "models": {
+      "m": {
+        "views": {
+          "orders": {
+            "sql_table_name": null,
+            "derived_table": {
+              "sql": "SELECT id FROM raw.orders",
+              "datagroup_trigger": "daily"
+            }
+          }
+        }
+      }
+    }
+  }
+}

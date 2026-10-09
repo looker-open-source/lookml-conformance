@@ -1,0 +1,28 @@
+{
+  "id": "i05_project_wildcards_do_not_reach_imported_projects",
+  "title": "A project wildcard include never matches files of an imported project",
+  "rule": "An include starting with / only matches files of the current project, never files of imported projects.",
+  "status": "confirmed",
+  "citations": [
+    {
+      "url": "https://docs.cloud.google.com/looker/docs/reference/param-model-include#path_syntax",
+      "quote": "Absolute path starting from current project's root."
+    },
+    {
+      "url": "https://docs.cloud.google.com/looker/docs/importing-projects#include_files_from_an_imported_project",
+      "quote": "To include a file from another project, use the filename with two forward slashes (//)"
+    }
+  ],
+  "rationale": "Imported project files are reached through // includes. The suite places them under imported_projects/<name>/, the folder the IDE shows them in, which a / wildcard must not match.",
+  "expect": {
+    "models": {
+      "m": {
+        "views": {
+          "orders": {
+            "sql_table_name": "raw.orders"
+          }
+        }
+      }
+    }
+  }
+}
