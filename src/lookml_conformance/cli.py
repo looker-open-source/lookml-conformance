@@ -1,0 +1,152 @@
+"""Command-line interface: ``lookml-conformance <command>``."""
+
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import shlex
+import sys
+from collections.abc import Sequence
+from pathlib import Path
+
+from lookml_conformance import __version__
+from lookml_conformance.cases import Case, SuiteError, load_cases
+from lookml_conformance.judge import Verdict
+from lookml_conformance.runner import AdapterSpec, RegistryError, load_registry, run_suite, select_adapters
+from lookml_conformance.scorecard import Scorecard, render_markdown, render_text
+
+EXIT_OK, EXIT_FAILURES, EXIT_USAGE = 0, 1, 2
+
+
+def main(argv: Sequence[str] | None = None) -> int:
+    parser = build_parser()
+    args = parser.parse_args(argv)
+    try:
+        return int(args.handler(args))
+    except (SuiteError, RegistryError) as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return EXIT_USAGE
+
+
+def build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
+        prog="lookml-conformance", description="Run the LookML conformance suite against LookML tools."
+    )
+    parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
+    parser.add_argument(
+        "--cases", type=Path, default=Path("cases"), help="cases directory (default: ./cases)"
+    )
+    commands = parser.add_subparsers(dest="command", required=True, metavar="COMMAND")
+
+    list_cmd = commands.add_parser("list", help="list the cases")
+    list_cmd.add_argument("--only", metavar="TEXT", help="only cases whose id contains TEXT")
+    list_cmd.set_defaults(handler=cmd_list)
+
+    validate = commands.add_parser("validate", help="check every case file against the case format")
+    validate.set_defaults(handler=cmd_validate)
+
+    run = commands.add_parser(
+        "run",
+        help="run adapters against the cases",
+        description="Run adapters against the cases. Exits with 1 if any applicable case fails or errors.",
+    )
+    source = run.add_mutually_exclusive_group()
+    source.add_argument(
+        "--registry",
+        type=Path,
+        default=Path("adapters.json"),
+        help="adapter registry (default: ./adapters.json)",
+    )
+    source.add_argument(
+        "--command",
+        dest="adapter_command",
+        metavar="CMD",
+        help="run this adapter command instead of the registry, e.g. "
+        "'python -m lookml_conformance.adapters.datahub'",
+    )
+    run.add_argument("--name", default="local", help="adapter name reported for --command (default: local)")
+    run.add_argument(
+        "--adapter",
+        action="append",
+        default=[],
+        metavar="NAME",
+        help="only run this registry adapter (repeatable)",
+    )
+    run.add_argument("--only", metavar="TEXT", help="only cases whose id contains TEXT")
+    run.add_argument(
+        "--jobs", "-j", type=int, default=os.cpu_count() or 1, help="adapter processes in parallel"
+    )
+    run.add_argument("--json", type=Path, metavar="PATH", help="write the scorecard as JSON")
+    run.add_argument("--markdown", type=Path, metavar="PATH", help="write the scorecard as Markdown")
+    run.add_argument("--quiet", "-q", action="store_true", help="do not print a line per case")
+    run.set_defaults(handler=cmd_run)
+
+    report = commands.add_parser("report", help="render a JSON scorecard as Markdown")
+    report.add_argument("scorecard", type=Path)
+    report.add_argument(
+        "--registry",
+        type=Path,
+        default=Path("adapters.json"),
+        help="registry used for tool labels, if present",
+    )
+    report.set_defaults(handler=cmd_report)
+    return parser
+
+
+def cmd_list(args: argparse.Namespace) -> int:
+    for case in load_cases(args.cases, args.only):
+        print(f"{case.id:56} {case.status.value:11} {case.title}")
+    return EXIT_OK
+
+
+def cmd_validate(args: argparse.Namespace) -> int:
+    cases = load_cases(args.cases)
+    print(f"{len(cases)} cases are valid")
+    return EXIT_OK
+
+
+def cmd_run(args: argparse.Namespace) -> int:
+    cases = load_cases(args.cases, args.only)
+    if not cases:
+        print("error: no cases selected", file=sys.stderr)
+        return EXIT_USAGE
+    adapters = _adapters_for(args)
+
+    def progress(case: Case, adapter: AdapterSpec, verdict: Verdict) -> None:
+        if not args.quiet:
+            reasons = "; ".join(verdict.reasons)
+            print(
+                f"{verdict.outcome.value:5} {case.id:56} {adapter.name:20} {reasons[:160]}", file=sys.stderr
+            )
+
+    scorecard = run_suite(cases, adapters, jobs=args.jobs, progress=progress)
+    print(render_text(scorecard), end="")
+    labels = {adapter.name: adapter.display_name for adapter in adapters}
+    if args.json:
+        _write(args.json, json.dumps(scorecard.to_dict(), indent=2) + "\n")
+    if args.markdown:
+        _write(args.markdown, render_markdown(scorecard, labels))
+    return EXIT_FAILURES if scorecard.failed else EXIT_OK
+
+
+def cmd_report(args: argparse.Namespace) -> int:
+    scorecard = Scorecard.from_dict(json.loads(args.scorecard.read_text(encoding="utf-8")))
+    labels = {}
+    if args.registry.is_file():
+        labels = {adapter.name: adapter.display_name for adapter in load_registry(args.registry)}
+    print(render_markdown(scorecard, labels), end="")
+    return EXIT_OK
+
+
+def _adapters_for(args: argparse.Namespace) -> list[AdapterSpec]:
+    if args.adapter_command:
+        return [AdapterSpec(name=args.name, command=tuple(shlex.split(args.adapter_command)))]
+    adapters = load_registry(args.registry)
+    return select_adapters(adapters, args.adapter) if args.adapter else adapters
+
+
+def _write(path: Path, text: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(text, encoding="utf-8")
+    print(f"wrote {path}", file=sys.stderr)
