@@ -4,9 +4,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>LookML Conformance</title>
-  <meta name="description" content="A conformance suite for tools that resolve LookML: 39 minimal projects, each tied to a quoted rule from the Looker documentation, scored against OpenMetadata, DataHub, Dagster and node-lookml-parser.">
+  <meta name="description" content="An open, vendor-neutral conformance suite for LookML: 39 minimal projects, each tied to a quoted rule, run against OpenMetadata, DataHub, Dagster and node-lookml-parser.">
   <meta property="og:title" content="LookML Conformance">
-  <meta property="og:description" content="How closely do LookML tools follow Looker's own rules? 39 cases, every expectation quoted from the Looker documentation.">
+  <meta property="og:description" content="An open, vendor-neutral test suite for how LookML resolves: 39 minimal projects, each tied to a quoted rule.">
   <meta name="color-scheme" content="dark light">
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="styles.css">
@@ -22,7 +22,7 @@
         <span>lookml<span class="brand__dim">-conformance</span></span>
       </a>
       <nav class="nav__links" aria-label="Sections">
-        <a href="#impact">Impact</a>
+        <a href="#impact">Findings</a>
         <a href="#results">Results</a>
         <a href="#cases">Cases</a>
         <a href="#method">Method</a>
@@ -37,9 +37,9 @@
       <div class="hero__glow" aria-hidden="true"></div>
       <div class="wrap hero__grid">
         <div class="hero__copy">
-          <p class="eyebrow">Conformance suite for LookML tools</p>
-          <h1>Lineage tools read LookML. <span class="grad">Most read it differently from Looker.</span></h1>
-          <p class="lede" id="hero-lede">Minimal LookML projects, each tied to a rule quoted from the Looker documentation, run against the tools that build catalogs and lineage from LookML.</p>
+          <p class="eyebrow">Open, vendor-neutral conformance suite for LookML</p>
+          <h1>One open test suite for how LookML resolves. <span class="grad">So every tool can read it the way Looker does.</span></h1>
+          <p class="lede" id="hero-lede">LookML is Looker's semantic modeling language: it defines the dimensions, measures and relationships behind the metrics an organization reports on. Data catalogs and lineage tools read it straight from git, and AI assistants increasingly answer questions through it, so each of them has to reproduce how Looker resolves a project. lookml-conformance makes that behavior explicit and testable: 39 minimal LookML projects, each tied to a quoted rule, run against the open-source tools that build catalogs and lineage from LookML.</p>
           <div class="hero__cta">
             <a class="btn btn--primary" href="#results">See the results</a>
             <a class="btn" href="#run">Test your tool</a>
@@ -56,7 +56,7 @@
       <div class="wrap">
         <p class="eyebrow">Why it matters</p>
         <h2>Lineage is only as right as the LookML resolution behind it</h2>
-        <p class="section__lede">Looker assembles each model from its includes, applies refinements in include order and merges extends. A tool that skips a step reports a table Looker never queries, and the catalog looks complete while being wrong.</p>
+        <p class="section__lede">Looker assembles each model from its includes, applies refinements in include order and merges extends. Each step can change which table a view reads, so every tool that builds lineage from LookML has to reimplement all of them, usually without a Looker instance to check against. These are the areas where tools and Looker differ most today.</p>
         <div class="impact" id="impact-cards"></div>
 
         <div class="example card" id="example">
@@ -82,7 +82,7 @@
     <section class="section section--alt" id="results">
       <div class="wrap">
         <p class="eyebrow">Results</p>
-        <h2>Scoreboard</h2>
+        <h2>Results by tool</h2>
         <p class="section__lede" id="results-lede"></p>
         <div class="tools" id="tools"></div>
       </div>
@@ -92,7 +92,7 @@
       <div class="wrap">
         <p class="eyebrow">Cases</p>
         <h2>Every case, every tool</h2>
-        <p class="section__lede">Each row is one rule. Select a row to read the documentation it quotes, the LookML project, and why a tool failed.</p>
+        <p class="section__lede">Each row is one rule. Select a row to read the documentation it quotes, the LookML project, and how each tool's output compares with Looker's.</p>
         <div class="filters" role="toolbar" aria-label="Filter cases">
           <div class="chips" id="category-chips"></div>
           <div class="filters__right">
@@ -134,6 +134,11 @@
           </li>
         </ol>
         <p class="note" id="method-note"></p>
+        <div class="intent card">
+          <h3>How to read the results</h3>
+          <p>Conformance is hard, and lineage on top of it is harder. The tools scored here are maintained by people solving a difficult problem, mostly without access to Looker's own resolver. The scores describe the released versions pinned in <code>adapters.json</code> and are a snapshot, not a ranking. Every difference comes with a minimal project that reproduces it, so it can serve directly as a test case for a fix.</p>
+          <p>If a case or an adapter misrepresents what a tool does, that is a bug in this suite. Please <a href="https://github.com/josephaxisa/lookml-conformance/issues">open an issue</a>.</p>
+        </div>
       </div>
     </section>
 
@@ -165,7 +170,7 @@ lookml-conformance check-adapter --command "python my_tool.py"</code></pre>
   <footer class="footer">
     <div class="wrap footer__inner">
       <p id="footer-date"></p>
-      <p><a href="https://github.com/josephaxisa/lookml-conformance">Source</a></p>
+      <p>Created and maintained by <a href="https://github.com/josephaxisa">Joseph Axisa</a> · <a href="https://github.com/josephaxisa/lookml-conformance">Source</a></p>
     </div>
   </footer>
 

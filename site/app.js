@@ -26,6 +26,8 @@ function h(tag, attrs = {}, ...children) {
 }
 
 const pct = ({ passed, applicable }) => (applicable ? Math.round((100 * passed) / applicable) : 0);
+// Score colours: under 50% red, 50 to 79% yellow, 80% and up green.
+const tier = (rate) => (rate < 50 ? "low" : rate < 80 ? "mid" : "high");
 const isLineageTool = (tool) => tool.kind !== "Parser";
 
 function tally(data, toolName, cases) {
@@ -59,12 +61,13 @@ function fileBlock(file) {
 
 function renderHero(data) {
   const tools = [...data.tools].sort((a, b) => pct(b.score.all) - pct(a.score.all));
-  const lineage = data.tools.filter(isLineageTool);
-  const rates = lineage.map((t) => pct(t.score.all));
   $("#hero-lede").textContent =
-    `${data.suite.cases} minimal LookML projects, each tied to a rule quoted from the Looker documentation. ` +
-    `The metadata catalogs and orchestrators that build lineage from LookML pass ` +
-    `${Math.min(...rates)}% to ${Math.max(...rates)}% of them.`;
+    "LookML is Looker's semantic modeling language: it defines the dimensions, measures and relationships " +
+    "behind the metrics an organization reports on. Data catalogs and lineage tools read it straight from git, " +
+    "and AI assistants increasingly answer questions through it, so each of them has to reproduce how Looker " +
+    "resolves a project. lookml-conformance makes that behavior explicit and testable: " +
+    `${data.suite.cases} minimal LookML projects, each tied to a quoted rule, run against the open-source tools ` +
+    "that build catalogs and lineage from LookML.";
 
   const board = $("#hero-board");
   board.replaceChildren(
@@ -76,7 +79,7 @@ function renderHero(data) {
         "div",
         { class: "bar-row" },
         h("div", { class: "bar-row__name" }, tool.label, h("small", {}, `${tool.kind} · ${tool.version}`)),
-        h("div", { class: `bar${rate < 50 ? " bar--low" : ""}`, role: "img", "aria-label": `${tool.label}: ${rate}%` }, fill),
+        h("div", { class: `bar tier--${tier(rate)}`, role: "img", "aria-label": `${tool.label}: ${rate}%` }, fill),
         h("div", { class: "bar-row__pct" }, `${rate}%`),
       );
     }),
@@ -118,28 +121,28 @@ function renderImpact(data) {
   const cards = [
     {
       big: [bestRefinements, ` / ${refinements.length}`],
-      title: "Refinements are mostly ignored",
-      text: `No catalog or orchestrator passes more than ${bestRefinements} of the ${refinements.length} refinement cases. Refinements in layer files, include order and final: yes are skipped, so lineage points at the unrefined table.`,
+      title: "Refinements",
+      text: `The strongest lineage tool passes ${bestRefinements} of the ${refinements.length} refinement cases. Getting them right means applying refinements in include order, per model, merging fields parameter by parameter and honoring final: yes.`,
     },
     {
-      big: [scopeFailures, ` / ${lineage.length}`],
-      title: "Models bleed into each other",
-      text: `${scopeFailures} of ${lineage.length} lineage tools get model scope wrong. When two models refine one view, they either drop both refinements or leak one model's refinement into the other.`,
+      big: [lineage.length - scopeFailures, ` / ${lineage.length}`],
+      title: "Model scope",
+      text: `When two models refine the same view differently, Looker gives each model its own version of the view. ${lineage.length - scopeFailures} of ${lineage.length} lineage tools keep the versions apart; the others report one version for both models.`,
     },
     {
       big: [extendsPassed, ` / ${extendsApplicable}`],
-      title: "Extended views lose their parents",
-      text: `Across the lineage tools, ${extendsPassed} of ${extendsApplicable} extends results are right. Views that extend several views, or gain extends through a refinement, lose tables and fields.`,
+      title: "Extends",
+      text: `Across the lineage tools, ${extendsPassed} of ${extendsApplicable} extends results pass. Views that extend several views, or gain extends through a refinement, need their parents merged in priority order.`,
     },
     {
       big: [bestLineage, ` / ${lineageCases.length}`],
-      title: "Derived tables lose their sources",
-      text: `The best lineage tool passes ${bestLineage} of the ${lineageCases.length} lineage cases. They cover \${view.SQL_TABLE_NAME} references, chains of derived tables, references to refined views and native derived tables.`,
+      title: "Derived table lineage",
+      text: `The strongest lineage tool passes ${bestLineage} of the ${lineageCases.length} lineage cases. They cover \${view.SQL_TABLE_NAME} references, chains of derived tables, references to refined views and native derived tables.`,
     },
   ];
   $("#impact-cards").replaceChildren(
     ...cards.map((card) =>
-      h("article", { class: "impact__card card" }, h("div", { class: "impact__big" }, card.big[0], h("small", {}, card.big[1])), h("h3", {}, card.title), h("p", {}, card.text)),
+      h("article", { class: `impact__card card tier--${tier(pct({ passed: card.big[0], applicable: Number(card.big[1].replace(/\D/g, "")) }))}` }, h("div", { class: "impact__big" }, card.big[0], h("small", {}, card.big[1])), h("h3", {}, card.title), h("p", {}, card.text)),
     ),
   );
 }
@@ -198,7 +201,7 @@ function renderExample(data) {
 function renderTools(data) {
   const lineage = data.tools.filter(isLineageTool);
   $("#results-lede").textContent =
-    `Released versions scored on ${data.date}. Pass rates count applicable cases only; ` +
+    `Released versions scored on ${data.date}. Rates count applicable cases only; ` +
     `a case is not applicable when a tool does not produce that output at all, such as explores read from the Looker API. ` +
     `${lineage.length} of ${data.tools.length} tools build lineage from LookML.`;
 
@@ -212,7 +215,7 @@ function renderTools(data) {
           "div",
           { class: "tool__row" },
           h("span", {}, category.title),
-          h("div", { class: "mini" }, h("span", { style: `width:${pct(t)}%` })),
+          h("div", { class: `mini tier--${tier(pct(t))}` }, h("span", { style: `width:${pct(t)}%` })),
           h("b", {}, `${t.passed}/${t.applicable}`),
         );
       });
@@ -229,13 +232,13 @@ function renderTools(data) {
             h("div", { class: "tool__meta" }, `${tool.kind} · ${tool.language}`),
             h("div", { class: "tool__meta" }, `${tool.score.all.passed} of ${tool.score.all.applicable} cases`),
           ),
-          h("div", { class: "ring", style: `--p:${rate};--ring-color:${rate < 50 ? "var(--fail)" : "var(--pass)"}` }, h("span", {}, `${rate}%`)),
+          h("div", { class: `ring tier--${tier(rate)}`, style: `--p:${rate}` }, h("span", {}, `${rate}%`)),
         ),
         h(
           "div",
           { class: "tool__rows" },
-          h("div", { class: "tool__row" }, h("span", {}, "Confirmed"), h("div", { class: "mini" }, h("span", { style: `width:${pct(tool.score.confirmed)}%` })), h("b", {}, `${tool.score.confirmed.passed}/${tool.score.confirmed.applicable}`)),
-          h("div", { class: "tool__row" }, h("span", {}, "Provisional"), h("div", { class: "mini" }, h("span", { style: `width:${pct(tool.score.provisional)}%` })), h("b", {}, `${tool.score.provisional.passed}/${tool.score.provisional.applicable}`)),
+          h("div", { class: "tool__row" }, h("span", {}, "Confirmed"), h("div", { class: `mini tier--${tier(pct(tool.score.confirmed))}` }, h("span", { style: `width:${pct(tool.score.confirmed)}%` })), h("b", {}, `${tool.score.confirmed.passed}/${tool.score.confirmed.applicable}`)),
+          h("div", { class: "tool__row" }, h("span", {}, "Provisional"), h("div", { class: `mini tier--${tier(pct(tool.score.provisional))}` }, h("span", { style: `width:${pct(tool.score.provisional)}%` })), h("b", {}, `${tool.score.provisional.passed}/${tool.score.provisional.applicable}`)),
         ),
         h("div", { class: "tool__rows" }, rows),
         tool.package ? h("div", { class: "pkg" }, tool.package) : null,
@@ -278,7 +281,7 @@ function renderFilters(data) {
 }
 
 function pill(outcome) {
-  return h("span", { class: `pill pill--${OUTCOME_CLASS[outcome]}`, title: outcome }, outcome === "pass" ? "✓" : outcome === "fail" ? "✗" : outcome === "error" ? "!" : "–");
+  return h("span", { class: `pill pill--${OUTCOME_CLASS[outcome]}`, title: OUTCOME_LABEL[outcome] }, outcome === "pass" ? "✓" : outcome === "fail" ? "✗" : outcome === "error" ? "!" : "–");
 }
 
 function visibleCases(data) {
