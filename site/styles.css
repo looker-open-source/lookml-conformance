@@ -284,6 +284,7 @@ p { margin: 0; }
 .badge { display: inline-block; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.04em; padding: 2px 8px; border-radius: 999px; vertical-align: middle; }
 .badge--provisional { color: var(--provisional); background: var(--error-bg); }
 .badge--confirmed { color: var(--pass); background: var(--pass-bg); }
+.badge[title] { cursor: help; }
 .legend { color: var(--faint); font-size: 0.85rem; margin-top: 14px; display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; }
 .dot { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
 .dot--pass { background: var(--pass); } .dot--fail { background: var(--fail); } .dot--error { background: var(--error); } .dot--na { background: var(--na); }

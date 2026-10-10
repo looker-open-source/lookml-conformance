@@ -6,6 +6,10 @@
 const OUTCOME_LABEL = { pass: "pass", fail: "fail", error: "error", "n/a": "n/a" };
 const OUTCOME_CLASS = { pass: "pass", fail: "fail", error: "error", "n/a": "na" };
 const EXAMPLE_CASE = "r03_two_models_refine_one_view_differently";
+const STATUS_DESCRIPTION = {
+  confirmed: "Follows from the quoted Looker docs.",
+  provisional: "The docs leave this open; not yet checked on Looker.",
+};
 
 const $ = (selector) => document.querySelector(selector);
 
@@ -324,6 +328,10 @@ function renderFilters(data) {
   });
 }
 
+function statusBadge(status) {
+  return h("span", { class: `badge badge--${status}`, title: STATUS_DESCRIPTION[status] }, status);
+}
+
 function pill(outcome) {
   return h("span", { class: `pill pill--${OUTCOME_CLASS[outcome]}`, title: OUTCOME_LABEL[outcome] }, outcome === "pass" ? "✓" : outcome === "fail" ? "✗" : outcome === "error" ? "!" : "–");
 }
@@ -367,7 +375,7 @@ function renderMatrix(data) {
           h(
             "td",
             {},
-            h("span", { class: "case-title" }, c.title, " ", c.status === "provisional" ? h("span", { class: "badge badge--provisional" }, "provisional") : null),
+            h("span", { class: "case-title" }, c.title, " ", c.status === "provisional" ? statusBadge(c.status) : null),
             h("span", { class: "case-id" }, c.id),
           ),
           ...data.tools.map((t) => h("td", {}, pill(c.verdicts[t.name]?.outcome ?? "n/a"))),
@@ -396,7 +404,7 @@ function openCase(data, id) {
   $("#drawer-body").replaceChildren(
     h("p", { class: "eyebrow eyebrow--muted" }, data.categories.find((k) => k.id === c.category)?.title ?? c.category, " · ", h("code", {}, c.id)),
     h("h2", { id: "drawer-title" }, c.title),
-    h("span", { class: `badge badge--${c.status}` }, c.status),
+    statusBadge(c.status),
     h("section", {}, h("h4", {}, "Rule"), h("p", {}, c.rule)),
     h(
       "section",
