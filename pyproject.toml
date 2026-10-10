@@ -29,6 +29,7 @@ lookml-conformance = "lookml_conformance.cli:main"
 [project.entry-points."lookml_conformance.adapters"]
 dagster = "lookml_conformance.adapters.dagster:DagsterAdapter"
 datahub = "lookml_conformance.adapters.datahub:DataHubAdapter"
+looker = "lookml_conformance.adapters.looker:LookerAdapter"
 openmetadata = "lookml_conformance.adapters.openmetadata:OpenMetadataAdapter"
 
 [dependency-groups]

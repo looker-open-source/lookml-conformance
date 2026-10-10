@@ -62,7 +62,9 @@ the Looker documentation it comes from, and lists the expected resolution per mo
 Cases are **confirmed** when the expectation follows from the quoted documentation (31 cases) and
 **provisional** when the documentation leaves the behavior open (8 cases). A provisional case states
 the open question and names the public source its expectation is pinned to, until it is checked on
-a Looker instance. `lookml-conformance check-citations` fetches every cited page and fails if a
+a Looker instance, which the [Looker adapter](docs/looker-adapter.md) does through the Looker API
+([procedure](docs/confirming-provisional-cases.md)).
+`lookml-conformance check-citations` fetches every cited page and fails if a
 quote is no longer on it.
 
 ## Usage
@@ -154,6 +156,7 @@ other gap the tool leaves.
 | DataHub | `python -m lookml_conformance.adapters.datahub` |
 | Dagster | `python -m lookml_conformance.adapters.dagster` |
 | node-lookml-parser | `node src/lookml_conformance/adapters/node_lookml_parser.js` (set `LOOKML_PARSER_PATH` to test a checkout) |
+| Looker itself | `python -m lookml_conformance.adapters.looker` (needs a Looker instance; see [docs/looker-adapter.md](docs/looker-adapter.md)) |
 
 Adding a tool takes one class with one method:
 
