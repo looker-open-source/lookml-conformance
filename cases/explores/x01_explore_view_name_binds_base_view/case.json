@@ -11,6 +11,14 @@
     {
       "url": "https://docs.cloud.google.com/looker/docs/lookml-refinements",
       "quote": "With LookML refinements, you can adapt an existing view or Explore without editing the LookML file that contains it."
+    },
+    {
+      "url": "https://docs.cloud.google.com/looker/docs/lookml-refinements",
+      "quote": "This refinement can go in any LookML file in the project, such as a model file, view file, or in its own dedicated LookML file."
+    },
+    {
+      "url": "https://docs.cloud.google.com/looker/docs/lookml-refinements#order",
+      "quote": "Within a single file, refinements are applied line by line going downwards."
     }
   ],
   "expect": {

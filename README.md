@@ -13,14 +13,14 @@ Results and case explorer: https://josephaxisa.github.io/lookml-conformance/
 
 ## Results
 
-Released versions, scored on 2026-10-09 ([full scorecard](results/latest.md)):
+Released versions, scored on 2026-10-10 ([full scorecard](results/latest.md)):
 
 | Tool | Version | Confirmed | Provisional | All |
 | --- | --- | ---: | ---: | ---: |
-| [node-lookml-parser](https://github.com/fabio-looker/node-lookml-parser) | `lookml-parser` 9.1.0 | 19 / 27 | 6 / 7 | **25 / 34** |
-| [Dagster](https://github.com/dagster-io/dagster) | `dagster-looker` 0.29.25 | 12 / 32 | 3 / 7 | **15 / 39** |
-| [DataHub](https://github.com/datahub-project/datahub) | `acryl-datahub[lookml]` 1.7.0.14 | 13 / 32 | 1 / 7 | **14 / 39** |
-| [OpenMetadata](https://github.com/open-metadata/OpenMetadata) | `openmetadata-ingestion[looker]` 2.0.5.0 | 10 / 30 | 1 / 7 | **11 / 37** |
+| [node-lookml-parser](https://github.com/fabio-looker/node-lookml-parser) | `lookml-parser` 9.1.0 | 19 / 26 | 6 / 8 | **25 / 34** |
+| [Dagster](https://github.com/dagster-io/dagster) | `dagster-looker` 0.29.25 | 16 / 31 | 5 / 8 | **21 / 39** |
+| [DataHub](https://github.com/datahub-project/datahub) | `acryl-datahub[lookml]` 1.7.0.14 | 16 / 31 | 1 / 8 | **17 / 39** |
+| [OpenMetadata](https://github.com/open-metadata/OpenMetadata) | `openmetadata-ingestion[looker]` 2.0.5.0 | 10 / 29 | 0 / 8 | **10 / 37** |
 
 OpenMetadata reads explores from the Looker API, so the two explore cases do not apply to it.
 node-lookml-parser builds no lineage, so the five lineage cases do not apply to it.
@@ -59,8 +59,8 @@ the Looker documentation it comes from, and lists the expected resolution per mo
 }
 ```
 
-Cases are **confirmed** when the expectation follows from the quoted documentation (32 cases) and
-**provisional** when the documentation leaves the behavior open (7 cases). A provisional case states
+Cases are **confirmed** when the expectation follows from the quoted documentation (31 cases) and
+**provisional** when the documentation leaves the behavior open (8 cases). A provisional case states
 the open question and names the public source its expectation is pinned to, until it is checked on
 a Looker instance. `lookml-conformance check-citations` fetches every cited page and fails if a
 quote is no longer on it.

@@ -9,7 +9,7 @@ the public source its expectation is pinned to.
 
 | Category | Cases | Confirmed | Provisional |
 | --- | ---: | ---: | ---: |
-| [Refinements](#refinements) | 13 | 11 | 2 |
+| [Refinements](#refinements) | 13 | 10 | 3 |
 | [Includes](#includes) | 9 | 5 | 4 |
 | [Extends](#extends) | 4 | 3 | 1 |
 | [Model scope](#model-scope) | 1 | 1 | 0 |
@@ -17,7 +17,7 @@ the public source its expectation is pinned to.
 | [Constants](#constants) | 2 | 2 | 0 |
 | [Lineage](#lineage) | 5 | 5 | 0 |
 | [Syntax](#syntax) | 3 | 3 | 0 |
-| **Total** | 39 | 32 | 7 |
+| **Total** | 39 | 31 | 8 |
 
 ## Refinements
 
@@ -135,13 +135,17 @@ Files: [`case.json`](cases/refinements/r09_field_filters_are_additive/case.json)
 
 ### `r10_final_refinement_blocks_later_ones`
 
-**After a refinement with final: yes, a later refinement must not change the view.** *confirmed*
+**After a refinement with final: yes, a later refinement must not change the view.** *provisional*
 
 Rule: final: yes on a refinement stops any later refinement of the same view from applying.
 
 > The Looker IDE will return a LookML error if there are existing refinements that would be applied after this final refinement<br>[lookml-refinements#final](https://docs.cloud.google.com/looker/docs/lookml-refinements#final)
 
 Why: Looker rejects the project with a LookML error. A tool may report an error, but must not resolve the view with the later refinement applied.
+
+Open question: Looker reports a LookML error for a refinement applied after one with final: yes. Does Looker still resolve the view, and if so to which table? Until that is checked, the case expects the final refinement to win.
+
+Pinned to: this suite's reading of the final: yes documentation; no tool or public fixture produces it yet
 
 Looker rejects this project. Tools may report an error but must not produce the forbidden result.
 
@@ -404,6 +408,10 @@ Rule: view_name binds an explore to a view of a different name, and +explore ref
 > view_name determines the view that will define the fields of an Explore.<br>[param-explore-view-name](https://docs.cloud.google.com/looker/docs/reference/param-explore-view-name)
 
 > With LookML refinements, you can adapt an existing view or Explore without editing the LookML file that contains it.<br>[lookml-refinements](https://docs.cloud.google.com/looker/docs/lookml-refinements)
+
+> This refinement can go in any LookML file in the project, such as a model file, view file, or in its own dedicated LookML file.<br>[lookml-refinements](https://docs.cloud.google.com/looker/docs/lookml-refinements)
+
+> Within a single file, refinements are applied line by line going downwards.<br>[lookml-refinements#order](https://docs.cloud.google.com/looker/docs/lookml-refinements#order)
 
 Files: [`case.json`](cases/explores/x01_explore_view_name_binds_base_view/case.json) · [`project/`](cases/explores/x01_explore_view_name_binds_base_view/project)
 

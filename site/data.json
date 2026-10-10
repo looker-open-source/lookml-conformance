@@ -1,10 +1,10 @@
 {
- "date": "2026-10-09",
+ "date": "2026-10-10",
  "suite": {
   "cases": 39,
-  "confirmed": 32,
-  "provisional": 7,
-  "citations": 74,
+  "confirmed": 31,
+  "provisional": 8,
+  "citations": 76,
   "pages": 15
  },
  "categories": [
@@ -57,11 +57,11 @@
     },
     "confirmed": {
      "passed": 19,
-     "applicable": 27
+     "applicable": 26
     },
     "provisional": {
      "passed": 6,
-     "applicable": 7
+     "applicable": 8
     }
    }
   },
@@ -75,16 +75,16 @@
    "version": "2.0.5.0",
    "score": {
     "all": {
-     "passed": 11,
+     "passed": 10,
      "applicable": 37
     },
     "confirmed": {
      "passed": 10,
-     "applicable": 30
+     "applicable": 29
     },
     "provisional": {
-     "passed": 1,
-     "applicable": 7
+     "passed": 0,
+     "applicable": 8
     }
    }
   },
@@ -98,16 +98,16 @@
    "version": "1.7.0.14",
    "score": {
     "all": {
-     "passed": 14,
+     "passed": 17,
      "applicable": 39
     },
     "confirmed": {
-     "passed": 13,
-     "applicable": 32
+     "passed": 16,
+     "applicable": 31
     },
     "provisional": {
      "passed": 1,
-     "applicable": 7
+     "applicable": 8
     }
    }
   },
@@ -121,16 +121,16 @@
    "version": "0.29.25",
    "score": {
     "all": {
-     "passed": 15,
+     "passed": 21,
      "applicable": 39
     },
     "confirmed": {
-     "passed": 12,
-     "applicable": 32
+     "passed": 16,
+     "applicable": 31
     },
     "provisional": {
-     "passed": 3,
-     "applicable": 7
+     "passed": 5,
+     "applicable": 8
     }
    }
   }
@@ -421,16 +421,16 @@
    },
    "files": [
     {
-     "path": "a.lkml",
+     "path": "a.view.lkml",
      "content": "include: \"/orders.view\"\nview: +orders {\n  sql_table_name: from_a ;;\n}\n"
     },
     {
-     "path": "b.lkml",
+     "path": "b.view.lkml",
      "content": "include: \"/orders.view\"\nview: +orders {\n  sql_table_name: from_b ;;\n}\n"
     },
     {
      "path": "m.model.lkml",
-     "content": "connection: \"wh\"\ninclude: \"/orders.view\"\ninclude: \"/b.lkml\"\ninclude: \"/a.lkml\"\nexplore: orders {}\n"
+     "content": "connection: \"wh\"\ninclude: \"/orders.view\"\ninclude: \"/b.view.lkml\"\ninclude: \"/a.view.lkml\"\nexplore: orders {}\n"
     },
     {
      "path": "orders.view.lkml",
@@ -457,7 +457,7 @@
     "dagster": {
      "outcome": "fail",
      "reasons": [
-      "m.orders.sql_table_name: expected 'from_a', got 'raw.orders'"
+      "m.orders.sql_table_name: expected 'from_a', got 'from_b'"
      ]
     }
    }
@@ -494,14 +494,14 @@
    "files": [
     {
      "path": "m.model.lkml",
-     "content": "connection: \"wh\"\ninclude: \"/orders.view\"\ninclude: \"/r.lkml\"\nexplore: orders {}\n"
+     "content": "connection: \"wh\"\ninclude: \"/orders.view\"\ninclude: \"/r.view.lkml\"\nexplore: orders {}\n"
     },
     {
      "path": "orders.view.lkml",
      "content": "view: orders {\n  sql_table_name: raw.orders ;;\n  dimension: id {\n    type: number\n    sql: ${TABLE}.id ;;\n  }\n}\n"
     },
     {
-     "path": "r.lkml",
+     "path": "r.view.lkml",
      "content": "include: \"/orders.view\"\nview: +orders { sql_table_name: first ;; }\nview: +orders { sql_table_name: second ;; }\n"
     }
    ],
@@ -523,10 +523,8 @@
      ]
     },
     "dagster": {
-     "outcome": "fail",
-     "reasons": [
-      "m.orders.sql_table_name: expected 'second', got 'raw.orders'"
-     ]
+     "outcome": "pass",
+     "reasons": []
     }
    }
   },
@@ -570,14 +568,14 @@
    "files": [
     {
      "path": "m.model.lkml",
-     "content": "connection: \"wh\"\ninclude: \"/r.lkml\"\ninclude: \"/orders.view\"\nexplore: orders {}\n"
+     "content": "connection: \"wh\"\ninclude: \"/r.view.lkml\"\ninclude: \"/orders.view\"\nexplore: orders {}\n"
     },
     {
      "path": "orders.view.lkml",
      "content": "view: orders {\n  sql_table_name: raw.orders ;;\n  dimension: id {\n    type: number\n    sql: ${TABLE}.id ;;\n  }\n}\n"
     },
     {
-     "path": "r.lkml",
+     "path": "r.view.lkml",
      "content": "view: +orders {\n  sql_table_name: refined ;;\n}\n"
     }
    ],
@@ -599,10 +597,8 @@
      ]
     },
     "dagster": {
-     "outcome": "fail",
-     "reasons": [
-      "m.orders.sql_table_name: expected 'refined', got 'raw.orders'"
-     ]
+     "outcome": "pass",
+     "reasons": []
     }
    }
   },
@@ -653,14 +649,14 @@
    "files": [
     {
      "path": "m.model.lkml",
-     "content": "connection: \"wh\"\ninclude: \"/orders.view\"\ninclude: \"/r.lkml\"\nexplore: orders {}\n"
+     "content": "connection: \"wh\"\ninclude: \"/orders.view\"\ninclude: \"/r.view.lkml\"\nexplore: orders {}\n"
     },
     {
      "path": "orders.view.lkml",
      "content": "view: orders {\n  sql_table_name: raw.orders ;;\n  dimension: id {\n    type: number\n    sql: ${TABLE}.id ;;\n    label: \"Id\"\n  }\n}\n"
     },
     {
-     "path": "r.lkml",
+     "path": "r.view.lkml",
      "content": "include: \"/orders.view\"\nview: +orders {\n  dimension: id { label: \"Order ID\" }\n}\n"
     }
    ],
@@ -676,15 +672,14 @@
      ]
     },
     "datahub": {
-     "outcome": "fail",
-     "reasons": [
-      "m.orders.id.label: expected 'Order ID', got 'Id'"
-     ]
+     "outcome": "pass",
+     "reasons": []
     },
     "dagster": {
      "outcome": "fail",
      "reasons": [
-      "m.orders.id.label: expected 'Order ID', got 'Id'"
+      "m.orders.id.sql: expected '${TABLE}.id', got None",
+      "m.orders.id.type: expected 'number', got None"
      ]
     }
    }
@@ -727,14 +722,14 @@
    "files": [
     {
      "path": "m.model.lkml",
-     "content": "connection: \"wh\"\ninclude: \"/orders.view\"\ninclude: \"/r.lkml\"\nexplore: orders {}\n"
+     "content": "connection: \"wh\"\ninclude: \"/orders.view\"\ninclude: \"/r.view.lkml\"\nexplore: orders {}\n"
     },
     {
      "path": "orders.view.lkml",
      "content": "view: orders {\n  sql_table_name: raw.orders ;;\n  dimension: id { sql: ${TABLE}.id ;; }\n  measure: n { type: count }\n}\n"
     },
     {
-     "path": "r.lkml",
+     "path": "r.view.lkml",
      "content": "include: \"/orders.view\"\nview: +orders {\n  dimension: status { sql: ${TABLE}.status ;; }\n  dimension_group: created {\n    type: time\n    sql: ${TABLE}.created_at ;;\n  }\n}\n"
     }
    ],
@@ -750,16 +745,12 @@
      ]
     },
     "datahub": {
-     "outcome": "fail",
-     "reasons": [
-      "m.orders.fields: expected ['created', 'id', 'n', 'status'], got ['id', 'n']"
-     ]
+     "outcome": "pass",
+     "reasons": []
     },
     "dagster": {
-     "outcome": "fail",
-     "reasons": [
-      "m.orders.fields: expected ['created', 'id', 'n', 'status'], got ['id', 'n']"
-     ]
+     "outcome": "pass",
+     "reasons": []
     }
    }
   },
@@ -816,14 +807,14 @@
    "files": [
     {
      "path": "m.model.lkml",
-     "content": "connection: \"wh\"\ninclude: \"/orders.view\"\ninclude: \"/r.lkml\"\nexplore: orders {}\n"
+     "content": "connection: \"wh\"\ninclude: \"/orders.view\"\ninclude: \"/r.view.lkml\"\nexplore: orders {}\n"
     },
     {
      "path": "orders.view.lkml",
      "content": "view: orders {\n  sql_table_name: raw.orders ;;\n  dimension: status { sql: ${TABLE}.status ;; }\n  dimension: region { sql: ${TABLE}.region ;; }\n  measure: n {\n    type: count\n    filters: [status: \"complete\"]\n  }\n}\n"
     },
     {
-     "path": "r.lkml",
+     "path": "r.view.lkml",
      "content": "include: \"/orders.view\"\nview: +orders {\n  measure: n { filters: [region: \"EU\"] }\n}\n"
     }
    ],
@@ -843,13 +834,13 @@
     "datahub": {
      "outcome": "fail",
      "reasons": [
-      "m.orders.n.filters: expected [{'status': 'complete'}, {'region': 'EU'}], got [{'status': 'complete'}]"
+      "m.orders.n.filters: expected [{'status': 'complete'}, {'region': 'EU'}], got [{'region': 'EU'}]"
      ]
     },
     "dagster": {
      "outcome": "fail",
      "reasons": [
-      "m.orders.n.filters: expected [{'status': 'complete'}, {'region': 'EU'}], got [{'status': 'complete'}]"
+      "m.orders.n.filters: expected [{'status': 'complete'}, {'region': 'EU'}], got [{'region': 'EU'}]"
      ]
     }
    }
@@ -859,7 +850,7 @@
    "category": "refinements",
    "title": "After a refinement with final: yes, a later refinement must not change the view",
    "rule": "final: yes on a refinement stops any later refinement of the same view from applying.",
-   "status": "confirmed",
+   "status": "provisional",
    "citations": [
     {
      "url": "https://docs.cloud.google.com/looker/docs/lookml-refinements#final",
@@ -868,7 +859,10 @@
     }
    ],
    "rationale": "Looker rejects the project with a LookML error. A tool may report an error, but must not resolve the view with the later refinement applied.",
-   "provisional": null,
+   "provisional": {
+    "question": "Looker reports a LookML error for a refinement applied after one with final: yes. Does Looker still resolve the view, and if so to which table? Until that is checked, the case expects the final refinement to win.",
+    "pinned_to": "this suite's reading of the final: yes documentation; no tool or public fixture produces it yet"
+   },
    "invalid_in_looker": true,
    "expect": {
     "models": {
@@ -886,18 +880,18 @@
    "files": [
     {
      "path": "m.model.lkml",
-     "content": "connection: \"wh\"\ninclude: \"/orders.view\"\ninclude: \"/r_final.lkml\"\ninclude: \"/r_later.lkml\"\nexplore: orders {}\n"
+     "content": "connection: \"wh\"\ninclude: \"/orders.view\"\ninclude: \"/r_final.view.lkml\"\ninclude: \"/r_later.view.lkml\"\nexplore: orders {}\n"
     },
     {
      "path": "orders.view.lkml",
      "content": "view: orders {\n  sql_table_name: raw.orders ;;\n  dimension: id {\n    type: number\n    sql: ${TABLE}.id ;;\n  }\n}\n"
     },
     {
-     "path": "r_final.lkml",
+     "path": "r_final.view.lkml",
      "content": "include: \"/orders.view\"\nview: +orders {\n  final: yes\n  sql_table_name: a.final ;;\n}\n"
     },
     {
-     "path": "r_later.lkml",
+     "path": "r_later.view.lkml",
      "content": "include: \"/orders.view\"\nview: +orders {\n  sql_table_name: b.later ;;\n}\n"
     }
    ],
@@ -923,7 +917,7 @@
     "dagster": {
      "outcome": "fail",
      "reasons": [
-      "m.orders.sql_table_name: expected 'a.final', got 'raw.orders'"
+      "m.orders.sql_table_name: expected 'a.final', got 'b.later'"
      ]
     }
    }
@@ -974,14 +968,14 @@
    "files": [
     {
      "path": "m.model.lkml",
-     "content": "connection: \"wh\"\ninclude: \"/orders.view\"\ninclude: \"/r.lkml\"\nexplore: orders {}\n"
+     "content": "connection: \"wh\"\ninclude: \"/orders.view\"\ninclude: \"/r.view.lkml\"\nexplore: orders {}\n"
     },
     {
      "path": "orders.view.lkml",
      "content": "view: orders {\n  derived_table: {\n    sql: SELECT id FROM raw.orders ;;\n  }\n  dimension: id { sql: ${TABLE}.id ;; }\n}\n"
     },
     {
-     "path": "r.lkml",
+     "path": "r.view.lkml",
      "content": "include: \"/orders.view\"\nview: +orders {\n  derived_table: {\n    datagroup_trigger: daily\n  }\n}\n"
     }
    ],
@@ -1003,10 +997,8 @@
      ]
     },
     "dagster": {
-     "outcome": "fail",
-     "reasons": [
-      "m.orders.derived_table.datagroup_trigger: expected 'daily', got None"
-     ]
+     "outcome": "pass",
+     "reasons": []
     }
    }
   },
@@ -1048,14 +1040,14 @@
    "files": [
     {
      "path": "m.model.lkml",
-     "content": "connection: \"wh\"\ninclude: \"/orders.view\"\ninclude: \"/r.lkml\"\nexplore: orders {}\n"
+     "content": "connection: \"wh\"\ninclude: \"/orders.view\"\ninclude: \"/r.view.lkml\"\nexplore: orders {}\n"
     },
     {
      "path": "orders.view.lkml",
      "content": "view: orders {\n  sql_table_name: raw.orders ;;\n  dimension: id {\n    type: number\n    sql: ${TABLE}.id ;;\n  }\n}\n"
     },
     {
-     "path": "r.lkml",
+     "path": "r.view.lkml",
      "content": "view: +ghost { sql_table_name: x.y ;; }\n"
     }
    ],
@@ -1065,8 +1057,10 @@
      "reasons": []
     },
     "openmetadata": {
-     "outcome": "pass",
-     "reasons": []
+     "outcome": "fail",
+     "reasons": [
+      "views that must not exist were exposed: ['+ghost']"
+     ]
     },
     "datahub": {
      "outcome": "pass",
@@ -1134,14 +1128,14 @@
    "files": [
     {
      "path": "m.model.lkml",
-     "content": "connection: \"wh\"\ninclude: \"/orders.view\"\ninclude: \"/r.lkml\"\nexplore: orders {}\n"
+     "content": "connection: \"wh\"\ninclude: \"/orders.view\"\ninclude: \"/r.view.lkml\"\nexplore: orders {}\n"
     },
     {
      "path": "orders.view.lkml",
      "content": "view: orders {\n  sql_table_name: raw.orders ;;\n  dimension_group: created {\n    type: time\n    timeframes: [raw, date, week, month, year]\n    sql: ${TABLE}.created_at ;;\n  }\n}\n"
     },
     {
-     "path": "r.lkml",
+     "path": "r.view.lkml",
      "content": "include: \"/orders.view\"\nview: +orders {\n  dimension_group: created {\n    timeframes: [date, month]\n    label: \"Order Created\"\n  }\n}\n"
     }
    ],
@@ -1158,17 +1152,14 @@
      ]
     },
     "datahub": {
-     "outcome": "fail",
-     "reasons": [
-      "m.orders.created.label: expected 'Order Created', got None",
-      "m.orders.created.timeframes: expected ['date', 'month'], got ['date', 'month', 'raw', 'week', 'year']"
-     ]
+     "outcome": "pass",
+     "reasons": []
     },
     "dagster": {
      "outcome": "fail",
      "reasons": [
-      "m.orders.created.label: expected 'Order Created', got None",
-      "m.orders.created.timeframes: expected ['date', 'month'], got ['date', 'month', 'raw', 'week', 'year']"
+      "m.orders.created.type: expected 'time', got None",
+      "m.orders.created.sql: expected '${TABLE}.created_at', got None"
      ]
     }
    }
@@ -1220,11 +1211,11 @@
      "content": "view: orders {\n  sql_table_name: raw.orders ;;\n  dimension: id {\n    type: number\n    sql: ${TABLE}.id ;;\n  }\n}\n"
     },
     {
-     "path": "r/a_r.lkml",
+     "path": "r/a_r.view.lkml",
      "content": "include: \"/orders.view\"\nview: +orders {\n  sql_table_name: from_a ;;\n}\n"
     },
     {
-     "path": "r/b_r.lkml",
+     "path": "r/b_r.view.lkml",
      "content": "include: \"/orders.view\"\nview: +orders {\n  sql_table_name: from_b ;;\n}\n"
     }
    ],
@@ -1246,10 +1237,8 @@
      ]
     },
     "dagster": {
-     "outcome": "fail",
-     "reasons": [
-      "m.orders.sql_table_name: expected 'from_b', got 'raw.orders'"
-     ]
+     "outcome": "pass",
+     "reasons": []
     }
    }
   },
@@ -1301,26 +1290,26 @@
    "files": [
     {
      "path": "m1.model.lkml",
-     "content": "connection: \"wh\"\ninclude: \"/orders.view\"\ninclude: \"/ra.lkml\"\nexplore: orders {}\n"
+     "content": "connection: \"wh\"\ninclude: \"/orders.view\"\ninclude: \"/ra.view.lkml\"\nexplore: orders {}\n"
     },
     {
      "path": "m2.model.lkml",
-     "content": "connection: \"wh\"\ninclude: \"/orders.view\"\ninclude: \"/ra.lkml\"\ninclude: \"/rc.lkml\"\nexplore: orders {}\n"
+     "content": "connection: \"wh\"\ninclude: \"/orders.view\"\ninclude: \"/ra.view.lkml\"\ninclude: \"/rc.view.lkml\"\nexplore: orders {}\n"
     },
     {
      "path": "orders.view.lkml",
      "content": "view: orders {\n  sql_table_name: raw.orders ;;\n  dimension: id {\n    type: number\n    sql: ${TABLE}.id ;;\n  }\n}\n"
     },
     {
-     "path": "ra.lkml",
-     "content": "include: \"/orders.view\"\ninclude: \"/rb.lkml\"\nview: +orders { sql_table_name: a ;; }\n"
+     "path": "ra.view.lkml",
+     "content": "include: \"/orders.view\"\ninclude: \"/rb.view.lkml\"\nview: +orders { sql_table_name: a ;; }\n"
     },
     {
-     "path": "rb.lkml",
+     "path": "rb.view.lkml",
      "content": "include: \"/orders.view\"\nview: +orders {\n  sql_table_name: b ;;\n}\n"
     },
     {
-     "path": "rc.lkml",
+     "path": "rc.view.lkml",
      "content": "include: \"/orders.view\"\nview: +orders {\n  sql_table_name: c ;;\n}\n"
     }
    ],
@@ -1348,8 +1337,7 @@
     "dagster": {
      "outcome": "fail",
      "reasons": [
-      "m1.orders.sql_table_name: expected 'a', got 'raw.orders'",
-      "m2.orders.sql_table_name: expected 'c', got 'raw.orders'"
+      "m1.orders.sql_table_name: expected 'a', got 'c'"
      ]
     }
    }
@@ -1389,18 +1377,18 @@
    "files": [
     {
      "path": "m.model.lkml",
-     "content": "connection: \"wh\"\ninclude: \"/orders.view\"\ninclude: \"/rb.lkml\"\ninclude: \"/ra.lkml\"\ninclude: \"/rb.lkml\"\nexplore: orders {}\n"
+     "content": "connection: \"wh\"\ninclude: \"/orders.view\"\ninclude: \"/rb.view.lkml\"\ninclude: \"/ra.view.lkml\"\ninclude: \"/rb.view.lkml\"\nexplore: orders {}\n"
     },
     {
      "path": "orders.view.lkml",
      "content": "view: orders {\n  sql_table_name: raw.orders ;;\n  dimension: id {\n    type: number\n    sql: ${TABLE}.id ;;\n  }\n}\n"
     },
     {
-     "path": "ra.lkml",
+     "path": "ra.view.lkml",
      "content": "include: \"/orders.view\"\nview: +orders {\n  sql_table_name: a ;;\n}\n"
     },
     {
-     "path": "rb.lkml",
+     "path": "rb.view.lkml",
      "content": "include: \"/orders.view\"\nview: +orders {\n  sql_table_name: b ;;\n}\n"
     }
    ],
@@ -1424,7 +1412,7 @@
     "dagster": {
      "outcome": "fail",
      "reasons": [
-      "m.orders.sql_table_name: expected 'a', got 'raw.orders'"
+      "m.orders.sql_table_name: expected 'a', got 'b'"
      ]
     }
    }
@@ -1617,10 +1605,10 @@
     },
     {
      "path": "m.model.lkml",
-     "content": "connection: \"wh\"\ninclude: \"//shared/views/orders.view\"\ninclude: \"/r.lkml\"\nexplore: orders {}\n"
+     "content": "connection: \"wh\"\ninclude: \"//shared/views/orders.view\"\ninclude: \"/r.view.lkml\"\nexplore: orders {}\n"
     },
     {
-     "path": "r.lkml",
+     "path": "r.view.lkml",
      "content": "include: \"//shared/views/orders.view\"\nview: +orders { sql_table_name: local.orders ;; }\n"
     }
    ],
@@ -1642,10 +1630,8 @@
      ]
     },
     "dagster": {
-     "outcome": "fail",
-     "reasons": [
-      "m.orders.sql_table_name: expected 'local.orders', got 'raw.orders'"
-     ]
+     "outcome": "pass",
+     "reasons": []
     }
    }
   },
@@ -1715,8 +1701,10 @@
      "reasons": []
     },
     "dagster": {
-     "outcome": "pass",
-     "reasons": []
+     "outcome": "fail",
+     "reasons": [
+      "m.orders.sql_table_name: expected 'shared.orders', got 'raw.orders'"
+     ]
     }
    }
   },
@@ -2005,14 +1993,14 @@
     },
     {
      "path": "m.model.lkml",
-     "content": "connection: \"wh\"\ninclude: \"/bases.view\"\ninclude: \"/orders.view\"\ninclude: \"/r.lkml\"\nexplore: orders {}\n"
+     "content": "connection: \"wh\"\ninclude: \"/bases.view\"\ninclude: \"/orders.view\"\ninclude: \"/r.view.lkml\"\nexplore: orders {}\n"
     },
     {
      "path": "orders.view.lkml",
      "content": "include: \"/bases.view\"\nview: orders {\n  extends: [base_a]\n  dimension: id { sql: ${TABLE}.id ;; }\n}\n"
     },
     {
-     "path": "r.lkml",
+     "path": "r.view.lkml",
      "content": "include: \"/orders.view\"\nview: +orders { extends: [base_b] }\n"
     }
    ],
@@ -2043,8 +2031,7 @@
      "outcome": "fail",
      "reasons": [
       "m.orders.sql_table_name: expected 'b.t', got 'a.t'",
-      "m.orders.fields: expected ['a_field', 'b_field', 'id'], got ['a_field', 'id']",
-      "m.orders.extends: expected ['base_a', 'base_b'], got ['base_a']"
+      "m.orders.fields: expected ['a_field', 'b_field', 'id'], got ['a_field', 'id']"
      ]
     }
    }
@@ -2322,6 +2309,16 @@
      "url": "https://docs.cloud.google.com/looker/docs/lookml-refinements",
      "quote": "With LookML refinements, you can adapt an existing view or Explore without editing the LookML file that contains it.",
      "label": "lookml-refinements"
+    },
+    {
+     "url": "https://docs.cloud.google.com/looker/docs/lookml-refinements",
+     "quote": "This refinement can go in any LookML file in the project, such as a model file, view file, or in its own dedicated LookML file.",
+     "label": "lookml-refinements"
+    },
+    {
+     "url": "https://docs.cloud.google.com/looker/docs/lookml-refinements#order",
+     "quote": "Within a single file, refinements are applied line by line going downwards.",
+     "label": "lookml-refinements#order"
     }
    ],
    "rationale": null,
@@ -2348,15 +2345,11 @@
    "files": [
     {
      "path": "m.model.lkml",
-     "content": "connection: \"wh\"\ninclude: \"/orders.view\"\ninclude: \"/r_explore.lkml\"\nexplore: customer_orders {\n  view_name: orders\n}\n"
+     "content": "connection: \"wh\"\ninclude: \"/orders.view\"\nexplore: customer_orders {\n  view_name: orders\n}\nexplore: +customer_orders {\n  label: \"Customer Orders\"\n}\n"
     },
     {
      "path": "orders.view.lkml",
      "content": "view: orders {\n  sql_table_name: raw.orders ;;\n  dimension: id {\n    type: number\n    sql: ${TABLE}.id ;;\n  }\n}\n"
-    },
-    {
-     "path": "r_explore.lkml",
-     "content": "explore: +customer_orders {\n  label: \"Customer Orders\"\n}\n"
     }
    ],
    "verdicts": {
@@ -2377,10 +2370,8 @@
      ]
     },
     "dagster": {
-     "outcome": "fail",
-     "reasons": [
-      "m.explore.customer_orders.label: expected 'Customer Orders', got None"
-     ]
+     "outcome": "pass",
+     "reasons": []
     }
    }
   },

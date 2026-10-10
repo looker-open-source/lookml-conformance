@@ -1,6 +1,6 @@
 connection: "wh"
 include: "/orders.view"
-include: "/rb.lkml"
-include: "/ra.lkml"
-include: "/rb.lkml"
+include: "/rb.view.lkml"
+include: "/ra.view.lkml"
+include: "/rb.view.lkml"
 explore: orders {}

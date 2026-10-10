@@ -1,5 +1,5 @@
 {
-  "date": "2026-10-09",
+  "date": "2026-10-10",
   "adapters": [
     {
       "name": "node-lookml-parser",
@@ -133,7 +133,7 @@
         "dagster": {
           "outcome": "fail",
           "reasons": [
-            "m.orders.sql_table_name: expected 'from_a', got 'raw.orders'"
+            "m.orders.sql_table_name: expected 'from_a', got 'from_b'"
           ]
         }
       }
@@ -160,10 +160,8 @@
           ]
         },
         "dagster": {
-          "outcome": "fail",
-          "reasons": [
-            "m.orders.sql_table_name: expected 'second', got 'raw.orders'"
-          ]
+          "outcome": "pass",
+          "reasons": []
         }
       }
     },
@@ -189,10 +187,8 @@
           ]
         },
         "dagster": {
-          "outcome": "fail",
-          "reasons": [
-            "m.orders.sql_table_name: expected 'refined', got 'raw.orders'"
-          ]
+          "outcome": "pass",
+          "reasons": []
         }
       }
     },
@@ -212,15 +208,14 @@
           ]
         },
         "datahub": {
-          "outcome": "fail",
-          "reasons": [
-            "m.orders.id.label: expected 'Order ID', got 'Id'"
-          ]
+          "outcome": "pass",
+          "reasons": []
         },
         "dagster": {
           "outcome": "fail",
           "reasons": [
-            "m.orders.id.label: expected 'Order ID', got 'Id'"
+            "m.orders.id.sql: expected '${TABLE}.id', got None",
+            "m.orders.id.type: expected 'number', got None"
           ]
         }
       }
@@ -241,16 +236,12 @@
           ]
         },
         "datahub": {
-          "outcome": "fail",
-          "reasons": [
-            "m.orders.fields: expected ['created', 'id', 'n', 'status'], got ['id', 'n']"
-          ]
+          "outcome": "pass",
+          "reasons": []
         },
         "dagster": {
-          "outcome": "fail",
-          "reasons": [
-            "m.orders.fields: expected ['created', 'id', 'n', 'status'], got ['id', 'n']"
-          ]
+          "outcome": "pass",
+          "reasons": []
         }
       }
     },
@@ -274,13 +265,13 @@
         "datahub": {
           "outcome": "fail",
           "reasons": [
-            "m.orders.n.filters: expected [{'status': 'complete'}, {'region': 'EU'}], got [{'status': 'complete'}]"
+            "m.orders.n.filters: expected [{'status': 'complete'}, {'region': 'EU'}], got [{'region': 'EU'}]"
           ]
         },
         "dagster": {
           "outcome": "fail",
           "reasons": [
-            "m.orders.n.filters: expected [{'status': 'complete'}, {'region': 'EU'}], got [{'status': 'complete'}]"
+            "m.orders.n.filters: expected [{'status': 'complete'}, {'region': 'EU'}], got [{'region': 'EU'}]"
           ]
         }
       }
@@ -288,7 +279,7 @@
     {
       "case": "r10_final_refinement_blocks_later_ones",
       "category": "refinements",
-      "status": "confirmed",
+      "status": "provisional",
       "verdicts": {
         "node-lookml-parser": {
           "outcome": "fail",
@@ -311,7 +302,7 @@
         "dagster": {
           "outcome": "fail",
           "reasons": [
-            "m.orders.sql_table_name: expected 'a.final', got 'raw.orders'"
+            "m.orders.sql_table_name: expected 'a.final', got 'b.later'"
           ]
         }
       }
@@ -338,10 +329,8 @@
           ]
         },
         "dagster": {
-          "outcome": "fail",
-          "reasons": [
-            "m.orders.derived_table.datagroup_trigger: expected 'daily', got None"
-          ]
+          "outcome": "pass",
+          "reasons": []
         }
       }
     },
@@ -355,8 +344,10 @@
           "reasons": []
         },
         "openmetadata": {
-          "outcome": "pass",
-          "reasons": []
+          "outcome": "fail",
+          "reasons": [
+            "views that must not exist were exposed: ['+ghost']"
+          ]
         },
         "datahub": {
           "outcome": "pass",
@@ -385,17 +376,14 @@
           ]
         },
         "datahub": {
-          "outcome": "fail",
-          "reasons": [
-            "m.orders.created.label: expected 'Order Created', got None",
-            "m.orders.created.timeframes: expected ['date', 'month'], got ['date', 'month', 'raw', 'week', 'year']"
-          ]
+          "outcome": "pass",
+          "reasons": []
         },
         "dagster": {
           "outcome": "fail",
           "reasons": [
-            "m.orders.created.label: expected 'Order Created', got None",
-            "m.orders.created.timeframes: expected ['date', 'month'], got ['date', 'month', 'raw', 'week', 'year']"
+            "m.orders.created.type: expected 'time', got None",
+            "m.orders.created.sql: expected '${TABLE}.created_at', got None"
           ]
         }
       }
@@ -422,10 +410,8 @@
           ]
         },
         "dagster": {
-          "outcome": "fail",
-          "reasons": [
-            "m.orders.sql_table_name: expected 'from_b', got 'raw.orders'"
-          ]
+          "outcome": "pass",
+          "reasons": []
         }
       }
     },
@@ -457,8 +443,7 @@
         "dagster": {
           "outcome": "fail",
           "reasons": [
-            "m1.orders.sql_table_name: expected 'a', got 'raw.orders'",
-            "m2.orders.sql_table_name: expected 'c', got 'raw.orders'"
+            "m1.orders.sql_table_name: expected 'a', got 'c'"
           ]
         }
       }
@@ -487,7 +472,7 @@
         "dagster": {
           "outcome": "fail",
           "reasons": [
-            "m.orders.sql_table_name: expected 'a', got 'raw.orders'"
+            "m.orders.sql_table_name: expected 'a', got 'b'"
           ]
         }
       }
@@ -568,10 +553,8 @@
           ]
         },
         "dagster": {
-          "outcome": "fail",
-          "reasons": [
-            "m.orders.sql_table_name: expected 'local.orders', got 'raw.orders'"
-          ]
+          "outcome": "pass",
+          "reasons": []
         }
       }
     },
@@ -593,8 +576,10 @@
           "reasons": []
         },
         "dagster": {
-          "outcome": "pass",
-          "reasons": []
+          "outcome": "fail",
+          "reasons": [
+            "m.orders.sql_table_name: expected 'shared.orders', got 'raw.orders'"
+          ]
         }
       }
     },
@@ -709,8 +694,7 @@
           "outcome": "fail",
           "reasons": [
             "m.orders.sql_table_name: expected 'b.t', got 'a.t'",
-            "m.orders.fields: expected ['a_field', 'b_field', 'id'], got ['a_field', 'id']",
-            "m.orders.extends: expected ['base_a', 'base_b'], got ['base_a']"
+            "m.orders.fields: expected ['a_field', 'b_field', 'id'], got ['a_field', 'id']"
           ]
         }
       }
@@ -827,10 +811,8 @@
           ]
         },
         "dagster": {
-          "outcome": "fail",
-          "reasons": [
-            "m.explore.customer_orders.label: expected 'Customer Orders', got None"
-          ]
+          "outcome": "pass",
+          "reasons": []
         }
       }
     },

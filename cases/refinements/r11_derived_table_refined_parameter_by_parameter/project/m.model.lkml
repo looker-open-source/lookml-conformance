@@ -1,4 +1,4 @@
 connection: "wh"
 include: "/orders.view"
-include: "/r.lkml"
+include: "/r.view.lkml"
 explore: orders {}

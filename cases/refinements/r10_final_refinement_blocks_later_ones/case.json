@@ -2,7 +2,11 @@
   "id": "r10_final_refinement_blocks_later_ones",
   "title": "After a refinement with final: yes, a later refinement must not change the view",
   "rule": "final: yes on a refinement stops any later refinement of the same view from applying.",
-  "status": "confirmed",
+  "status": "provisional",
+  "provisional": {
+    "question": "Looker reports a LookML error for a refinement applied after one with final: yes. Does Looker still resolve the view, and if so to which table? Until that is checked, the case expects the final refinement to win.",
+    "pinned_to": "this suite's reading of the final: yes documentation; no tool or public fixture produces it yet"
+  },
   "citations": [
     {
       "url": "https://docs.cloud.google.com/looker/docs/lookml-refinements#final",

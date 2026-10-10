@@ -7,11 +7,15 @@ to a ``DagsterLookerLkmlTranslator``; the adapter passes one that records them, 
 view's upstream from the ``deps`` of its asset spec: asset keys ``["view", name]`` are Looker views,
 any other key is a warehouse table. dagster-looker resolves the project as a whole, so the result
 is reported as one project-wide model.
+
+dagster-looker finds files with ``Path.rglob`` and applies refinements in the order it lists them,
+which depends on the file system. The adapter passes a path whose ``rglob`` lists files in path
+order, so that results reproduce on every machine.
 """
 
 from __future__ import annotations
 
-from collections.abc import Mapping
+from collections.abc import Iterator, Mapping
 from pathlib import Path
 from typing import Any
 
@@ -38,8 +42,9 @@ class DagsterAdapter(Adapter):
 
     def resolve(self, project: Path) -> dict[str, ModelOutput]:
         translator = RecordingTranslator()
-        asset_utils.build_looker_view_specs(project, translator)
-        asset_utils.build_looker_explore_specs(project, translator)
+        root = SortedPath(project)
+        asset_utils.build_looker_view_specs(root, translator)
+        asset_utils.build_looker_explore_specs(root, translator)
         return {
             PROJECT_WIDE: ModelOutput(
                 views={
@@ -51,6 +56,13 @@ class DagsterAdapter(Adapter):
                 },
             )
         }
+
+
+class SortedPath(type(Path())):  # type: ignore[misc]
+    """A path whose ``rglob`` lists matches in path order instead of file system order."""
+
+    def rglob(self, pattern: str, *args: Any, **kwargs: Any) -> Iterator[Path]:  # type: ignore[override]
+        return iter(sorted(super().rglob(pattern, *args, **kwargs)))
 
 
 class RecordingTranslator(DagsterLookerLkmlTranslator):
