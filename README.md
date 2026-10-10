@@ -133,6 +133,7 @@ tool fails today as strict expected failures:
 ```python
 KNOWN_FAILURES = {"r09_field_filters_are_additive": "filters are replaced, not appended"}
 
+
 @pytest.mark.parametrize("case_file", CASES, ids=lambda p: p.parent.name)
 def test_lookml_conformance(case_file, request):
     case = json.loads(case_file.read_text())
