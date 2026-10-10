@@ -113,6 +113,35 @@ Other commands:
 | `new-adapter NAME` | Write a starting point for a new Python adapter |
 | `check-adapter` | Check that an adapter's output follows the protocol on every case |
 
+## Using the cases in your own tests
+
+A tool can also run the cases in its own test suite, without installing this package. Copy a
+case's `case.json` and `project/` from a tagged release, keep the release's license notice, and
+put a short note at the top of the copy:
+
+```text
+From lookml-conformance <release>, case <id>
+https://github.com/josephaxisa/lookml-conformance/tree/<release>/cases/<category>/<id>
+```
+
+Then write one test that resolves each copied `project/` with your tool and checks the result
+against `expect` ([how values are compared](docs/case-format.md#expectations)). Mark the cases your
+tool fails today as strict expected failures:
+
+```python
+KNOWN_FAILURES = {"r09_field_filters_are_additive": "filters are replaced, not appended"}
+
+@pytest.mark.parametrize("case_file", CASES, ids=lambda p: p.parent.name)
+def test_lookml_conformance(case_file, request):
+    case = json.loads(case_file.read_text())
+    if case["id"] in KNOWN_FAILURES:
+        request.applymarker(pytest.mark.xfail(reason=KNOWN_FAILURES[case["id"]], strict=True))
+    ...
+```
+
+A change that breaks a passing case fails the run. A fix that makes a known failure pass also fails
+it, until the case is removed from the list. To update, copy the cases again from a newer release.
+
 ## Adapters
 
 An adapter runs one tool on LookML projects and prints one JSON line per project. It reports what
