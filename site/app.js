@@ -62,12 +62,9 @@ function fileBlock(file) {
 function renderHero(data) {
   const tools = [...data.tools].sort((a, b) => pct(b.score.all) - pct(a.score.all));
   $("#hero-lede").textContent =
-    "LookML is Looker's semantic modeling language: it defines the dimensions, measures and relationships " +
-    "behind the metrics an organization reports on. Data catalogs and lineage tools read it straight from git, " +
-    "and AI assistants increasingly answer questions through it, so each of them has to reproduce how Looker " +
-    "resolves a project. lookml-conformance makes that behavior explicit and testable: " +
-    `${data.suite.cases} minimal LookML projects, each tied to a quoted rule, run against the open-source tools ` +
-    "that build catalogs and lineage from LookML.";
+    "LookML defines the metrics behind an organization's reporting, and catalogs, lineage tools and AI assistants " +
+    "all depend on reading it the way Looker does. " +
+    `This suite turns that behavior into ${data.suite.cases} small, testable cases, each tied to a quoted rule.`;
 
   const board = $("#hero-board");
   board.replaceChildren(
@@ -159,6 +156,9 @@ function resolvedValue(caseData, toolName, model, view, expected) {
   return { value: got.replace(/^'|'$/g, ""), ok: false };
 }
 
+const includesOf = (file) => [...file.content.matchAll(/include:\s*"([^"]+)"/g)].map((m) => m[1].replace(/^\//, ""));
+const includedBy = (model, path) => includesOf(model).some((inc) => path === inc || path.startsWith(`${inc}.`));
+
 function renderExample(data) {
   const example = data.cases.find((c) => c.id === EXAMPLE_CASE);
   if (!example) {
@@ -168,17 +168,50 @@ function renderExample(data) {
   $("#example-id").textContent = example.id;
   $("#example-title").textContent = example.title;
   $("#example-rule").textContent = example.rule;
-  $("#example-files").replaceChildren(...example.files.map(fileBlock));
 
   const models = Object.keys(example.expect.models);
   const expected = Object.fromEntries(models.map((m) => [m, example.expect.models[m].views.orders.sql_table_name]));
+  const modelFile = Object.fromEntries(models.map((m) => [m, example.files.find((f) => f.path === `${m}.model.lkml`)]));
+  const others = example.files.filter((f) => !Object.values(modelFile).includes(f));
+  const own = Object.fromEntries(
+    models.map((m) => [m, others.filter((f) => includedBy(modelFile[m], f.path) && models.every((n) => n === m || !includedBy(modelFile[n], f.path)))]),
+  );
+  const shared = others.filter((f) => !models.some((m) => own[m].includes(f)));
+  const baseFile = shared.find((f) => /^view:\s*orders\b/m.test(f.content));
+  const base = baseFile?.content.match(/sql_table_name:\s*([^\s;]+)/)?.[1];
+
+  $("#example-setup").textContent =
+    `Both models include the same orders view${base ? ` (table ${base})` : ""}. Each also includes its own refinement ` +
+    `that points orders at a different table, so Looker resolves orders differently in each model.`;
+  $("#example-files").replaceChildren(
+    h("div", { class: "project__shared" }, h("p", { class: "project__label" }, "Shared by both models"), ...shared.map(fileBlock)),
+    h(
+      "div",
+      { class: "project__models" },
+      ...models.map((m) =>
+        h(
+          "div",
+          { class: "project__model" },
+          h("p", { class: "project__label" }, `Model ${m}`, h("span", {}, `orders → ${expected[m]}`)),
+          fileBlock(modelFile[m]),
+          ...own[m].map(fileBlock),
+        ),
+      ),
+    ),
+  );
+
+  const explain = (m, value) => {
+    if (value === base) return "refinement not applied";
+    const from = models.find((n) => n !== m && expected[n] === value);
+    return from ? `got model ${from}'s refinement` : "";
+  };
   const table = $("#example-table");
   table.replaceChildren(
-    h("thead", {}, h("tr", {}, h("th", {}, "Tool"), ...models.map((m) => h("th", {}, `model ${m}`)))),
+    h("thead", {}, h("tr", {}, h("th", {}, "Tool"), ...models.map((m) => h("th", {}, `Model ${m}`)))),
     h(
       "tbody",
       {},
-      h("tr", { class: "is-looker" }, h("td", {}, "Looker (expected)"), ...models.map((m) => h("td", {}, h("code", {}, expected[m])))),
+      h("tr", { class: "is-looker" }, h("td", {}, "Looker (expected)"), ...models.map((m) => h("td", { "data-label": `Model ${m}` }, h("code", {}, expected[m])))),
       ...data.tools.map((tool) =>
         h(
           "tr",
@@ -186,7 +219,14 @@ function renderExample(data) {
           h("td", {}, tool.label),
           ...models.map((m) => {
             const { value, ok } = resolvedValue(example, tool.name, m, "orders", expected[m]);
-            return h("td", { class: ok ? "cell-ok" : "cell-bad" }, ok ? "✓ " : "✗ ", h("code", {}, value));
+            const note = ok ? "" : explain(m, value);
+            return h(
+              "td",
+              { class: ok ? "cell-ok" : "cell-bad", "data-label": `Model ${m}` },
+              h("span", { class: "cell__mark", "aria-label": ok ? "pass" : "fail" }, ok ? "✓" : "✗"),
+              h("code", {}, value),
+              note ? h("small", {}, note) : null,
+            );
           }),
         ),
       ),

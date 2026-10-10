@@ -39,7 +39,7 @@
         <div class="hero__copy">
           <p class="eyebrow">Open, vendor-neutral conformance suite for LookML</p>
           <h1>One open test suite for how LookML resolves. <span class="grad">So every tool can read it the way Looker does.</span></h1>
-          <p class="lede" id="hero-lede">LookML is Looker's semantic modeling language: it defines the dimensions, measures and relationships behind the metrics an organization reports on. Data catalogs and lineage tools read it straight from git, and AI assistants increasingly answer questions through it, so each of them has to reproduce how Looker resolves a project. lookml-conformance makes that behavior explicit and testable: 39 minimal LookML projects, each tied to a quoted rule, run against the open-source tools that build catalogs and lineage from LookML.</p>
+          <p class="lede" id="hero-lede">LookML defines the metrics behind an organization's reporting, and catalogs, lineage tools and AI assistants all depend on reading it the way Looker does. This suite turns that behavior into 39 small, testable cases, each tied to a quoted rule.</p>
           <div class="hero__cta">
             <a class="btn btn--primary" href="#results">See the results</a>
             <a class="btn" href="#run">Test your tool</a>
@@ -67,13 +67,15 @@
               <p class="muted" id="example-rule"></p>
             </div>
           </div>
-          <div class="example__body">
-            <div class="files" id="example-files"></div>
-            <div class="resolved">
-              <h4>Table each tool resolves for <code>orders</code></h4>
-              <div class="table-scroll"><table class="resolved__table" id="example-table"></table></div>
-              <blockquote class="quote" id="example-quote"></blockquote>
-            </div>
+          <div class="example__step">
+            <p class="step-label"><span>1</span><span>The project</span></p>
+            <p class="muted example__lede" id="example-setup"></p>
+            <div id="example-files"></div>
+          </div>
+          <div class="example__step">
+            <p class="step-label"><span>2</span><span>Which table each tool reads for <code>orders</code></span></p>
+            <div class="table-scroll"><table class="resolved__table" id="example-table"></table></div>
+            <blockquote class="quote" id="example-quote"></blockquote>
           </div>
         </div>
       </div>

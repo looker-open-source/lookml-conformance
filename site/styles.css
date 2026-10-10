@@ -154,7 +154,10 @@ p { margin: 0; }
   background: linear-gradient(90deg, var(--accent), var(--accent-2));
   transition: width 1s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
-.bar--low > span { background: linear-gradient(90deg, var(--fail), var(--error)); }
+.tier--low { --tier: var(--fail); }
+.tier--mid { --tier: var(--error); }
+.tier--high { --tier: var(--pass); }
+.bar[class*="tier--"] > span { background: var(--tier); }
 .bar-row__pct { text-align: right; font-variant-numeric: tabular-nums; font-weight: 700; }
 
 .stats {
@@ -181,22 +184,40 @@ p { margin: 0; }
   content: ""; position: absolute; inset: 0 0 auto; height: 3px;
   background: linear-gradient(90deg, var(--accent), var(--accent-2));
 }
+.impact__card[class*="tier--"]::before { background: var(--tier); }
 .impact__big { font-size: 2.6rem; font-weight: 780; letter-spacing: -0.04em; line-height: 1; margin-bottom: 10px; font-variant-numeric: tabular-nums; }
 .impact__big small { font-size: 1rem; color: var(--muted); font-weight: 600; letter-spacing: 0; margin-left: 4px; }
 .impact__card h3 { margin-bottom: 8px; }
 .impact__card p { color: var(--muted); font-size: 0.95rem; }
 
-.example { padding: 26px; }
-.example__head { display: flex; justify-content: space-between; gap: 16px; margin-bottom: 20px; }
-.example__head h3 { font-size: 1.3rem; margin-bottom: 6px; }
-.example__body { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr); gap: 22px; }
-.example__body > * { min-width: 0; }
-@media (max-width: 920px) { .example__body { grid-template-columns: minmax(0, 1fr); } }
+.example { padding: 32px; }
+.example__head { margin-bottom: 8px; }
+.example__head h3 { font-size: 1.35rem; margin-bottom: 6px; }
+.example__step { margin-top: 28px; padding-top: 24px; border-top: 1px solid var(--line); }
+.example__lede { max-width: 72ch; margin-bottom: 16px; }
+.step-label { display: flex; align-items: center; gap: 10px; font-weight: 650; margin-bottom: 10px; }
+.step-label > span:first-child { flex: none; display: inline-grid; place-items: center; width: 24px; height: 24px; border-radius: 7px; font-size: 0.8rem; color: #fff; background: linear-gradient(135deg, var(--accent), var(--accent-2)); }
+.project__label { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; font-size: 0.82rem; font-weight: 650; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; }
+.project__label span { text-transform: none; letter-spacing: 0; font: 500 0.82rem var(--mono); color: var(--accent-2); }
+.project__shared { margin-bottom: 18px; max-width: calc(50% - 9px); }
+.project__models { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 18px; }
+.project__model { min-width: 0; padding: 14px; border: 1px dashed var(--line-strong); border-radius: 14px; }
+@media (max-width: 760px) { .project__shared { max-width: none; } .example { padding: 20px; } }
 .resolved__table { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
-.resolved__table th, .resolved__table td { text-align: left; padding: 10px 10px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+.resolved__table th, .resolved__table td { text-align: left; padding: 12px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
 .resolved__table th { color: var(--muted); font-weight: 600; font-size: 0.8rem; }
-.resolved__table tr.is-looker td { font-weight: 650; }
-.resolved__table td code { background: transparent; border: 0; padding: 0; }
+.resolved__table th:first-child, .resolved__table td:first-child { width: 28%; white-space: nowrap; }
+.resolved__table tr.is-looker td { font-weight: 650; background: var(--card-2); }
+.resolved__table td code { background: transparent; border: 0; padding: 0; word-break: break-all; }
+.resolved__table td small { display: block; margin-top: 2px; color: var(--muted); font-size: 0.78rem; }
+.cell__mark { display: inline-block; width: 1.2em; font-weight: 700; }
+@media (max-width: 560px) {
+  .resolved__table thead { display: none; }
+  .resolved__table tr { display: block; padding: 12px 0; border-bottom: 1px solid var(--line); }
+  .resolved__table tr.is-looker { padding: 12px; border-radius: 10px; border-bottom: 0; background: var(--card-2); }
+  .resolved__table td, .resolved__table tr.is-looker td { display: block; width: auto; padding: 3px 0; border: 0; background: none; }
+  .resolved__table td[data-label]::before { content: attr(data-label); display: block; font-size: 0.74rem; font-weight: 600; color: var(--faint); }
+}
 .cell-ok { color: var(--pass); }
 .cell-bad { color: var(--fail); }
 .quote { margin: 20px 0 0; padding: 14px 16px; border-left: 3px solid var(--accent); background: var(--card-2); border-radius: 0 10px 10px 0; color: var(--text); }
@@ -224,13 +245,14 @@ p { margin: 0; }
 .tool__name a { color: inherit; }
 .tool__meta { color: var(--faint); font-size: 0.82rem; }
 .ring { --p: 0; width: 64px; height: 64px; border-radius: 50%; display: grid; place-items: center; flex: none;
-  background: conic-gradient(var(--ring-color, var(--accent)) calc(var(--p) * 1%), var(--na-bg) 0); }
+  background: conic-gradient(var(--tier, var(--accent)) calc(var(--p) * 1%), var(--na-bg) 0); }
 .ring span { width: 50px; height: 50px; border-radius: 50%; background: var(--card); display: grid; place-items: center; font-weight: 750; font-size: 0.95rem; font-variant-numeric: tabular-nums; }
 .tool__rows { display: grid; gap: 8px; font-size: 0.86rem; }
 .tool__row { display: grid; grid-template-columns: 7.4rem 1fr 3.2rem; gap: 10px; align-items: center; color: var(--muted); }
 .tool__row b { color: var(--text); text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; }
 .mini { height: 6px; border-radius: 99px; background: var(--na-bg); overflow: hidden; }
 .mini span { display: block; height: 100%; background: var(--pass); border-radius: inherit; }
+.mini[class*="tier--"] span { background: var(--tier); }
 .pkg { font: 0.78rem var(--mono); color: var(--faint); border-top: 1px solid var(--line); padding-top: 12px; word-break: break-all; }
 
 /* Matrix */
