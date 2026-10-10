@@ -29,6 +29,9 @@ const pct = ({ passed, applicable }) => (applicable ? Math.round((100 * passed) 
 // Score colours: under 50% red, 50 to 79% yellow, 80% and up green.
 const tier = (rate) => (rate < 50 ? "low" : rate < 80 ? "mid" : "high");
 const isLineageTool = (tool) => tool.kind !== "Parser";
+const NUMBER_WORDS = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten"];
+const numberWord = (n) => NUMBER_WORDS[n] ?? String(n);
+const capitalize = (s) => s.charAt(0).toUpperCase() + s.slice(1);
 
 function tally(data, toolName, cases) {
   const verdicts = cases.map((c) => c.verdicts[toolName]).filter((v) => v && v.outcome !== "n/a");
@@ -241,9 +244,10 @@ function renderExample(data) {
 function renderTools(data) {
   const lineage = data.tools.filter(isLineageTool);
   $("#results-lede").textContent =
-    `Released versions scored on ${data.date}. Rates count applicable cases only; ` +
-    `a case is not applicable when a tool does not produce that output at all, such as explores read from the Looker API. ` +
-    `${lineage.length} of ${data.tools.length} tools build lineage from LookML.`;
+    `Released versions, scored on ${data.date}. Percentages count only the cases that apply to each tool: ` +
+    `a case doesn't apply when a tool doesn't produce that output at all, such as explores, which OpenMetadata ` +
+    `reads from the Looker API. ${capitalize(numberWord(lineage.length))} of the ${numberWord(data.tools.length)} ` +
+    `tools build lineage from LookML.`;
 
   $("#tools").replaceChildren(
     ...data.tools.map((tool) => {
