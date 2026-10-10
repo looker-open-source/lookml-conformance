@@ -3,6 +3,7 @@
   "title": "A manifest constant in derived_table SQL resolves to its value",
   "rule": "@{NAME} inside derived_table SQL is replaced with the value of the manifest constant NAME.",
   "status": "confirmed",
+  "basis": ["documentation"],
   "citations": [
     {
       "url": "https://docs.cloud.google.com/looker/docs/reference/param-manifest-constant",

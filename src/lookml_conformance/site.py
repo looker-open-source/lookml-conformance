@@ -70,6 +70,7 @@ def _case(case: Case, verdicts: Any) -> dict[str, Any]:
         "title": case.title,
         "rule": case.rule,
         "status": case.status.value,
+        "basis": [basis.value for basis in case.basis],
         "citations": [
             {"url": citation.url, "quote": citation.quote, "label": citation_label(citation)}
             for citation in case.citations
@@ -78,6 +79,15 @@ def _case(case: Case, verdicts: Any) -> dict[str, Any]:
         "provisional": None
         if case.provisional is None
         else {"question": case.provisional.question, "pinned_to": case.provisional.pinned_to},
+        "observations": [
+            {
+                "looker_version": observation.looker_version,
+                "date": observation.date.isoformat(),
+                "finding": observation.finding,
+                "evidence": observation.evidence,
+            }
+            for observation in case.observations
+        ],
         "invalid_in_looker": case.invalid_in_looker,
         "expect": {
             "models": {

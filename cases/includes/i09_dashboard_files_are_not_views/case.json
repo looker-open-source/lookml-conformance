@@ -3,6 +3,7 @@
   "title": "Included .dashboard files do not affect view resolution",
   "rule": "Including LookML dashboard files makes dashboards available to the model and does not add or change views.",
   "status": "confirmed",
+  "basis": ["documentation"],
   "citations": [
     {
       "url": "https://docs.cloud.google.com/looker/docs/reference/param-model-include#including_views_and_dashboards_in_a_model",

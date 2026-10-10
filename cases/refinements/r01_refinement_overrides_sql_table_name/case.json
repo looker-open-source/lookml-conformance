@@ -3,6 +3,7 @@
   "title": "A refinement overrides sql_table_name and adds a field",
   "rule": "A +view refinement replaces the parameters it sets on the base view and adds the fields it declares.",
   "status": "confirmed",
+  "basis": ["documentation"],
   "citations": [
     {
       "url": "https://docs.cloud.google.com/looker/docs/lookml-refinements#refinements_override_parameters",

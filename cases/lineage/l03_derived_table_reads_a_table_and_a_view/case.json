@@ -3,6 +3,7 @@
   "title": "Derived table SQL can read a table and a view together",
   "rule": "When derived table SQL reads a table directly and a view through ${view.SQL_TABLE_NAME}, both tables are upstream.",
   "status": "confirmed",
+  "basis": ["documentation"],
   "citations": [
     {
       "url": "https://docs.cloud.google.com/looker/docs/reference/param-view-sql-for-derived-table#definition",

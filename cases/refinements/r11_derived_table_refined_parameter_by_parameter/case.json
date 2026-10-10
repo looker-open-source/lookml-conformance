@@ -3,6 +3,7 @@
   "title": "Refining a derived_table adds parameters without dropping its SQL",
   "rule": "A refinement of derived_table merges the sub-parameters it sets into the base derived_table.",
   "status": "confirmed",
+  "basis": ["documentation"],
   "citations": [
     {
       "url": "https://docs.cloud.google.com/looker/docs/lookml-refinements",

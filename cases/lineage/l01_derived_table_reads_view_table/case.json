@@ -3,6 +3,7 @@
   "title": "Derived table SQL that reads ${orders.SQL_TABLE_NAME} reads the orders table",
   "rule": "A ${view.SQL_TABLE_NAME} reference in derived table SQL reads the table of the referenced view.",
   "status": "confirmed",
+  "basis": ["documentation"],
   "citations": [
     {
       "url": "https://docs.cloud.google.com/looker/docs/sql-and-referring-to-lookml#substitution_operator_($)",

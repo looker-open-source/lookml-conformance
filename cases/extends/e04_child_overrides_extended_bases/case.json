@@ -3,6 +3,7 @@
   "title": "A view's own parameters and fields override every view it extends",
   "rule": "The extending view's own declarations win over every extended view, merged parameter by parameter.",
   "status": "confirmed",
+  "basis": ["documentation"],
   "citations": [
     {
       "url": "https://docs.cloud.google.com/looker/docs/reusing-code-with-extends",

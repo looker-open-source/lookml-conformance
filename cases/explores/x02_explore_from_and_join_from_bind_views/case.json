@@ -3,6 +3,7 @@
   "title": "An explore with from, and a join with from, bind the aliased views",
   "rule": "from on an explore or a join binds it to the named view while the explore or join name becomes the alias.",
   "status": "confirmed",
+  "basis": ["documentation"],
   "citations": [
     {
       "url": "https://docs.cloud.google.com/looker/docs/reference/param-explore-from",

@@ -3,6 +3,7 @@
   "title": "Within one file, refinements apply top to bottom",
   "rule": "Two refinements of the same view in one file apply in order, so the lower one wins.",
   "status": "confirmed",
+  "basis": ["documentation"],
   "citations": [
     {
       "url": "https://docs.cloud.google.com/looker/docs/lookml-refinements#order",

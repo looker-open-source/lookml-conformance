@@ -1,12 +1,16 @@
 from __future__ import annotations
 
+import datetime
 from pathlib import Path
+from typing import Any
 
 import pytest
 
 from lookml_conformance.cases import (
+    Basis,
     CaseError,
     Citation,
+    Observation,
     Provenance,
     Status,
     SuiteError,
@@ -51,6 +55,75 @@ def test_provisional_case_loads_provenance(make_case: MakeCase) -> None:
     case = load_case(make_case(status="provisional", provisional={"question": "Q?", "pinned_to": "tool 1.0"}))
 
     assert case.provisional == Provenance(question="Q?", pinned_to="tool 1.0")
+
+
+def observation(**overrides: Any) -> dict[str, str]:
+    return {
+        "looker_version": "26.4",
+        "date": "2026-10-14",
+        "finding": "Looker resolved orders to refined.",
+        "evidence": "results/looker/2026-10-14/dump/r01_example",
+    } | overrides
+
+
+def test_documented_case_loads_its_basis(make_case: MakeCase) -> None:
+    case = load_case(make_case())
+
+    assert case.basis == (Basis.DOCUMENTATION,)
+    assert case.observations == ()
+
+
+def test_observed_case_loads_observations(make_case: MakeCase, tmp_path: Path) -> None:
+    (tmp_path / "results/looker/2026-10-14/dump/r01_example").mkdir(parents=True)
+    case = load_case(make_case(basis=["observation"], observations=[observation()]))
+
+    assert case.basis == (Basis.OBSERVATION,)
+    assert case.observations == (
+        Observation(
+            looker_version="26.4",
+            date=datetime.date(2026, 10, 14),
+            finding="Looker resolved orders to refined.",
+            evidence="results/looker/2026-10-14/dump/r01_example",
+        ),
+    )
+
+
+def test_case_can_rest_on_documentation_and_observation(make_case: MakeCase, tmp_path: Path) -> None:
+    (tmp_path / "results/looker/2026-10-14/dump/r01_example").mkdir(parents=True)
+    case = load_case(make_case(basis=["documentation", "observation"], observations=[observation()]))
+
+    assert case.basis == (Basis.DOCUMENTATION, Basis.OBSERVATION)
+
+
+@pytest.mark.parametrize(
+    ("overrides", "expected"),
+    [
+        ({"basis": None}, "confirmed cases need a 'basis'"),
+        ({"basis": []}, "confirmed cases need a 'basis'"),
+        ({"basis": ["docs"]}, "confirmed cases need a 'basis'"),
+        ({"basis": ["documentation", "documentation"]}, "must not repeat"),
+        ({"basis": ["observation"]}, "basis 'observation' needs 'observations'"),
+        ({"observations": [observation()]}, "must list 'observation' in its 'basis'"),
+        ({"basis": ["observation"], "observations": []}, "non-empty list"),
+        ({"basis": ["observation"], "observations": [observation(date="14/10/2026")]}, "date like"),
+        ({"basis": ["observation"], "observations": [observation(finding=" ")]}, "['finding'] must be"),
+        ({"basis": ["observation"], "observations": [observation(evidence="../x")]}, "relative to the"),
+        ({"basis": ["observation"], "observations": [observation(evidence="nowhere")]}, "does not exist"),
+        ({"basis": ["observation"], "observations": [observation(url="x")]}, "unknown keys ['url']"),
+    ],
+)
+def test_basis_and_observation_problems(
+    make_case: MakeCase, overrides: dict[str, Any], expected: str
+) -> None:
+    assert expected in problems_of(make_case(**overrides))
+
+
+def test_provisional_case_rejects_basis_and_observations(make_case: MakeCase) -> None:
+    provenance = {"question": "Q?", "pinned_to": "tool"}
+    with_basis = make_case(status="provisional", provisional=provenance, basis=["documentation"])
+    assert "must not have a 'basis'" in problems_of(with_basis)
+    observed = make_case(id="r02_other", status="provisional", provisional=provenance, observations=[{}])
+    assert "an observed case is confirmed" in problems_of(observed)
 
 
 def test_confirmed_case_rejects_provenance(make_case: MakeCase) -> None:

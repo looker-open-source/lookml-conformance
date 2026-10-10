@@ -3,6 +3,7 @@
   "title": "Refinements apply in include order: the file included last wins",
   "rule": "When two included files refine the same view, the file included last wins.",
   "status": "confirmed",
+  "basis": ["documentation"],
   "citations": [
     {
       "url": "https://docs.cloud.google.com/looker/docs/lookml-refinements#order",

@@ -3,6 +3,7 @@
   "title": "Relative include paths resolve from the directory of the including file",
   "rule": "An include path without a leading / is resolved from the including file's directory.",
   "status": "confirmed",
+  "basis": ["documentation"],
   "citations": [
     {
       "url": "https://docs.cloud.google.com/looker/docs/reference/param-model-include#path_syntax",

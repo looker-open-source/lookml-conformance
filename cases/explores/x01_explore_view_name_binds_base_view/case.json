@@ -3,6 +3,7 @@
   "title": "An explore with view_name resolves its base view and its refinements",
   "rule": "view_name binds an explore to a view of a different name, and +explore refinements apply to that explore.",
   "status": "confirmed",
+  "basis": ["documentation"],
   "citations": [
     {
       "url": "https://docs.cloud.google.com/looker/docs/reference/param-explore-view-name",

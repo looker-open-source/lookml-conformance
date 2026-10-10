@@ -23,6 +23,7 @@ VALID_CASE: dict[str, Any] = {
     "title": "An example case",
     "rule": "A refinement overrides sql_table_name.",
     "status": "confirmed",
+    "basis": ["documentation"],
     "citations": [
         {
             "url": "https://docs.cloud.google.com/looker/docs/lookml-refinements#refinements_override_parameters",
@@ -48,6 +49,8 @@ def make_case(tmp_path: Path) -> MakeCase:
         **overrides: Any,
     ) -> Path:
         data = copy.deepcopy(VALID_CASE) | overrides
+        if data["status"] == "provisional" and "basis" not in overrides:
+            del data["basis"]
         directory = tmp_path / "cases" / category / data["id"]
         directory.mkdir(parents=True)
         (directory / "case.json").write_text(json.dumps(data), encoding="utf-8")

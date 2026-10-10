@@ -3,6 +3,7 @@
   "title": "A project wildcard include never matches files of an imported project",
   "rule": "An include starting with / only matches files of the current project, never files of imported projects.",
   "status": "confirmed",
+  "basis": ["documentation"],
   "citations": [
     {
       "url": "https://docs.cloud.google.com/looker/docs/reference/param-model-include#path_syntax",

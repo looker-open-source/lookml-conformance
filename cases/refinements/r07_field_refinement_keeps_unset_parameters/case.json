@@ -3,6 +3,7 @@
   "title": "Refining a field changes only the parameters the refinement sets",
   "rule": "Refining an existing field overrides the parameters the refinement sets and keeps the others.",
   "status": "confirmed",
+  "basis": ["documentation"],
   "citations": [
     {
       "url": "https://docs.cloud.google.com/looker/docs/lookml-refinements#refinements_override_parameters",

@@ -3,6 +3,7 @@
   "title": "A refinement adds dimensions and dimension groups and keeps existing measures",
   "rule": "Fields declared in a refinement are added to the fields of the base view.",
   "status": "confirmed",
+  "basis": ["documentation"],
   "citations": [
     {
       "url": "https://docs.cloud.google.com/looker/docs/lookml-refinements",

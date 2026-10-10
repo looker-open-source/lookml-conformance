@@ -142,6 +142,9 @@
    "title": "A refinement overrides sql_table_name and adds a field",
    "rule": "A +view refinement replaces the parameters it sets on the base view and adds the fields it declares.",
    "status": "confirmed",
+   "basis": [
+    "documentation"
+   ],
    "citations": [
     {
      "url": "https://docs.cloud.google.com/looker/docs/lookml-refinements#refinements_override_parameters",
@@ -156,6 +159,7 @@
    ],
    "rationale": null,
    "provisional": null,
+   "observations": [],
    "invalid_in_looker": false,
    "expect": {
     "models": {
@@ -221,6 +225,9 @@
    "title": "A refinement in a file that is not a .view file still applies",
    "rule": "A refinement applies wherever it is declared, including files without the .view extension.",
    "status": "confirmed",
+   "basis": [
+    "documentation"
+   ],
    "citations": [
     {
      "url": "https://docs.cloud.google.com/looker/docs/lookml-refinements#using_refinements_in_your_lookml_project",
@@ -230,6 +237,7 @@
    ],
    "rationale": null,
    "provisional": null,
+   "observations": [],
    "invalid_in_looker": false,
    "expect": {
     "models": {
@@ -291,6 +299,9 @@
    "title": "Two models refine the same view differently; each sees only its own refinement",
    "rule": "A refinement applies only to the models whose includes reach the refining file.",
    "status": "confirmed",
+   "basis": [
+    "documentation"
+   ],
    "citations": [
     {
      "url": "https://docs.cloud.google.com/looker/docs/lookml-refinements#using_refinements_in_your_lookml_project",
@@ -305,6 +316,7 @@
    ],
    "rationale": "Each model includes a different refinement file. A file a model does not include is not available to that model, so its refinement cannot apply there.",
    "provisional": null,
+   "observations": [],
    "invalid_in_looker": false,
    "expect": {
     "models": {
@@ -391,6 +403,9 @@
    "title": "Refinements apply in include order: the file included last wins",
    "rule": "When two included files refine the same view, the file included last wins.",
    "status": "confirmed",
+   "basis": [
+    "documentation"
+   ],
    "citations": [
     {
      "url": "https://docs.cloud.google.com/looker/docs/lookml-refinements#order",
@@ -405,6 +420,7 @@
    ],
    "rationale": null,
    "provisional": null,
+   "observations": [],
    "invalid_in_looker": false,
    "expect": {
     "models": {
@@ -468,6 +484,9 @@
    "title": "Within one file, refinements apply top to bottom",
    "rule": "Two refinements of the same view in one file apply in order, so the lower one wins.",
    "status": "confirmed",
+   "basis": [
+    "documentation"
+   ],
    "citations": [
     {
      "url": "https://docs.cloud.google.com/looker/docs/lookml-refinements#order",
@@ -477,6 +496,7 @@
    ],
    "rationale": null,
    "provisional": null,
+   "observations": [],
    "invalid_in_looker": false,
    "expect": {
     "models": {
@@ -534,6 +554,7 @@
    "title": "A refinement whose file is included before the base view still applies",
    "rule": "A refinement applies even when the model includes the refining file before the file that defines the view.",
    "status": "provisional",
+   "basis": [],
    "citations": [
     {
      "url": "https://docs.cloud.google.com/looker/docs/lookml-refinements#using_refinements_in_your_lookml_project",
@@ -551,6 +572,7 @@
     "question": "The refining file does not include the base view, which the documentation requires and the IDE warns about. Only the model includes both, refinement first. Does Looker still apply the refinement?",
     "pinned_to": "node-lookml-parser 9.1.0"
    },
+   "observations": [],
    "invalid_in_looker": false,
    "expect": {
     "models": {
@@ -608,6 +630,9 @@
    "title": "Refining a field changes only the parameters the refinement sets",
    "rule": "Refining an existing field overrides the parameters the refinement sets and keeps the others.",
    "status": "confirmed",
+   "basis": [
+    "documentation"
+   ],
    "citations": [
     {
      "url": "https://docs.cloud.google.com/looker/docs/lookml-refinements#refinements_override_parameters",
@@ -622,6 +647,7 @@
    ],
    "rationale": "The documentation's example refines only hidden on an existing dimension and the dimension stays in the view, so its other parameters are kept.",
    "provisional": null,
+   "observations": [],
    "invalid_in_looker": false,
    "expect": {
     "models": {
@@ -690,6 +716,9 @@
    "title": "A refinement adds dimensions and dimension groups and keeps existing measures",
    "rule": "Fields declared in a refinement are added to the fields of the base view.",
    "status": "confirmed",
+   "basis": [
+    "documentation"
+   ],
    "citations": [
     {
      "url": "https://docs.cloud.google.com/looker/docs/lookml-refinements",
@@ -699,6 +728,7 @@
    ],
    "rationale": null,
    "provisional": null,
+   "observations": [],
    "invalid_in_looker": false,
    "expect": {
     "models": {
@@ -760,6 +790,9 @@
    "title": "filters on a measure accumulate across the base view and a refinement",
    "rule": "filters on a field is additive under refinement: the refinement's filters are appended to the base filters.",
    "status": "confirmed",
+   "basis": [
+    "documentation"
+   ],
    "citations": [
     {
      "url": "https://docs.cloud.google.com/looker/docs/lookml-refinements#some_parameters_are_additive",
@@ -774,6 +807,7 @@
    ],
    "rationale": "The additive list on that page includes filters for dimensions and measures.",
    "provisional": null,
+   "observations": [],
    "invalid_in_looker": false,
    "expect": {
     "models": {
@@ -851,6 +885,7 @@
    "title": "After a refinement with final: yes, a later refinement must not change the view",
    "rule": "final: yes on a refinement stops any later refinement of the same view from applying.",
    "status": "provisional",
+   "basis": [],
    "citations": [
     {
      "url": "https://docs.cloud.google.com/looker/docs/lookml-refinements#final",
@@ -863,6 +898,7 @@
     "question": "Looker reports a LookML error for a refinement applied after one with final: yes. Does Looker still resolve the view, and if so to which table? Until that is checked, the case expects the final refinement to win.",
     "pinned_to": "this suite's reading of the final: yes documentation; no tool or public fixture produces it yet"
    },
+   "observations": [],
    "invalid_in_looker": true,
    "expect": {
     "models": {
@@ -928,6 +964,9 @@
    "title": "Refining a derived_table adds parameters without dropping its SQL",
    "rule": "A refinement of derived_table merges the sub-parameters it sets into the base derived_table.",
    "status": "confirmed",
+   "basis": [
+    "documentation"
+   ],
    "citations": [
     {
      "url": "https://docs.cloud.google.com/looker/docs/lookml-refinements",
@@ -947,6 +986,7 @@
    ],
    "rationale": "The documentation recommends refinements for adding to persistent derived tables, and lists derived-table sub-parameters among the additive parameters, which only works if derived_table is merged parameter by parameter.",
    "provisional": null,
+   "observations": [],
    "invalid_in_looker": false,
    "expect": {
     "models": {
@@ -1008,6 +1048,7 @@
    "title": "A refinement of a view that does not exist creates no view",
    "rule": "A refinement whose base view is never defined does not create a view.",
    "status": "provisional",
+   "basis": [],
    "citations": [
     {
      "url": "https://docs.cloud.google.com/looker/docs/lookml-refinements#using_refinements_in_your_lookml_project",
@@ -1020,6 +1061,7 @@
     "question": "Does Looker report an error or ignore the refinement? The suite only requires that no view named ghost or +ghost appears.",
     "pinned_to": "node-lookml-parser 9.1.0"
    },
+   "observations": [],
    "invalid_in_looker": false,
    "expect": {
     "models": {
@@ -1078,6 +1120,9 @@
    "title": "Refining a dimension_group replaces its timeframes list",
    "rule": "timeframes is not additive, so a refinement replaces the list and keeps the parameters it does not set.",
    "status": "confirmed",
+   "basis": [
+    "documentation"
+   ],
    "citations": [
     {
      "url": "https://docs.cloud.google.com/looker/docs/lookml-refinements#refinements_override_parameters",
@@ -1097,6 +1142,7 @@
    ],
    "rationale": "timeframes is not on the documentation's list of additive parameters, so the refinement's value overrides the base value.",
    "provisional": null,
+   "observations": [],
    "invalid_in_looker": false,
    "expect": {
     "models": {
@@ -1170,6 +1216,7 @@
    "title": "Files matched by a wildcard include are applied in path order",
    "rule": "Refinement files matched by one wildcard include apply in lexical path order.",
    "status": "provisional",
+   "basis": [],
    "citations": [
     {
      "url": "https://docs.cloud.google.com/looker/docs/lookml-refinements#order",
@@ -1187,6 +1234,7 @@
     "question": "The documentation discourages wildcards with refinements and says their order cannot be controlled. Which order does Looker use?",
     "pinned_to": "node-lookml-parser 9.1.0 (lexical path order)"
    },
+   "observations": [],
    "invalid_in_looker": false,
    "expect": {
     "models": {
@@ -1248,6 +1296,7 @@
    "title": "A nested include is expanded where its include statement appears",
    "rule": "A file included by an included file is applied at the position of its include statement, before the including file's own declarations.",
    "status": "provisional",
+   "basis": [],
    "citations": [
     {
      "url": "https://docs.cloud.google.com/looker/docs/importing-projects#including_files_that_include_other_files",
@@ -1265,6 +1314,7 @@
     "question": "Where do the declarations of a nested include land in the include order? node-lookml-parser places them after the including file's own declarations (m1 resolves b).",
     "pinned_to": "DataHub test fixture metadata-ingestion/tests/integration/looker/lookml/lkml_refinement_samples/sample1"
    },
+   "observations": [],
    "invalid_in_looker": false,
    "expect": {
     "models": {
@@ -1348,6 +1398,7 @@
    "title": "Including the same file twice does not move it to the later position",
    "rule": "A file is applied once, at the position of its first include.",
    "status": "provisional",
+   "basis": [],
    "citations": [
     {
      "url": "https://docs.cloud.google.com/looker/docs/lookml-refinements#order",
@@ -1360,6 +1411,7 @@
     "question": "Does a second include of the same file move its refinements to the later position?",
     "pinned_to": "node-lookml-parser 9.1.0"
    },
+   "observations": [],
    "invalid_in_looker": false,
    "expect": {
     "models": {
@@ -1423,6 +1475,9 @@
    "title": "Relative include paths resolve from the directory of the including file",
    "rule": "An include path without a leading / is resolved from the including file's directory.",
    "status": "confirmed",
+   "basis": [
+    "documentation"
+   ],
    "citations": [
     {
      "url": "https://docs.cloud.google.com/looker/docs/reference/param-model-include#path_syntax",
@@ -1437,6 +1492,7 @@
    ],
    "rationale": null,
    "provisional": null,
+   "observations": [],
    "invalid_in_looker": false,
    "expect": {
     "models": {
@@ -1494,6 +1550,9 @@
    "title": "A project wildcard include never matches files of an imported project",
    "rule": "An include starting with / only matches files of the current project, never files of imported projects.",
    "status": "confirmed",
+   "basis": [
+    "documentation"
+   ],
    "citations": [
     {
      "url": "https://docs.cloud.google.com/looker/docs/reference/param-model-include#path_syntax",
@@ -1508,6 +1567,7 @@
    ],
    "rationale": "Imported project files are reached through // includes. The suite places them under imported_projects/<name>/, the folder the IDE shows them in, which a / wildcard must not match.",
    "provisional": null,
+   "observations": [],
    "invalid_in_looker": false,
    "expect": {
     "models": {
@@ -1565,6 +1625,9 @@
    "title": "A view from an imported project can be refined locally",
    "rule": "A refinement in the importing project applies to a view included from an imported project.",
    "status": "confirmed",
+   "basis": [
+    "documentation"
+   ],
    "citations": [
     {
      "url": "https://docs.cloud.google.com/looker/docs/lookml-refinements#example",
@@ -1584,6 +1647,7 @@
    ],
    "rationale": null,
    "provisional": null,
+   "observations": [],
    "invalid_in_looker": false,
    "expect": {
     "models": {
@@ -1641,6 +1705,9 @@
    "title": "An absolute include inside an imported project file resolves against that project",
    "rule": "A path starting with / inside an imported project's file resolves from that project's root.",
    "status": "confirmed",
+   "basis": [
+    "documentation"
+   ],
    "citations": [
     {
      "url": "https://docs.cloud.google.com/looker/docs/importing-projects#including_files_that_include_other_files",
@@ -1655,6 +1722,7 @@
    ],
    "rationale": "The includes of an imported file are resolved within its own project before the file reaches the importing project, and / is the root of the current project.",
    "provisional": null,
+   "observations": [],
    "invalid_in_looker": false,
    "expect": {
     "models": {
@@ -1714,6 +1782,7 @@
    "title": "Mutually including files are processed once each",
    "rule": "Files that include each other are each processed once and resolution terminates.",
    "status": "provisional",
+   "basis": [],
    "citations": [
     {
      "url": "https://docs.cloud.google.com/looker/docs/lookml-refinements#order",
@@ -1726,6 +1795,7 @@
     "question": "Looker's resulting order for mutually including files is not documented. The tool must terminate either way.",
     "pinned_to": "node-lookml-parser 9.1.0"
    },
+   "observations": [],
    "invalid_in_looker": false,
    "expect": {
     "models": {
@@ -1783,6 +1853,9 @@
    "title": "Included .dashboard files do not affect view resolution",
    "rule": "Including LookML dashboard files makes dashboards available to the model and does not add or change views.",
    "status": "confirmed",
+   "basis": [
+    "documentation"
+   ],
    "citations": [
     {
      "url": "https://docs.cloud.google.com/looker/docs/reference/param-model-include#including_views_and_dashboards_in_a_model",
@@ -1797,6 +1870,7 @@
    ],
    "rationale": null,
    "provisional": null,
+   "observations": [],
    "invalid_in_looker": false,
    "expect": {
     "models": {
@@ -1853,6 +1927,7 @@
    "title": "A view that extends a refined view inherits the refinement",
    "rule": "A view that extends another view inherits that view's refinements in the same model.",
    "status": "provisional",
+   "basis": [],
    "citations": [
     {
      "url": "https://docs.cloud.google.com/looker/docs/lookml-refinements",
@@ -1870,6 +1945,7 @@
     "question": "The documentation does not say whether extends copies a view before or after its refinements are applied.",
     "pinned_to": "node-lookml-parser 9.1.0"
    },
+   "observations": [],
    "invalid_in_looker": false,
    "expect": {
     "models": {
@@ -1944,6 +2020,9 @@
    "title": "extends listed in a refinement are added to the base view's extends",
    "rule": "extends in a refinement is appended to the view's extends, and the last listed view wins conflicts.",
    "status": "confirmed",
+   "basis": [
+    "documentation"
+   ],
    "citations": [
     {
      "url": "https://docs.cloud.google.com/looker/docs/lookml-refinements#additive",
@@ -1963,6 +2042,7 @@
    ],
    "rationale": null,
    "provisional": null,
+   "observations": [],
    "invalid_in_looker": false,
    "expect": {
     "models": {
@@ -2042,6 +2122,9 @@
    "title": "With several extends, the last listed view wins conflicting parameters",
    "rule": "When a view extends several views, the view listed last wins parameters that conflict.",
    "status": "confirmed",
+   "basis": [
+    "documentation"
+   ],
    "citations": [
     {
      "url": "https://docs.cloud.google.com/looker/docs/reusing-code-with-extends#extending_more_than_one_object_at_the_same_time",
@@ -2051,6 +2134,7 @@
    ],
    "rationale": null,
    "provisional": null,
+   "observations": [],
    "invalid_in_looker": false,
    "expect": {
     "models": {
@@ -2121,6 +2205,9 @@
    "title": "A view's own parameters and fields override every view it extends",
    "rule": "The extending view's own declarations win over every extended view, merged parameter by parameter.",
    "status": "confirmed",
+   "basis": [
+    "documentation"
+   ],
    "citations": [
     {
      "url": "https://docs.cloud.google.com/looker/docs/reusing-code-with-extends",
@@ -2140,6 +2227,7 @@
    ],
    "rationale": "The documentation's implementation example merges a status dimension from both views: it keeps sql from the extended view and takes type from the extending view.",
    "provisional": null,
+   "observations": [],
    "invalid_in_looker": false,
    "expect": {
     "models": {
@@ -2211,6 +2299,9 @@
    "title": "A model that does not include a refinement sees the unrefined view",
    "rule": "A refinement does not leak into a model that does not include the refining file.",
    "status": "confirmed",
+   "basis": [
+    "documentation"
+   ],
    "citations": [
     {
      "url": "https://docs.cloud.google.com/looker/docs/lookml-refinements#using_refinements_in_your_lookml_project",
@@ -2225,6 +2316,7 @@
    ],
    "rationale": null,
    "provisional": null,
+   "observations": [],
    "invalid_in_looker": false,
    "expect": {
     "models": {
@@ -2299,6 +2391,9 @@
    "title": "An explore with view_name resolves its base view and its refinements",
    "rule": "view_name binds an explore to a view of a different name, and +explore refinements apply to that explore.",
    "status": "confirmed",
+   "basis": [
+    "documentation"
+   ],
    "citations": [
     {
      "url": "https://docs.cloud.google.com/looker/docs/reference/param-explore-view-name",
@@ -2323,6 +2418,7 @@
    ],
    "rationale": null,
    "provisional": null,
+   "observations": [],
    "invalid_in_looker": false,
    "expect": {
     "models": {
@@ -2381,6 +2477,9 @@
    "title": "An explore with from, and a join with from, bind the aliased views",
    "rule": "from on an explore or a join binds it to the named view while the explore or join name becomes the alias.",
    "status": "confirmed",
+   "basis": [
+    "documentation"
+   ],
    "citations": [
     {
      "url": "https://docs.cloud.google.com/looker/docs/reference/param-explore-from",
@@ -2405,6 +2504,7 @@
    ],
    "rationale": null,
    "provisional": null,
+   "observations": [],
    "invalid_in_looker": false,
    "expect": {
     "models": {
@@ -2475,6 +2575,9 @@
    "title": "A manifest constant in sql_table_name resolves to its value",
    "rule": "@{NAME} in sql_table_name is replaced with the value of the manifest constant NAME.",
    "status": "confirmed",
+   "basis": [
+    "documentation"
+   ],
    "citations": [
     {
      "url": "https://docs.cloud.google.com/looker/docs/reference/param-manifest-constant",
@@ -2489,6 +2592,7 @@
    ],
    "rationale": null,
    "provisional": null,
+   "observations": [],
    "invalid_in_looker": false,
    "expect": {
     "models": {
@@ -2546,6 +2650,9 @@
    "title": "A manifest constant in derived_table SQL resolves to its value",
    "rule": "@{NAME} inside derived_table SQL is replaced with the value of the manifest constant NAME.",
    "status": "confirmed",
+   "basis": [
+    "documentation"
+   ],
    "citations": [
     {
      "url": "https://docs.cloud.google.com/looker/docs/reference/param-manifest-constant",
@@ -2560,6 +2667,7 @@
    ],
    "rationale": null,
    "provisional": null,
+   "observations": [],
    "invalid_in_looker": false,
    "expect": {
     "models": {
@@ -2619,6 +2727,9 @@
    "title": "Derived table SQL that reads ${orders.SQL_TABLE_NAME} reads the orders table",
    "rule": "A ${view.SQL_TABLE_NAME} reference in derived table SQL reads the table of the referenced view.",
    "status": "confirmed",
+   "basis": [
+    "documentation"
+   ],
    "citations": [
     {
      "url": "https://docs.cloud.google.com/looker/docs/sql-and-referring-to-lookml#substitution_operator_($)",
@@ -2633,6 +2744,7 @@
    ],
    "rationale": "order_facts.view.lkml comes before orders.view.lkml in path order, so a tool that resolves references while reading files in that order has not seen orders when it reads order_facts. The reference names a view of the model, wherever that view is defined.",
    "provisional": null,
+   "observations": [],
    "invalid_in_looker": false,
    "expect": {
     "models": {
@@ -2692,6 +2804,9 @@
    "title": "A derived table built on another derived table reaches the base table",
    "rule": "A derived table that reads another derived table through ${view.SQL_TABLE_NAME} reads the tables that derived table reads.",
    "status": "confirmed",
+   "basis": [
+    "documentation"
+   ],
    "citations": [
     {
      "url": "https://docs.cloud.google.com/looker/docs/sql-and-referring-to-lookml#substitution_operator_($)",
@@ -2701,6 +2816,7 @@
    ],
    "rationale": "orders_rollup_repeat reads orders_rollup, and orders_rollup reads orders, so raw.orders is the only table upstream of orders_rollup_repeat.",
    "provisional": null,
+   "observations": [],
    "invalid_in_looker": false,
    "expect": {
     "models": {
@@ -2762,6 +2878,9 @@
    "title": "Derived table SQL can read a table and a view together",
    "rule": "When derived table SQL reads a table directly and a view through ${view.SQL_TABLE_NAME}, both tables are upstream.",
    "status": "confirmed",
+   "basis": [
+    "documentation"
+   ],
    "citations": [
     {
      "url": "https://docs.cloud.google.com/looker/docs/reference/param-view-sql-for-derived-table#definition",
@@ -2771,6 +2890,7 @@
    ],
    "rationale": null,
    "provisional": null,
+   "observations": [],
    "invalid_in_looker": false,
    "expect": {
     "models": {
@@ -2831,6 +2951,9 @@
    "title": "A ${view.SQL_TABLE_NAME} reference follows the view's refined table",
    "rule": "A reference to a refined view reads the table the refinement sets, not the base view's table.",
    "status": "confirmed",
+   "basis": [
+    "documentation"
+   ],
    "citations": [
     {
      "url": "https://docs.cloud.google.com/looker/docs/lookml-refinements#refinements_override_parameters",
@@ -2845,6 +2968,7 @@
    ],
    "rationale": "The refinement replaces sql_table_name on orders, and the reference reads the orders view as the model resolves it.",
    "provisional": null,
+   "observations": [],
    "invalid_in_looker": false,
    "expect": {
     "models": {
@@ -2910,6 +3034,9 @@
    "title": "A native derived table reads the tables of the explore it is built on",
    "rule": "A native derived table is a query on the explore named in explore_source, so the tables of the views its columns use are upstream.",
    "status": "confirmed",
+   "basis": [
+    "documentation"
+   ],
    "citations": [
     {
      "url": "https://docs.cloud.google.com/looker/docs/creating-ndts#defining_an_ndt_in_lookml",
@@ -2924,6 +3051,7 @@
    ],
    "rationale": "The columns take users.country and orders.count from the orders explore, so the query reads the orders view and the joined users view.",
    "provisional": null,
+   "observations": [],
    "invalid_in_looker": false,
    "expect": {
     "models": {
@@ -2990,6 +3118,9 @@
    "title": "A single semicolon inside a SQL block is kept verbatim",
    "rule": "SQL blocks end only at ;;, so a single ; inside the SQL is part of the SQL.",
    "status": "confirmed",
+   "basis": [
+    "documentation"
+   ],
    "citations": [
     {
      "url": "https://community.looker.com/technical-tips-tricks-1021/when-are-semicolons-used-in-lookml-25425",
@@ -2999,6 +3130,7 @@
    ],
    "rationale": null,
    "provisional": null,
+   "observations": [],
    "invalid_in_looker": false,
    "expect": {
     "models": {
@@ -3061,6 +3193,9 @@
    "title": "A # inside a SQL block is SQL, not a LookML comment",
    "rule": "# starts a LookML comment outside SQL blocks; inside a SQL block it is part of the SQL.",
    "status": "confirmed",
+   "basis": [
+    "documentation"
+   ],
    "citations": [
     {
      "url": "https://docs.cloud.google.com/looker/docs/looker-ide#adding_comments",
@@ -3075,6 +3210,7 @@
    ],
    "rationale": "Commenting out SQL requires SQL comment notation because # inside a SQL block is passed to the database as SQL.",
    "provisional": null,
+   "observations": [],
    "invalid_in_looker": false,
    "expect": {
     "models": {
@@ -3132,6 +3268,9 @@
    "title": "Fields named errors or info are ordinary fields",
    "rule": "errors and info are valid field names and resolve like any other field.",
    "status": "confirmed",
+   "basis": [
+    "documentation"
+   ],
    "citations": [
     {
      "url": "https://docs.cloud.google.com/looker/docs/reference/param-field-dimension",
@@ -3146,6 +3285,7 @@
    ],
    "rationale": "Both names meet the naming rules, so a tool must not confuse them with its own metadata keys.",
    "provisional": null,
+   "observations": [],
    "invalid_in_looker": false,
    "expect": {
     "models": {

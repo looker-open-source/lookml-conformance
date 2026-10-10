@@ -3,6 +3,7 @@
   "title": "A single semicolon inside a SQL block is kept verbatim",
   "rule": "SQL blocks end only at ;;, so a single ; inside the SQL is part of the SQL.",
   "status": "confirmed",
+  "basis": ["documentation"],
   "citations": [
     {
       "url": "https://community.looker.com/technical-tips-tricks-1021/when-are-semicolons-used-in-lookml-25425",

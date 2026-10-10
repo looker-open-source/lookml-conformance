@@ -3,6 +3,7 @@
   "title": "A ${view.SQL_TABLE_NAME} reference follows the view's refined table",
   "rule": "A reference to a refined view reads the table the refinement sets, not the base view's table.",
   "status": "confirmed",
+  "basis": ["documentation"],
   "citations": [
     {
       "url": "https://docs.cloud.google.com/looker/docs/lookml-refinements#refinements_override_parameters",

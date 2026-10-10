@@ -21,17 +21,55 @@ a snake_case summary, and match the directory name.
 | `title` | yes | One line, shown in listings. |
 | `rule` | yes | The rule under test, in one sentence. |
 | `status` | yes | `confirmed` or `provisional` (see below). |
+| `basis` | confirmed only | What the expectation rests on: a list of `documentation`, `observation` or both (see below). |
 | `citations` | yes | One or more `{"url", "quote"}`. `quote` is verbatim text from the page; `url` links to the closest section anchor. |
 | `rationale` | no | How the quotes lead to the expectation, when that is not immediate. |
 | `provisional` | provisional only | `{"question", "pinned_to"}`: what the documentation leaves open, and the public source the expectation follows. |
+| `observations` | with basis `observation` | One or more `{"looker_version", "date", "finding", "evidence"}`, described below. |
 | `invalid_in_looker` | no | `true` when Looker rejects the project (for example a refinement after `final: yes`). Tools may report an error but must not produce the forbidden result. |
 | `expect` | yes | `{"models": {...}, "absent_views": [...]}`, described below. |
 
-### Status
+### Status and basis
 
-- **confirmed**: the expectation follows from the quoted documentation.
-- **provisional**: the documentation does not settle the behavior. The case states the question
-  and the source it is pinned to, and stays provisional until it is checked on a Looker instance.
+`status` says whether the expectation can be relied on; `basis` says why.
+
+- **confirmed**: the expectation rests on at least one basis:
+  - **documentation**: the quoted documentation settles the rule.
+  - **observation**: Looker was seen to behave this way. The case lists the observations.
+- **provisional**: the behavior is neither documented nor observed yet. The case states the
+  question and the public source the expectation is pinned to, and has no `basis`. It stays
+  provisional until it is checked on a Looker instance
+  ([procedure](confirming-provisional-cases.md)).
+
+Every case quotes the documentation. In a case whose basis is only `observation`, the quotes are
+the closest documentation, not proof of the rule.
+
+### Observations
+
+An observation records what one Looker version did with the case's project:
+
+```json
+"status": "confirmed",
+"basis": ["observation"],
+"observations": [
+  {
+    "looker_version": "26.4",
+    "date": "2026-10-14",
+    "finding": "Looker resolved orders to refined. The validator warned that r.view.lkml does not include the view it refines.",
+    "evidence": "results/looker/2026-10-14/dump/r06_refinement_included_before_its_base"
+  }
+]
+```
+
+| Key | Meaning |
+| --- | --- |
+| `looker_version` | The Looker version the adapter reported. |
+| `date` | The day of the check, as `YYYY-MM-DD`. |
+| `finding` | What Looker did, in one or two sentences, including validator messages that matter. |
+| `evidence` | A path relative to the repository root, to the saved Looker output for this case. It must exist. |
+
+A later check adds another observation; earlier ones stay. A case with `observations` lists
+`observation` in its `basis`, and a provisional case has none.
 
 ### Citations
 

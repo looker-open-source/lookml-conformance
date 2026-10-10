@@ -3,6 +3,7 @@
   "title": "extends listed in a refinement are added to the base view's extends",
   "rule": "extends in a refinement is appended to the view's extends, and the last listed view wins conflicts.",
   "status": "confirmed",
+  "basis": ["documentation"],
   "citations": [
     {
       "url": "https://docs.cloud.google.com/looker/docs/lookml-refinements#additive",

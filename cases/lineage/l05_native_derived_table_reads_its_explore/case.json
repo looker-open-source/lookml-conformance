@@ -3,6 +3,7 @@
   "title": "A native derived table reads the tables of the explore it is built on",
   "rule": "A native derived table is a query on the explore named in explore_source, so the tables of the views its columns use are upstream.",
   "status": "confirmed",
+  "basis": ["documentation"],
   "citations": [
     {
       "url": "https://docs.cloud.google.com/looker/docs/creating-ndts#defining_an_ndt_in_lookml",

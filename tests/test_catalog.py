@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from pathlib import Path
+
 from lookml_conformance.cases import Citation, load_case
 from lookml_conformance.catalog import citation_label, render_catalog
 from tests.conftest import MakeCase
@@ -9,6 +11,28 @@ def test_citation_label() -> None:
     assert citation_label(Citation("https://docs.example.com/looker/docs/page#anchor", "q")) == "page#anchor"
     assert citation_label(Citation("https://docs.example.com/looker/docs/page/", "q")) == "page"
     assert citation_label(Citation("https://example.com", "q")) == "example.com"
+
+
+def test_render_catalog_shows_basis_and_observations(make_case: MakeCase, tmp_path: Path) -> None:
+    (tmp_path / "results/looker/x").mkdir(parents=True)
+    observed = load_case(
+        make_case(
+            id="r02_o",
+            basis=["observation"],
+            observations=[
+                {"looker_version": "26.4", "date": "2026-10-14", "finding": "Looker said so.",
+                 "evidence": "results/looker/x"}
+            ],
+        )
+    )  # fmt: skip
+
+    catalog = render_catalog([observed])
+
+    assert "**An example case.** *confirmed · observation*" in catalog
+    assert (
+        "Observed on Looker 26.4 (2026-10-14): Looker said so. "
+        "Evidence: [`results/looker/x`](results/looker/x)"
+    ) in catalog
 
 
 def test_render_catalog(make_case: MakeCase) -> None:
@@ -29,7 +53,7 @@ def test_render_catalog(make_case: MakeCase) -> None:
     assert "| [Refinements](#refinements) | 1 | 1 | 0 |" in catalog
     assert "| [Includes](#includes) | 1 | 0 | 1 |" in catalog
     assert "| **Total** | 2 | 1 | 1 |" in catalog
-    assert "## Refinements\n\n### `r01_a`\n\n**An example case.** *confirmed*" in catalog
+    assert "## Refinements\n\n### `r01_a`\n\n**An example case.** *confirmed · documentation*" in catalog
     assert "Rule: A refinement overrides sql_table_name." in catalog
     assert (
         "> In most cases a refinement will override the original settings of an object.<br>"

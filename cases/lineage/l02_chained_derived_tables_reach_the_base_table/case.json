@@ -3,6 +3,7 @@
   "title": "A derived table built on another derived table reaches the base table",
   "rule": "A derived table that reads another derived table through ${view.SQL_TABLE_NAME} reads the tables that derived table reads.",
   "status": "confirmed",
+  "basis": ["documentation"],
   "citations": [
     {
       "url": "https://docs.cloud.google.com/looker/docs/sql-and-referring-to-lookml#substitution_operator_($)",

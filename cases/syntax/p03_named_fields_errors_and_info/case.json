@@ -3,6 +3,7 @@
   "title": "Fields named errors or info are ordinary fields",
   "rule": "errors and info are valid field names and resolve like any other field.",
   "status": "confirmed",
+  "basis": ["documentation"],
   "citations": [
     {
       "url": "https://docs.cloud.google.com/looker/docs/reference/param-field-dimension",

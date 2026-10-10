@@ -3,6 +3,7 @@
   "title": "Refining a dimension_group replaces its timeframes list",
   "rule": "timeframes is not additive, so a refinement replaces the list and keeps the parameters it does not set.",
   "status": "confirmed",
+  "basis": ["documentation"],
   "citations": [
     {
       "url": "https://docs.cloud.google.com/looker/docs/lookml-refinements#refinements_override_parameters",

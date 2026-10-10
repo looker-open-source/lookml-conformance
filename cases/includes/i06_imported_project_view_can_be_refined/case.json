@@ -3,6 +3,7 @@
   "title": "A view from an imported project can be refined locally",
   "rule": "A refinement in the importing project applies to a view included from an imported project.",
   "status": "confirmed",
+  "basis": ["documentation"],
   "citations": [
     {
       "url": "https://docs.cloud.google.com/looker/docs/lookml-refinements#example",

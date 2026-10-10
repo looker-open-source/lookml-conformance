@@ -3,6 +3,7 @@
   "title": "filters on a measure accumulate across the base view and a refinement",
   "rule": "filters on a field is additive under refinement: the refinement's filters are appended to the base filters.",
   "status": "confirmed",
+  "basis": ["documentation"],
   "citations": [
     {
       "url": "https://docs.cloud.google.com/looker/docs/lookml-refinements#some_parameters_are_additive",

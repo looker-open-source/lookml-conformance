@@ -3,6 +3,7 @@
   "title": "A # inside a SQL block is SQL, not a LookML comment",
   "rule": "# starts a LookML comment outside SQL blocks; inside a SQL block it is part of the SQL.",
   "status": "confirmed",
+  "basis": ["documentation"],
   "citations": [
     {
       "url": "https://docs.cloud.google.com/looker/docs/looker-ide#adding_comments",

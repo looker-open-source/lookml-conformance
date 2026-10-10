@@ -3,6 +3,7 @@
   "title": "Two models refine the same view differently; each sees only its own refinement",
   "rule": "A refinement applies only to the models whose includes reach the refining file.",
   "status": "confirmed",
+  "basis": ["documentation"],
   "citations": [
     {
       "url": "https://docs.cloud.google.com/looker/docs/lookml-refinements#using_refinements_in_your_lookml_project",

@@ -3,6 +3,7 @@
   "title": "An absolute include inside an imported project file resolves against that project",
   "rule": "A path starting with / inside an imported project's file resolves from that project's root.",
   "status": "confirmed",
+  "basis": ["documentation"],
   "citations": [
     {
       "url": "https://docs.cloud.google.com/looker/docs/importing-projects#including_files_that_include_other_files",

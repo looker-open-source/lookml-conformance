@@ -12,6 +12,7 @@ The format is described in ``docs/case-format.md``.
 
 from __future__ import annotations
 
+import datetime
 import json
 import re
 from collections.abc import Iterable, Mapping
@@ -45,21 +46,45 @@ JOIN_KEYS = frozenset({"from", "view_label", "sql_on", "relationship", "type"})
 FIELD_LIST_PARAMS = frozenset({"timeframes"})
 
 _TOP_KEYS = frozenset(
-    {"id", "title", "rule", "status", "citations", "rationale", "provisional", "invalid_in_looker", "expect"}
+    {
+        "id",
+        "title",
+        "rule",
+        "status",
+        "basis",
+        "citations",
+        "rationale",
+        "provisional",
+        "observations",
+        "invalid_in_looker",
+        "expect",
+    }
 )
 _CASE_ID = re.compile(r"^[a-z]\d{2}_[a-z0-9_]+$")
 _CONSTANT_DECLARATION = re.compile(r"^\s*constant\s*:", re.MULTILINE)
+_OBSERVATION_KEYS = frozenset({"looker_version", "date", "finding", "evidence"})
 
 
 class Status(str, Enum):
-    """How an expectation is backed.
+    """Whether an expectation can be relied on.
 
-    ``confirmed`` expectations follow from the cited Looker documentation. ``provisional`` ones cover
-    behavior the documentation leaves open; they name the public source they are pinned to.
+    ``confirmed`` expectations rest on a :class:`Basis`. ``provisional`` ones cover behavior that is
+    neither documented nor observed yet; they name the public source they are pinned to.
     """
 
     CONFIRMED = "confirmed"
     PROVISIONAL = "provisional"
+
+
+class Basis(str, Enum):
+    """What a confirmed expectation rests on.
+
+    ``documentation``: the cited Looker documentation settles the rule. ``observation``: Looker was
+    seen to behave this way; the case lists the observations with their evidence.
+    """
+
+    DOCUMENTATION = "documentation"
+    OBSERVATION = "observation"
 
 
 class CaseError(ValueError):
@@ -96,6 +121,19 @@ class Provenance:
 
 
 @dataclass(frozen=True)
+class Observation:
+    """What a Looker instance did with the case's project, and where the evidence is kept.
+
+    ``evidence`` is a path relative to the repository root.
+    """
+
+    looker_version: str
+    date: datetime.date
+    finding: str
+    evidence: str
+
+
+@dataclass(frozen=True)
 class ModelExpectation:
     """Assertions about one model. Only the keys present in each entry are checked."""
 
@@ -117,6 +155,8 @@ class Case:
     invalid_in_looker: bool = False
     rationale: str | None = None
     provisional: Provenance | None = None
+    basis: tuple[Basis, ...] = ()
+    observations: tuple[Observation, ...] = ()
 
     @property
     def project(self) -> Path:
@@ -167,6 +207,8 @@ def load_case(directory: Path) -> Case:
     status = check.enum(data, "status", Status)
     citations = check.citations(data)
     provisional = check.provenance(data, status)
+    basis = check.basis(data, status)
+    observations = check.observations(data, status, basis, directory.parent.parent.parent)
     models, absent_views = check.expectations(data.get("expect"))
     check.project(directory / PROJECT_DIR, models)
 
@@ -183,6 +225,8 @@ def load_case(directory: Path) -> Case:
         invalid_in_looker=check.boolean(data, "invalid_in_looker", default=False),
         rationale=check.string(data, "rationale", required=False),
         provisional=provisional,
+        basis=basis,
+        observations=observations,
     )
     if check.problems:
         raise CaseError(path, check.problems)
@@ -303,6 +347,71 @@ class _Checker:
             return None
         return Provenance(question=question, pinned_to=pinned_to)
 
+    def basis(self, data: Mapping[str, Any], status: Status | None) -> tuple[Basis, ...]:
+        raw = data.get("basis")
+        if status is Status.PROVISIONAL:
+            if raw is not None:
+                self.problem("provisional cases must not have a 'basis'")
+            return ()
+        if status is not Status.CONFIRMED:
+            return ()
+        allowed = [member.value for member in Basis]
+        if not _is_list_of(raw, str) or not raw or any(item not in allowed for item in raw):
+            self.problem(f"confirmed cases need a 'basis': a non-empty list of {allowed}")
+            return ()
+        if len(set(raw)) != len(raw):
+            self.problem("'basis' must not repeat an entry")
+        return tuple(Basis(item) for item in dict.fromkeys(raw))
+
+    def observations(
+        self, data: Mapping[str, Any], status: Status | None, basis: tuple[Basis, ...], repo_root: Path
+    ) -> tuple[Observation, ...]:
+        raw = data.get("observations")
+        if raw is None:
+            if Basis.OBSERVATION in basis:
+                self.problem("a case with basis 'observation' needs 'observations'")
+            return ()
+        if status is Status.PROVISIONAL:
+            self.problem("provisional cases must not have 'observations'; an observed case is confirmed")
+            return ()
+        if Basis.OBSERVATION not in basis:
+            self.problem("a case with 'observations' must list 'observation' in its 'basis'")
+        if not isinstance(raw, list) or not raw:
+            self.problem("'observations' must be a non-empty list")
+            return ()
+        observations = []
+        for index, entry in enumerate(raw):
+            where = f"observations[{index}]"
+            if not isinstance(entry, dict):
+                self.problem(f"{where} must be an object with {sorted(_OBSERVATION_KEYS)}")
+                continue
+            self.no_unknown_keys(entry, _OBSERVATION_KEYS, where)
+            if missing := sorted(key for key in _OBSERVATION_KEYS if not _is_text(entry.get(key))):
+                self.problem(f"{where}: {missing} must be non-empty strings")
+                continue
+            values: dict[str, str] = {key: entry[key] for key in _OBSERVATION_KEYS}
+            try:
+                date = datetime.date.fromisoformat(values["date"])
+            except ValueError:
+                self.problem(f"{where}.date must be a date like 2026-10-14")
+                continue
+            evidence = Path(values["evidence"])
+            if evidence.is_absolute() or ".." in evidence.parts:
+                self.problem(f"{where}.evidence must be a path relative to the repository root")
+                continue
+            if not (repo_root / evidence).exists():
+                self.problem(f"{where}.evidence {values['evidence']!r} does not exist")
+                continue
+            observations.append(
+                Observation(
+                    looker_version=values["looker_version"],
+                    date=date,
+                    finding=values["finding"],
+                    evidence=evidence.as_posix(),
+                )
+            )
+        return tuple(observations)
+
     def expectations(self, raw: Any) -> tuple[dict[str, ModelExpectation], tuple[str, ...]]:
         if not isinstance(raw, dict):
             self.problem("'expect' must be an object with 'models'")
@@ -398,6 +507,10 @@ class _Checker:
         }
         if missing := sorted(set(models) - model_files):
             self.problem(f"expected models without a .model.lkml file in project/: {missing}")
+
+
+def _is_text(value: Any) -> bool:
+    return isinstance(value, str) and bool(value.strip())
 
 
 def _as_dict(value: Any) -> dict[str, Any]:
