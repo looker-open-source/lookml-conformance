@@ -4,11 +4,14 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>LookML Conformance</title>
-  <meta name="description" content="An open, vendor-neutral conformance suite for LookML: 39 minimal projects, each tied to a quoted rule, run against OpenMetadata, DataHub, Dagster and node-lookml-parser.">
+  <meta name="description" content="An open test suite for tools that read LookML: 39 rules of how Looker resolves a project, each checked on Looker, run against DataHub, OpenMetadata, Dagster and node-lookml-parser.">
   <meta property="og:title" content="LookML Conformance">
-  <meta property="og:description" content="An open, vendor-neutral test suite for how LookML resolves: 39 minimal projects, each tied to a quoted rule.">
-  <meta name="color-scheme" content="dark light">
+  <meta property="og:description" content="Does your catalog trace Looker to the right tables? 39 rules of how Looker resolves LookML, checked on Looker.">
+  <meta name="color-scheme" content="light">
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
   <link rel="stylesheet" href="styles.css">
   <script src="app.js" defer></script>
 </head>
@@ -16,173 +19,212 @@
   <a class="skip" href="#results">Skip to results</a>
 
   <header class="nav">
-    <div class="wrap nav__inner">
-      <a class="brand" href="#top" aria-label="LookML Conformance home">
-        <svg class="brand__mark" viewBox="0 0 32 32" aria-hidden="true"><use href="favicon.svg#mark"/></svg>
-        <span>lookml<span class="brand__dim">-conformance</span></span>
-      </a>
-      <nav class="nav__links" aria-label="Sections">
-        <a href="#impact">Findings</a>
+    <div class="wrap">
+      <a class="brand" href="#top">lookml-conformance</a>
+      <nav aria-label="Sections">
         <a href="#results">Results</a>
+        <a href="#case-study">Case study</a>
         <a href="#cases">Cases</a>
         <a href="#method">Method</a>
-        <a href="#run">Run it</a>
-        <a class="nav__gh" href="https://github.com/josephaxisa/lookml-conformance">GitHub</a>
+        <a href="#test">Test your tool</a>
+        <a class="gh" href="https://github.com/josephaxisa/lookml-conformance">GitHub</a>
       </nav>
     </div>
   </header>
 
-  <main id="top">
+  <main id="top" class="wrap">
     <section class="hero">
-      <div class="hero__glow" aria-hidden="true"></div>
-      <div class="wrap hero__grid">
-        <div class="hero__copy">
-          <p class="eyebrow">Open, vendor-neutral conformance suite for LookML</p>
-          <h1>One open test suite for how LookML resolves. <span class="grad">So every tool can read it the way Looker does.</span></h1>
-          <p class="lede" id="hero-lede">LookML defines the metrics behind an organization's reporting, and catalogs, lineage tools and AI assistants all depend on reading it the way Looker does. This suite turns that behavior into 39 small, testable cases, each tied to a quoted rule.</p>
-          <div class="hero__cta">
-            <a class="btn btn--primary" href="#results">See the results</a>
-            <a class="btn" href="#run">Test your tool</a>
-          </div>
-        </div>
-        <div class="hero__board card" id="hero-board" aria-label="Pass rate per tool"></div>
-      </div>
-      <div class="wrap">
-        <dl class="stats" id="stats"></dl>
+      <p class="eyebrow">For data teams whose catalog, lineage or orchestration reads LookML</p>
+      <h1>Your catalog may be tracing Looker to the wrong tables.</h1>
+      <p class="lede"><span id="case-count">39</span> tests, each checked on Looker, show where the tools that read your LookML resolve it differently from Looker.</p>
+      <div class="actions">
+        <a class="btn btn--solid" href="#results">See where each tool differs</a>
+        <a class="btn" href="#test">Test your tool</a>
       </div>
     </section>
 
-    <section class="section" id="impact">
-      <div class="wrap">
-        <p class="eyebrow">Why it matters</p>
-        <h2>Lineage is only as right as the LookML resolution behind it</h2>
-        <p class="section__lede">Looker assembles each model from its includes, applies refinements in include order and merges extends. Each step can change which table a view reads, so every tool that builds lineage from LookML has to reimplement all of them, usually without a Looker instance to check against. These are the areas where tools and Looker differ most today.</p>
-        <div class="impact" id="impact-cards"></div>
+    <section class="section" id="results">
+      <div class="section__head">
+        <h2><span class="n">01</span><span id="results-title">Every rule, every tool</span></h2>
+        <p class="small" id="results-date"></p>
+      </div>
+      <div class="scroll"><div class="matrix" id="matrix" role="table" aria-label="Every case against every tool"></div></div>
+      <p class="legend">
+        <span><i class="cell cell--pass"></i>matches Looker</span>
+        <span><i class="cell cell--fail"></i>differs</span>
+        <span><i class="cell cell--na"></i>does not apply: the tool does not emit what the case checks</span>
+        <span>select a row for that tool's differences, a column for the case</span>
+      </p>
+      <p class="note"><i>A snapshot of released versions, not a ranking.</i> Every difference comes with a minimal project that reproduces it, ready to use as a test for a fix.</p>
+    </section>
 
-        <div class="example card" id="example">
-          <div class="example__head">
-            <div>
-              <p class="eyebrow eyebrow--muted">Case <code id="example-id"></code></p>
-              <h3 id="example-title"></h3>
-              <p class="muted" id="example-rule"></p>
+    <section class="section" id="case-study">
+      <div class="section__head"><h2><span class="n">02</span>Why it matters</h2></div>
+      <div class="study">
+        <div class="study__text">
+          <p class="small">Case study · l04 · lineage</p>
+          <h3>Resolve LookML differently, and lineage points at a different table.</h3>
+          <p class="lede">A refinement moves <code>orders</code> to a cleaned table. Looker reads it; two catalogs trace the raw one, so dropping the cleaned table looks safe in their lineage.</p>
+          <div class="snippets">
+            <pre class="snippet"><span class="c"># views/orders.view.lkml</span>
+view: orders { sql_table_name: raw.orders ;; }</pre>
+            <pre class="snippet"><span class="c"># views/orders_refinements.view.lkml</span>
+view: +orders { sql_table_name: analytics.orders_clean ;; }</pre>
+            <pre class="snippet"><span class="c"># views/orders_rollup.view.lkml</span>
+derived_table: { sql: SELECT … FROM ${orders.SQL_TABLE_NAME} ;; }</pre>
+          </div>
+          <p class="small">“in most cases a refinement will override the original settings of an object” <a href="https://docs.cloud.google.com/looker/docs/lookml-refinements#refinements_override_parameters">lookml-refinements</a><br>node-lookml-parser builds no lineage, so l04 does not apply to it. <a href="#case=l04">Open case l04</a></p>
+        </div>
+        <div class="study__figs">
+          <figure class="fig">
+            <figcaption><b>What the derived table reads</b><span class="verdict verdict--pass">✓ Looker · Dagster</span></figcaption>
+            <div class="fig__box">
+              <div class="graph" role="img" aria-label="orders_rollup reads analytics.orders_clean; raw.orders is not read once the refinement applies.">
+                <svg width="500" height="176" viewBox="0 0 500 176" aria-hidden="true"><defs><marker id="m-pass" orient="auto" markerWidth="8" markerHeight="8" refX="7" refY="4"><path d="M0 0 L8 4 L0 8 Z" fill="#1d6b57" stroke="none"/></marker></defs><path d="M 220 148 H 238 Q 250 148 250 136 V 100 Q 250 88 262 88 H 278" stroke="#1d6b57" marker-end="url(#m-pass)"/></svg>
+                <div class="node node--dim" style="left:0;top:0"><span>TABLE<br><b>raw.orders</b></span></div>
+                <div class="node node--pass" style="left:0;top:120px"><span>TABLE<br><b>analytics.orders_clean</b></span></div>
+                <div class="node" style="left:280px;top:60px"><span>DERIVED TABLE<br><b>orders_rollup</b></span></div>
+                <div class="graph__label" style="left:0;top:74px">not read once refined</div>
+              </div>
             </div>
-          </div>
-          <div class="example__step">
-            <p class="step-label"><span>1</span><span>The project</span></p>
-            <p class="muted example__lede" id="example-setup"></p>
-            <div id="example-files"></div>
-          </div>
-          <div class="example__step">
-            <p class="step-label"><span>2</span><span>Which table each tool reads for <code>orders</code></span></p>
-            <div class="table-scroll"><table class="resolved__table" id="example-table"></table></div>
-            <blockquote class="quote" id="example-quote"></blockquote>
-          </div>
+          </figure>
+          <figure class="fig">
+            <figcaption><b>What the catalog records</b><span class="verdict verdict--fail">✗ DataHub · OpenMetadata</span></figcaption>
+            <div class="fig__box">
+              <div class="graph" role="img" aria-label="The catalogs trace orders_rollup to raw.orders; analytics.orders_clean has nothing downstream.">
+                <svg width="500" height="176" viewBox="0 0 500 176" aria-hidden="true"><defs><marker id="m-fail" orient="auto" markerWidth="8" markerHeight="8" refX="7" refY="4"><path d="M0 0 L8 4 L0 8 Z" fill="#b4400e" stroke="none"/></marker></defs><path d="M 220 28 H 238 Q 250 28 250 40 V 76 Q 250 88 262 88 H 278" stroke="#b4400e" marker-end="url(#m-fail)"/></svg>
+                <div class="node node--fail" style="left:0;top:0"><span>TABLE<br><b>raw.orders</b></span></div>
+                <div class="node node--orphan" style="left:0;top:120px"><span>TABLE<br><b>analytics.orders_clean</b></span></div>
+                <div class="node" style="left:280px;top:60px"><span>DERIVED TABLE<br><b>orders_rollup</b></span></div>
+                <div class="graph__label graph__label--fail" style="left:280px;top:128px">← nothing downstream: dropping it looks safe</div>
+              </div>
+            </div>
+            <p class="fig__note">DataHub records the step through the <code>orders</code> view and OpenMetadata links the table directly. Both end at <code>raw.orders</code>.</p>
+          </figure>
         </div>
       </div>
-    </section>
-
-    <section class="section section--alt" id="results">
-      <div class="wrap">
-        <p class="eyebrow">Results</p>
-        <h2>How each tool compares with Looker</h2>
-        <p class="section__lede" id="results-lede"></p>
-        <div class="tools" id="tools"></div>
+      <div class="impact">
+        <div>
+          <p class="small">Catalogs · <a href="#case=l04">case l04</a></p>
+          <p>Impact analysis misses dependencies. Change or drop the cleaned table and the catalog shows nothing built on it.</p>
+        </div>
+        <div>
+          <p class="small">Orchestrators · <a href="#case=r03">case r03</a></p>
+          <p>Dagster builds each view’s asset dependencies from its resolved table:</p>
+          <pre class="snippet">sql_table_name = lookml_view_props.get("sql_table_name") or lookml_view_props["name"]</pre>
+          <p class="small"><a href="https://github.com/dagster-io/dagster/blob/1.13.25/python_modules/libraries/dagster-looker/dagster_looker/lkml/dagster_looker_lkml_translator.py#L76-L108">dagster-looker 0.29.25, dagster_looker_lkml_translator.py#L76-L108</a></p>
+          <p>When it applies the wrong refinement, the <code>orders</code> asset depends on <code>sandbox.orders_test</code> instead of <code>analytics.orders_clean</code>.</p>
+        </div>
+        <div>
+          <p class="small">AI assistants · not scored here</p>
+          <p>An assistant that reads LookML files to write SQL inherits the same differences: the wrong table, or a refinement’s filter left out.</p>
+        </div>
       </div>
     </section>
 
     <section class="section" id="cases">
-      <div class="wrap">
-        <p class="eyebrow">Cases</p>
-        <h2>Every case, every tool</h2>
-        <p class="section__lede">Each row is one rule. Select a row to read the documentation it quotes, the LookML project, and how each tool's output compares with Looker's.</p>
-        <div class="filters" role="toolbar" aria-label="Filter cases">
-          <div class="chips" id="category-chips"></div>
-          <div class="filters__right">
-            <label class="toggle"><input type="checkbox" id="only-confirmed"> Confirmed only</label>
-            <label class="toggle"><input type="checkbox" id="only-failing"> Failing only</label>
-          </div>
-        </div>
-        <div class="matrix card">
-          <div class="table-scroll"><table class="matrix__table" id="matrix"></table></div>
-        </div>
-        <p class="legend"><span class="dot dot--pass"></span>pass <span class="dot dot--fail"></span>fail <span class="dot dot--error"></span>adapter error <span class="dot dot--na"></span>not applicable <span class="badge badge--provisional" title="The docs leave this open; not yet checked on Looker.">provisional</span> behavior the documentation leaves open</p>
+      <div class="section__head">
+        <h2><span class="n">03</span>The cases</h2>
+        <p class="small" id="cases-meta"></p>
       </div>
-    </section>
-
-    <section class="section section--alt" id="method">
-      <div class="wrap">
-        <p class="eyebrow">Method</p>
-        <h2>Every expectation is traceable</h2>
-        <ol class="steps">
-          <li class="step card">
-            <span class="step__n">1</span>
-            <h3>One rule</h3>
-            <p>A case states a single rule in one sentence, such as "the file included last wins".</p>
-          </li>
-          <li class="step card">
-            <span class="step__n">2</span>
-            <h3>A verbatim quote</h3>
-            <p>The rule cites the Looker documentation word for word, linked to the section. <code>check-citations</code> re-reads every page and fails if a quote changes.</p>
-          </li>
-          <li class="step card">
-            <span class="step__n">3</span>
-            <h3>A minimal project</h3>
-            <p>A few lines of LookML that isolate the rule, and the resolution Looker produces for each model.</p>
-          </li>
-          <li class="step card">
-            <span class="step__n">4</span>
-            <h3>An honest adapter</h3>
-            <p>Each tool runs through an adapter that reports what the tool produces and never fills a gap the tool leaves.</p>
-          </li>
-        </ol>
-        <p class="note" id="method-note"></p>
-        <div class="intent card">
-          <h3>How to read the results</h3>
-          <p>Conformance is hard, and lineage on top of it is harder. The tools scored here are maintained by people solving a difficult problem, mostly without access to Looker's own resolver. The scores describe the released versions pinned in <code>adapters.json</code> and are a snapshot, not a ranking. Every difference comes with a minimal project that reproduces it, so it can serve directly as a test case for a fix.</p>
-          <p>If a case or an adapter misrepresents what a tool does, that is a bug in this suite. Please <a href="https://github.com/josephaxisa/lookml-conformance/issues">open an issue</a>.</p>
+      <div class="toolbar" role="toolbar" aria-label="Filter cases">
+        <div class="chips" id="chips"></div>
+        <div class="toolbar__right">
+          <label>Tool <select id="tool-filter"><option value="">all tools</option></select></label>
+          <label><input type="checkbox" id="only-differs"> Differs only</label>
+          <label><input type="checkbox" id="only-filed"> Filed upstream</label>
         </div>
       </div>
+      <p class="filter-note" id="filter-note" aria-live="polite"></p>
+      <div class="scroll"><div class="cases__table" id="cases-table"></div></div>
     </section>
 
-    <section class="section" id="run">
-      <div class="wrap run">
-        <div>
-          <p class="eyebrow">Run it</p>
-          <h2>Score your tool or your branch</h2>
-          <p class="section__lede">An adapter runs your tool on LookML projects and prints one JSON line per project. In Python that is one class with one method. Point the runner at your branch and use the exit status as a CI gate.</p>
-          <a class="btn btn--primary" href="https://github.com/josephaxisa/lookml-conformance/blob/main/docs/writing-an-adapter.md">Write an adapter</a>
-        </div>
-        <pre class="code card"><code><span class="c"># reproduce the published scorecard</span>
-pip install -e .
-lookml-conformance setup
-lookml-conformance run
+    <section class="section" id="method">
+      <div class="section__head"><h2><span class="n">04</span>Every expectation is traceable</h2></div>
+      <ol class="steps">
+        <li><span>1</span><h3>One rule</h3><p>A case states a single rule in one sentence, such as “the file included last wins”.</p></li>
+        <li><span>2</span><h3>A verbatim quote</h3><p>The rule cites the Looker documentation word for word. <code>check-citations</code> re-reads every page each week and fails if a quote changes.</p></li>
+        <li><span>3</span><h3>A minimal project</h3><p>A few lines of LookML that isolate the rule, and the result Looker produces for each model.</p></li>
+        <li><span>4</span><h3>Confirmed on Looker</h3><p>The project runs on a Looker instance and the result is read back. Where the documentation is silent, Looker decides.</p></li>
+        <li><span>5</span><h3>An honest adapter</h3><p>Each tool runs through an adapter that reports what the tool produces and never fills a gap the tool leaves.</p></li>
+      </ol>
+      <p class="note">Checked on Looker <span class="ph">[LOOKER VERSION]</span> on <span class="ph">[DATE]</span>. If a case or an adapter misrepresents a tool, that is a bug in this suite: <a href="https://github.com/josephaxisa/lookml-conformance/issues">open an issue</a>.</p>
+    </section>
 
-<span class="c"># score a branch you have installed</span>
+    <section class="section" id="test">
+      <div class="section__head"><h2><span class="n">05</span>Test your tool</h2></div>
+      <p class="section__intro" style="font-size:22px;color:var(--ink)">Looker’s resolver isn’t public. This is the first open test suite for it.</p>
+      <div class="runbox">
+        <pre><span class="c"># score your tool or your branch</span>
 lookml-conformance run \
-  --command "python -m lookml_conformance.adapters.datahub" \
-  --name datahub-branch
+  --command "python my_adapter.py"</pre>
+        <dl class="facts">
+          <div><dt>Runs in</dt><dd>0.23 s</dd><dd>for all 39 cases, timed with node-lookml-parser; your tool’s start-up time adds to it</dd></div>
+          <div><dt>CI gate</dt><dd>exit 1</dd><dd>when a case differs from Looker</dd></div>
+          <div><dt>Adapter</dt><dd>1 method</dd><dd>in Python, or any program that prints JSON</dd></div>
+        </dl>
+      </div>
+      <div class="howto">
+        <div>
+          <h3><span>1</span>Write an adapter</h3>
+          <pre class="code">from pathlib import Path
 
-<span class="c"># add a tool</span>
-lookml-conformance new-adapter my-tool
-lookml-conformance check-adapter --command "python my_tool.py"</code></pre>
+from my_tool import load_project
+from lookml_conformance.adapter import Adapter
+from lookml_conformance.adapters import kit
+from lookml_conformance.protocol import ModelOutput
+
+
+class MyToolAdapter(Adapter):
+    name = "my-tool"
+    distribution = "my-tool"
+
+    def resolve(self, project: Path) -> dict[str, ModelOutput]:
+        resolved = load_project(project)
+        return {
+            model.name: ModelOutput(views={
+                view["name"]: kit.view_output(view)
+                for view in model.views
+            })
+            for model in resolved.models
+        }
+
+
+if __name__ == "__main__":
+    raise SystemExit(MyToolAdapter.main())</pre>
+          <p class="small"><code>lookml-conformance new-adapter my-tool</code> writes this file. Not Python? Print the <a href="https://github.com/josephaxisa/lookml-conformance/blob/main/docs/adapter-protocol.md">JSON protocol</a>.</p>
+        </div>
+        <div>
+          <h3><span>2</span>Add a workflow</h3>
+          <pre class="code"><span class="c"># .github/workflows/lookml-conformance.yml</span>
+on: [pull_request]
+jobs:
+  conformance:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - uses: actions/checkout@v4
+        with:
+          repository: josephaxisa/lookml-conformance
+          path: conformance
+      - run: pip install . ./conformance
+      - run: lookml-conformance run --name my-tool
+               --command "python $GITHUB_WORKSPACE/my_adapter.py"
+        working-directory: conformance</pre>
+          <p class="small">The job fails when a case your tool supports differs from Looker.</p>
+        </div>
       </div>
     </section>
   </main>
 
   <footer class="footer">
-    <div class="wrap footer__inner">
-      <p id="footer-date"></p>
+    <div class="wrap">
+      <p id="footer-date">Scored against the versions in adapters.json.</p>
       <p>Created and maintained by <a href="https://github.com/josephaxisa">Joseph Axisa</a> · <a href="https://github.com/josephaxisa/lookml-conformance">Source</a></p>
     </div>
   </footer>
-
-  <div class="drawer" id="drawer" hidden>
-    <div class="drawer__scrim" data-close></div>
-    <aside class="drawer__panel" role="dialog" aria-modal="true" aria-labelledby="drawer-title">
-      <button class="drawer__close" type="button" data-close aria-label="Close">×</button>
-      <div id="drawer-body"></div>
-    </aside>
-  </div>
 
   <noscript><p class="wrap">The results need JavaScript. They are also in <a href="https://github.com/josephaxisa/lookml-conformance/blob/main/results/latest.md">results/latest.md</a>.</p></noscript>
 </body>

@@ -3,13 +3,19 @@
 // Renders the results page from data.json (written by `lookml-conformance site`).
 // The DOM is built with createElement and textContent only; no data is parsed as HTML.
 
-const OUTCOME_LABEL = { pass: "pass", fail: "fail", error: "error", "n/a": "n/a" };
-const OUTCOME_CLASS = { pass: "pass", fail: "fail", error: "error", "n/a": "na" };
-const EXAMPLE_CASE = "r03_two_models_refine_one_view_differently";
-const STATUS_DESCRIPTION = {
-  confirmed: "Follows from the quoted Looker docs.",
-  provisional: "The docs leave this open; not yet checked on Looker.",
-};
+const REPO = "https://github.com/josephaxisa/lookml-conformance";
+
+// Issues and pull requests filed upstream because of a case. To move into data.json (issue #4).
+const UPSTREAM = [
+  {
+    tool: "node-lookml-parser",
+    caseId: "p01",
+    url: "https://github.com/fabio-looker/node-lookml-parser/pull/43",
+    label: "fabio-looker/node-lookml-parser#43",
+    title: "Fix single-semicolon corruption inside ;; blocks",
+    status: "submitted",
+  },
+];
 
 const $ = (selector) => document.querySelector(selector);
 
@@ -29,18 +35,15 @@ function h(tag, attrs = {}, ...children) {
   return el;
 }
 
-const pct = ({ passed, applicable }) => (applicable ? Math.round((100 * passed) / applicable) : 0);
-// Score colours: under 50% red, 50 to 79% yellow, 80% and up green.
-const tier = (rate) => (rate < 50 ? "low" : rate < 80 ? "mid" : "high");
-const isLineageTool = (tool) => tool.kind !== "Parser";
-const NUMBER_WORDS = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten"];
-const numberWord = (n) => NUMBER_WORDS[n] ?? String(n);
-const capitalize = (s) => s.charAt(0).toUpperCase() + s.slice(1);
-
-function tally(data, toolName, cases) {
-  const verdicts = cases.map((c) => c.verdicts[toolName]).filter((v) => v && v.outcome !== "n/a");
-  return { passed: verdicts.filter((v) => v.outcome === "pass").length, applicable: verdicts.length };
-}
+const shortId = (c) => c.id.split("_")[0];
+const outcomeOf = (c, tool) => c.verdicts[tool.name]?.outcome ?? "n/a";
+const differs = (outcome) => outcome === "fail" || outcome === "error";
+const OUTCOME = {
+  pass: { cls: "pass", mark: "✓", label: "matches Looker" },
+  fail: { cls: "fail", mark: "✗", label: "differs" },
+  error: { cls: "error", mark: "✗", label: "adapter error" },
+  "n/a": { cls: "na", mark: "–", label: "does not apply" },
+};
 
 // ---------------------------------------------------------------- LookML highlighting
 
@@ -51,8 +54,8 @@ function highlight(source) {
   let last = 0;
   for (const match of source.matchAll(LOOKML_TOKENS)) {
     if (match.index > last) out.append(source.slice(last, match.index));
-    const [text, comment, string, terminator, reference, key, refinement] = match;
-    const cls = comment ? "tok-c" : string ? "tok-s" : terminator ? "tok-r" : reference ? "tok-s" : key ? "tok-k" : refinement ? "tok-k" : "tok-p";
+    const [text, comment, string, terminator, reference] = match;
+    const cls = comment ? "tok-c" : string || reference ? "tok-s" : terminator ? "tok-r" : "tok-k";
     out.append(h("span", { class: cls }, text));
     last = match.index + text.length;
   }
@@ -60,424 +63,340 @@ function highlight(source) {
   return out;
 }
 
-function fileBlock(file) {
-  return h("div", { class: "file" }, h("div", { class: "file__name" }, file.path), h("pre", {}, h("code", {}, highlight(file.content))));
+// ---------------------------------------------------------------- matrix
+
+// Buckets, left to right: no tool matches, exactly one matches, some match, all match.
+function bucketOf(c, tools) {
+  const applicable = tools.map((t) => outcomeOf(c, t)).filter((o) => o !== "n/a");
+  const passed = applicable.filter((o) => o === "pass").length;
+  if (passed === 0) return 0;
+  if (passed === applicable.length) return 3;
+  if (passed === 1) return 1;
+  return 2;
 }
 
-// ---------------------------------------------------------------- hero, stats, impact
-
-function renderHero(data) {
-  const tools = [...data.tools].sort((a, b) => pct(b.score.all) - pct(a.score.all));
-  $("#hero-lede").textContent =
-    "LookML defines the metrics behind an organization's reporting, and catalogs, lineage tools and AI assistants " +
-    "all depend on reading it the way Looker does. " +
-    `This suite turns that behavior into ${data.suite.cases} small, testable cases, each tied to a quoted rule.`;
-
-  const board = $("#hero-board");
-  board.replaceChildren(
-    h("div", { class: "board__title" }, h("h3", {}, "Cases passed"), h("span", {}, `scored ${data.date}`)),
-    ...tools.map((tool) => {
-      const rate = pct(tool.score.all);
-      const fill = h("span", { "data-width": `${rate}%` });
-      return h(
-        "div",
-        { class: "bar-row" },
-        h("div", { class: "bar-row__name" }, tool.label, h("small", {}, `${tool.kind} · ${tool.version}`)),
-        h("div", { class: `bar tier--${tier(rate)}`, role: "img", "aria-label": `${tool.label}: ${rate}%` }, fill),
-        h("div", { class: "bar-row__pct" }, `${rate}%`),
-      );
-    }),
-  );
-  requestAnimationFrame(() => board.querySelectorAll("[data-width]").forEach((el) => (el.style.width = el.dataset.width)));
-
-  const applicable = data.cases.reduce(
-    (sum, c) => sum + Object.values(c.verdicts).filter((v) => v.outcome !== "n/a").length,
-    0,
-  );
-  const stats = [
-    ["Cases", data.suite.cases],
-    ["Verbatim doc quotes", data.suite.citations],
-    ["Looker doc pages cited", data.suite.pages],
-    ["Tools scored", data.tools.length],
-    ["Verdicts", applicable],
-  ];
-  $("#stats").replaceChildren(...stats.map(([label, value]) => h("div", {}, h("dt", {}, label), h("dd", {}, value))));
+function passRate(c, tools) {
+  const applicable = tools.map((t) => outcomeOf(c, t)).filter((o) => o !== "n/a");
+  return applicable.length ? applicable.filter((o) => o === "pass").length / applicable.length : 1;
 }
 
-function renderImpact(data) {
-  const lineage = data.tools.filter(isLineageTool);
-  const inCategory = (category) => data.cases.filter((c) => c.category === category);
+const GROUP = [
+  { cls: "none", label: "no tool matches" },
+  { cls: "one", label: "one tool matches" },
+  { cls: "", label: "" },
+  { cls: "all", label: "every tool it applies to matches" },
+];
 
-  const refinements = inCategory("refinements");
-  const bestRefinements = Math.max(...lineage.map((t) => tally(data, t.name, refinements).passed));
+function renderMatrix(data, tools) {
+  const order = data.cases.map((c, index) => ({ c, index, bucket: bucketOf(c, tools), rate: passRate(c, tools) }));
+  order.sort((a, b) => a.bucket - b.bucket || a.rate - b.rate || a.index - b.index);
+  const cases = order.map((o) => o.c);
 
-  const scopeCases = data.cases.filter((c) => ["r03_two_models_refine_one_view_differently", "m01_model_without_the_refinement_sees_the_base"].includes(c.id));
-  const scopeFailures = lineage.filter((t) => scopeCases.some((c) => c.verdicts[t.name]?.outcome === "fail")).length;
+  const tripped = order.filter((o) => o.bucket !== 3).length;
+  $("#results-title").textContent = `${tripped} of ${cases.length} rules trip up at least one tool`;
+  $("#results-date").textContent = `released versions, scored ${data.date}`;
 
-  const extendsCases = inCategory("extends");
-  const extendsTotals = lineage.map((t) => tally(data, t.name, extendsCases));
-  const extendsPassed = extendsTotals.reduce((s, t) => s + t.passed, 0);
-  const extendsApplicable = extendsTotals.reduce((s, t) => s + t.applicable, 0);
-
-  const lineageCases = inCategory("lineage");
-  const bestLineage = Math.max(...lineage.map((t) => tally(data, t.name, lineageCases).passed));
-
-  const cards = [
-    {
-      big: [bestRefinements, ` / ${refinements.length}`],
-      title: "Refinements",
-      text: `The strongest lineage tool passes ${bestRefinements} of the ${refinements.length} refinement cases. Getting them right means applying refinements in include order, per model, merging fields parameter by parameter and honoring final: yes.`,
-    },
-    {
-      big: [lineage.length - scopeFailures, ` / ${lineage.length}`],
-      title: "Model scope",
-      text: `When two models refine the same view differently, Looker gives each model its own version of the view. ${lineage.length - scopeFailures} of ${lineage.length} lineage tools keep the versions apart; the others report one version for both models.`,
-    },
-    {
-      big: [extendsPassed, ` / ${extendsApplicable}`],
-      title: "Extends",
-      text: `Across the lineage tools, ${extendsPassed} of ${extendsApplicable} extends results pass. Views that extend several views, or gain extends through a refinement, need their parents merged in priority order.`,
-    },
-    {
-      big: [bestLineage, ` / ${lineageCases.length}`],
-      title: "Derived table lineage",
-      text: `The strongest lineage tool passes ${bestLineage} of the ${lineageCases.length} lineage cases. They cover \${view.SQL_TABLE_NAME} references, chains of derived tables, references to refined views and native derived tables.`,
-    },
-  ];
-  $("#impact-cards").replaceChildren(
-    ...cards.map((card) =>
-      h("article", { class: `impact__card card tier--${tier(pct({ passed: card.big[0], applicable: Number(card.big[1].replace(/\D/g, "")) }))}` }, h("div", { class: "impact__big" }, card.big[0], h("small", {}, card.big[1])), h("h3", {}, card.title), h("p", {}, card.text)),
-    ),
-  );
-}
-
-// ---------------------------------------------------------------- example case
-
-function resolvedValue(caseData, toolName, model, view, expected) {
-  const verdict = caseData.verdicts[toolName];
-  if (!verdict || verdict.outcome === "pass") return { value: expected, ok: true };
-  const prefix = `${model}.${view}.sql_table_name: expected `;
-  const reason = verdict.reasons.find((r) => r.startsWith(prefix));
-  if (!reason) return { value: expected, ok: true };
-  const got = reason.split(", got ").pop();
-  return { value: got.replace(/^'|'$/g, ""), ok: false };
-}
-
-const includesOf = (file) => [...file.content.matchAll(/include:\s*"([^"]+)"/g)].map((m) => m[1].replace(/^\//, ""));
-const includedBy = (model, path) => includesOf(model).some((inc) => path === inc || path.startsWith(`${inc}.`));
-
-function renderExample(data) {
-  const example = data.cases.find((c) => c.id === EXAMPLE_CASE);
-  if (!example) {
-    $("#example").remove();
-    return;
+  const width = (n) => `${n * 18 + (n - 1) * 3}px`;
+  const groups = h("div", { class: "matrix__groups", "aria-hidden": "true" }, h("span", { class: "matrix__lead" }));
+  for (let bucket = 0; bucket < 4; bucket++) {
+    const n = order.filter((o) => o.bucket === bucket).length;
+    if (!n) continue;
+    groups.append(h("span", { class: `matrix__group ${GROUP[bucket].cls ? `matrix__group--${GROUP[bucket].cls}` : ""}`, style: `width:${width(n)}` }, GROUP[bucket].label));
   }
-  $("#example-id").textContent = example.id;
-  $("#example-title").textContent = example.title;
-  $("#example-rule").textContent = example.rule;
+  groups.append(h("span", { class: "matrix__score-head" }, "matches"));
 
-  const models = Object.keys(example.expect.models);
-  const expected = Object.fromEntries(models.map((m) => [m, example.expect.models[m].views.orders.sql_table_name]));
-  const modelFile = Object.fromEntries(models.map((m) => [m, example.files.find((f) => f.path === `${m}.model.lkml`)]));
-  const others = example.files.filter((f) => !Object.values(modelFile).includes(f));
-  const own = Object.fromEntries(
-    models.map((m) => [m, others.filter((f) => includedBy(modelFile[m], f.path) && models.every((n) => n === m || !includedBy(modelFile[n], f.path)))]),
-  );
-  const shared = others.filter((f) => !models.some((m) => own[m].includes(f)));
-  const baseFile = shared.find((f) => /^view:\s*orders\b/m.test(f.content));
-  const base = baseFile?.content.match(/sql_table_name:\s*([^\s;]+)/)?.[1];
-
-  $("#example-setup").textContent =
-    `Both models include the same orders view${base ? ` (table ${base})` : ""}. Each also includes its own refinement ` +
-    `that points orders at a different table, so Looker resolves orders differently in each model.`;
-  $("#example-files").replaceChildren(
-    h("div", { class: "project__shared" }, h("p", { class: "project__label" }, "Shared by both models"), ...shared.map(fileBlock)),
+  const rows = tools.map((tool) =>
     h(
       "div",
-      { class: "project__models" },
-      ...models.map((m) =>
-        h(
-          "div",
-          { class: "project__model" },
-          h("p", { class: "project__label" }, `Model ${m}`, h("span", {}, `orders → ${expected[m]}`)),
-          fileBlock(modelFile[m]),
-          ...own[m].map(fileBlock),
-        ),
+      { class: "matrix__row", role: "row" },
+      h(
+        "a",
+        { class: "matrix__lead", href: `#tool=${tool.name}`, role: "rowheader", title: `Show the cases where ${tool.label} differs` },
+        h("span", { class: "kind" }, tool.kind ?? ""),
+        h("span", { class: "matrix__name" }, tool.label),
       ),
+      cases.map((c) => {
+        const o = OUTCOME[outcomeOf(c, tool)];
+        return h("a", { class: `cell cell--${o.cls}`, href: `#case=${shortId(c)}`, role: "cell", "aria-label": `${shortId(c)}, ${tool.label}: ${o.label}`, title: `${shortId(c)} · ${o.label}` });
+      }),
+      h("span", { class: "matrix__score", role: "cell" }, `${tool.score.all.passed}`, h("span", {}, ` / ${tool.score.all.applicable}`)),
     ),
   );
 
-  const explain = (m, value) => {
-    if (value === base) return "refinement not applied";
-    const from = models.find((n) => n !== m && expected[n] === value);
-    return from ? `got model ${from}'s refinement` : "";
-  };
-  const table = $("#example-table");
-  table.replaceChildren(
-    h("thead", {}, h("tr", {}, h("th", {}, "Tool"), ...models.map((m) => h("th", {}, `Model ${m}`)))),
-    h(
-      "tbody",
-      {},
-      h("tr", { class: "is-looker" }, h("td", {}, "Looker (expected)"), ...models.map((m) => h("td", { "data-label": `Model ${m}` }, h("code", {}, expected[m])))),
-      ...data.tools.map((tool) =>
-        h(
-          "tr",
-          {},
-          h("td", {}, tool.label),
-          ...models.map((m) => {
-            const { value, ok } = resolvedValue(example, tool.name, m, "orders", expected[m]);
-            const note = ok ? "" : explain(m, value);
-            return h(
-              "td",
-              { class: ok ? "cell-ok" : "cell-bad", "data-label": `Model ${m}` },
-              h("span", { class: "cell__mark", "aria-label": ok ? "pass" : "fail" }, ok ? "✓" : "✗"),
-              h("code", {}, value),
-              note ? h("small", {}, note) : null,
-            );
-          }),
-        ),
-      ),
-    ),
+  const ids = h(
+    "div",
+    { class: "matrix__ids" },
+    h("span", { class: "matrix__lead" }, "case"),
+    cases.map((c) => h("a", { class: "matrix__id", href: `#case=${shortId(c)}`, title: c.title }, shortId(c))),
   );
-  const citation = example.citations[0];
-  $("#example-quote").replaceChildren(h("p", {}, `“${citation.quote}”`), h("a", { href: citation.url }, citation.label));
+
+  $("#matrix").replaceChildren(groups, ...rows, ids);
 }
 
-// ---------------------------------------------------------------- scoreboard
+// ---------------------------------------------------------------- cases
 
-function renderTools(data) {
-  const lineage = data.tools.filter(isLineageTool);
-  $("#results-lede").textContent =
-    `Released versions, scored on ${data.date}. Percentages count only the cases that apply to each tool: ` +
-    `a case doesn't apply when a tool doesn't produce that output at all, such as explores, which OpenMetadata ` +
-    `reads from the Looker API. ${capitalize(numberWord(lineage.length))} of the ${numberWord(data.tools.length)} ` +
-    `tools build lineage from LookML.`;
+const state = { category: "", tool: "", onlyDiffers: false, onlyFiled: false, open: "" };
+const filedFor = (c) => UPSTREAM.filter((u) => u.caseId === shortId(c));
 
-  $("#tools").replaceChildren(
-    ...data.tools.map((tool) => {
-      const rate = pct(tool.score.all);
-      const rows = data.categories.map((category) => {
-        const t = tally(data, tool.name, data.cases.filter((c) => c.category === category.id));
-        if (!t.applicable) return null;
+function expectLines(expect) {
+  const lines = [];
+  for (const [model, out] of Object.entries(expect.models ?? {})) {
+    for (const kind of ["views", "explores"]) {
+      for (const [name, props] of Object.entries(out[kind] ?? {})) {
+        for (const [key, value] of Object.entries(props)) {
+          lines.push(`${model}.${name}.${key}: ${typeof value === "string" ? value : JSON.stringify(value)}`);
+        }
+      }
+    }
+  }
+  if (expect.absent_views?.length) lines.push(`views that must not exist: ${expect.absent_views.join(", ")}`);
+  return lines;
+}
+
+function issueUrl(data, c, tool) {
+  const verdict = c.verdicts[tool.name];
+  const page = `${location.origin}${location.pathname}#case=${shortId(c)}`;
+  const citation = c.citations[0];
+  const head = [
+    `[lookml-conformance](${page}) checks how tools resolve LookML projects against Looker. In case \`${c.id}\`, ${tool.label} ${tool.version} resolves the project differently from Looker.`,
+    "",
+    `**Rule.** ${c.rule}`,
+    "",
+  ];
+  if (citation) head.push(`> ${citation.quote}`, `>`, `> [${citation.label}](${citation.url})`, "");
+  head.push("**Difference**", ...verdict.reasons.map((r) => `- ${r}`), "");
+  const files = [
+    "<details><summary>The minimal LookML project</summary>",
+    "",
+    ...c.files.flatMap((f) => [`\`${f.path}\``, "```lookml", f.content.trimEnd(), "```", ""]),
+    "</details>",
+    "",
+  ];
+  const tail = [
+    "**Reproduce**",
+    "```",
+    `git clone ${REPO} && cd lookml-conformance`,
+    "pip install -e . && lookml-conformance setup",
+    `lookml-conformance run --adapter ${tool.name} --only ${shortId(c)}`,
+    "```",
+  ];
+  let body = [...head, ...files, ...tail].join("\n");
+  if (body.length > 5500) body = [...head, `The project's files are in [the case](${page}).`, "", ...tail].join("\n");
+  const title = `LookML resolution differs from Looker: ${c.title}`;
+  return `${tool.url.replace(/\/$/, "")}/issues/new?title=${encodeURIComponent(title)}&body=${encodeURIComponent(body)}`;
+}
+
+function renderDetail(data, tools, c) {
+  const left = h(
+    "div",
+    { class: "detail__left" },
+    h("p", { class: "detail__rule" }, h("b", {}, "Rule. "), c.rule),
+    c.citations.map((cit) => h("blockquote", { class: "quote" }, `“${cit.quote}”`, h("a", { href: cit.url }, cit.label))),
+    c.status === "provisional" && c.provisional?.question ? h("p", { class: "question" }, h("b", {}, "Open question. "), c.provisional.question) : null,
+    h(
+      "div",
+      { class: "files" },
+      c.files.map((f) => h("pre", {}, h("span", { class: "path" }, `# ${f.path}`), highlight(f.content.trimEnd()))),
+    ),
+  );
+
+  const upstream = UPSTREAM.filter((u) => u.caseId === shortId(c));
+  const right = h(
+    "div",
+    { class: "detail__right" },
+    h("p", { class: "small" }, "What Looker produces"),
+    h("pre", { class: "expect" }, expectLines(c.expect).join("\n")),
+    h("p", { class: "small" }, "What each tool produces"),
+    h(
+      "div",
+      { class: "results" },
+      tools.map((tool) => {
+        const verdict = c.verdicts[tool.name] ?? { outcome: "n/a", reasons: [] };
+        const o = OUTCOME[verdict.outcome];
+        const filed = upstream.find((u) => u.tool === tool.name);
         return h(
           "div",
-          { class: "tool__row" },
-          h("span", {}, category.title),
-          h("div", { class: `mini tier--${tier(pct(t))}` }, h("span", { style: `width:${pct(t)}%` })),
-          h("b", {}, `${t.passed}/${t.applicable}`),
-        );
-      });
-      return h(
-        "article",
-        { class: "tool card" },
-        h(
-          "div",
-          { class: "tool__head" },
+          { class: "result" },
+          h("span", { class: `mark mark--${o.cls}`, "aria-hidden": "true" }, o.mark),
           h(
             "div",
             {},
-            h("div", { class: "tool__name" }, tool.url ? h("a", { href: tool.url }, tool.label) : tool.label),
-            h("div", { class: "tool__meta" }, `${tool.kind} · ${tool.language}`),
-            h("div", { class: "tool__meta" }, `${tool.score.all.passed} of ${tool.score.all.applicable} cases`),
+            h("span", { class: "result__tool" }, `${tool.label} `, h("span", {}, `${tool.version} · ${o.label}`)),
+            verdict.reasons.length ? h("ul", {}, verdict.reasons.map((r) => h("li", {}, r))) : null,
           ),
-          h("div", { class: `ring tier--${tier(rate)}`, style: `--p:${rate}` }, h("span", {}, `${rate}%`)),
-        ),
-        h(
-          "div",
-          { class: "tool__rows" },
-          h("div", { class: "tool__row" }, h("span", {}, "Confirmed"), h("div", { class: `mini tier--${tier(pct(tool.score.confirmed))}` }, h("span", { style: `width:${pct(tool.score.confirmed)}%` })), h("b", {}, `${tool.score.confirmed.passed}/${tool.score.confirmed.applicable}`)),
-          h("div", { class: "tool__row" }, h("span", {}, "Provisional"), h("div", { class: `mini tier--${tier(pct(tool.score.provisional))}` }, h("span", { style: `width:${pct(tool.score.provisional)}%` })), h("b", {}, `${tool.score.provisional.passed}/${tool.score.provisional.applicable}`)),
-        ),
-        h("div", { class: "tool__rows" }, rows),
-        tool.package ? h("div", { class: "pkg" }, tool.package) : null,
-      );
-    }),
+          differs(verdict.outcome) && tool.url
+            ? h(
+                "p",
+                { class: "result__report" },
+                filed
+                  ? ["Filed upstream: ", h("a", { href: filed.url }, filed.label)]
+                  : h("a", { href: issueUrl(data, c, tool), target: "_blank", rel: "noopener" }, `Report to ${tool.label} ↗`),
+              )
+            : null,
+        );
+      }),
+    ),
+    h(
+      "pre",
+      { class: "repro" },
+      h("span", { class: "c" }, "# reproduce for your tool\n"),
+      `lookml-conformance run --only ${shortId(c)} \\\n  --command "python my_adapter.py"`,
+    ),
   );
+
+  return h("div", { class: "detail", id: `detail-${shortId(c)}` }, left, right);
 }
 
-// ---------------------------------------------------------------- matrix
+function visibleCases(data, tools) {
+  const tool = tools.find((t) => t.name === state.tool);
+  return data.cases.filter((c) => {
+    if (state.category && c.category !== state.category) return false;
+    if (tool && !differs(outcomeOf(c, tool))) return false;
+    if (state.onlyDiffers && !tools.some((t) => differs(outcomeOf(c, t)))) return false;
+    if (state.onlyFiled && !filedFor(c).some((u) => !tool || u.tool === tool.name)) return false;
+    return true;
+  });
+}
 
-const state = { category: "all", confirmedOnly: false, failingOnly: false };
-
-function renderFilters(data) {
-  const options = [{ id: "all", title: "All" }, ...data.categories];
-  const chips = options.map((option) =>
+function renderCases(data, tools) {
+  const counts = Object.fromEntries(data.categories.map((cat) => [cat.id, data.cases.filter((c) => c.category === cat.id).length]));
+  const chip = (id, label, n) =>
     h(
       "button",
       {
         class: "chip",
         type: "button",
-        "aria-pressed": String(option.id === state.category),
+        "aria-pressed": String(state.category === id),
         onclick: () => {
-          state.category = option.id;
-          chips.forEach((chip, i) => chip.setAttribute("aria-pressed", String(options[i].id === state.category)));
-          renderMatrix(data);
+          state.category = id;
+          renderCases(data, tools);
         },
       },
-      option.title,
-    ),
+      `${label} `,
+      h("span", {}, n),
+    );
+  $("#chips").replaceChildren(chip("", "All", data.cases.length), ...data.categories.map((cat) => chip(cat.id, cat.title, counts[cat.id])));
+  $("#tool-filter").value = state.tool;
+  $("#only-differs").checked = state.onlyDiffers;
+  $("#only-filed").checked = state.onlyFiled;
+
+  const shown = visibleCases(data, tools);
+  const tool = tools.find((t) => t.name === state.tool);
+  const filedCount = UPSTREAM.filter((u) => tool && u.tool === tool.name).length;
+  $("#filter-note").textContent = tool
+    ? `The ${shown.length} cases where ${tool.label} ${tool.version} differs from Looker${state.category ? ` in ${data.categories.find((c) => c.id === state.category).title.toLowerCase()}` : ""}.${filedCount ? ` ${filedCount} filed upstream.` : ""}`
+    : "";
+
+  const table = $("#cases-table");
+  table.style.setProperty("--tools", tools.length);
+  const head = h(
+    "div",
+    { class: "cases__head" },
+    h("span", {}, "case"),
+    h("span", {}, "rule"),
+    tools.map((t) => h("span", {}, t.label)),
   );
-  $("#category-chips").replaceChildren(...chips);
-  $("#only-confirmed").addEventListener("change", (event) => {
-    state.confirmedOnly = event.target.checked;
-    renderMatrix(data);
-  });
-  $("#only-failing").addEventListener("change", (event) => {
-    state.failingOnly = event.target.checked;
-    renderMatrix(data);
-  });
-}
-
-function statusBadge(status) {
-  return h("span", { class: `badge badge--${status}`, title: STATUS_DESCRIPTION[status] }, status);
-}
-
-function pill(outcome) {
-  return h("span", { class: `pill pill--${OUTCOME_CLASS[outcome]}`, title: OUTCOME_LABEL[outcome] }, outcome === "pass" ? "✓" : outcome === "fail" ? "✗" : outcome === "error" ? "!" : "–");
-}
-
-function visibleCases(data) {
-  return data.cases.filter(
-    (c) =>
-      (state.category === "all" || c.category === state.category) &&
-      (!state.confirmedOnly || c.status === "confirmed") &&
-      (!state.failingOnly || Object.values(c.verdicts).some((v) => v.outcome === "fail" || v.outcome === "error")),
-  );
-}
-
-function renderMatrix(data) {
-  const cases = visibleCases(data);
-  const table = $("#matrix");
-  const head = h("thead", {}, h("tr", {}, h("th", {}, "Case"), ...data.tools.map((t) => h("th", {}, t.label))));
-  const body = h("tbody");
-  if (!cases.length) {
-    body.append(h("tr", {}, h("td", { colspan: data.tools.length + 1, class: "empty" }, "No cases match these filters.")));
-  }
-  for (const category of data.categories) {
-    const members = cases.filter((c) => c.category === category.id);
-    if (!members.length) continue;
-    body.append(h("tr", { class: "group" }, h("td", { colspan: data.tools.length + 1 }, category.title)));
-    for (const c of members) {
-      body.append(
-        h(
-          "tr",
-          {
-            class: "case-row",
-            tabindex: "0",
-            onclick: () => openCase(data, c.id),
-            onkeydown: (event) => {
-              if (event.key === "Enter" || event.key === " ") {
-                event.preventDefault();
-                openCase(data, c.id);
-              }
-            },
-          },
-          h(
-            "td",
-            {},
-            h("span", { class: "case-title" }, c.title, " ", c.status === "provisional" ? statusBadge(c.status) : null),
-            h("span", { class: "case-id" }, c.id),
-          ),
-          ...data.tools.map((t) => h("td", {}, pill(c.verdicts[t.name]?.outcome ?? "n/a"))),
-        ),
-      );
-    }
-  }
-  const foot = h(
-    "tfoot",
-    {},
-    h("tr", {}, h("td", {}, `Passed (${cases.length} cases shown)`), ...data.tools.map((t) => {
-      const result = tally(data, t.name, cases);
-      return h("td", {}, `${result.passed}/${result.applicable}`);
-    })),
-  );
-  table.replaceChildren(head, body, foot);
-}
-
-// ---------------------------------------------------------------- case drawer
-
-function openCase(data, id) {
-  const c = data.cases.find((item) => item.id === id);
-  if (!c) return;
-  const drawer = $("#drawer");
-  const tools = Object.fromEntries(data.tools.map((t) => [t.name, t]));
-  $("#drawer-body").replaceChildren(
-    h("p", { class: "eyebrow eyebrow--muted" }, data.categories.find((k) => k.id === c.category)?.title ?? c.category, " · ", h("code", {}, c.id)),
-    h("h2", { id: "drawer-title" }, c.title),
-    statusBadge(c.status),
-    h("section", {}, h("h4", {}, "Rule"), h("p", {}, c.rule)),
-    h(
-      "section",
-      {},
-      h("h4", {}, "Looker documentation"),
-      ...c.citations.map((citation) => h("blockquote", { class: "quote" }, h("p", {}, `“${citation.quote}”`), h("a", { href: citation.url }, citation.label))),
-      c.rationale ? h("p", { class: "muted", style: "margin-top:12px" }, c.rationale) : null,
-      c.provisional
-        ? h("div", { class: "callout" }, h("strong", {}, "Open question. "), c.provisional.question, h("br"), h("strong", {}, "Pinned to: "), c.provisional.pinned_to)
-        : null,
-      c.invalid_in_looker ? h("div", { class: "callout" }, "Looker rejects this project. A tool may report an error but must not produce the forbidden result.") : null,
-    ),
-    h("section", {}, h("h4", {}, "LookML project"), ...c.files.map(fileBlock)),
-    h("section", {}, h("h4", {}, "Expected resolution"), h("pre", { class: "json" }, JSON.stringify(c.expect, null, 2))),
-    h(
-      "section",
-      {},
-      h("h4", {}, "Verdicts"),
+  const rows = shown.map((c) => {
+    const id = shortId(c);
+    const open = state.open === id;
+    return h(
+      "div",
+      { class: `case${open ? " is-open" : ""}`, id: `case-${id}` },
       h(
-        "div",
-        { class: "verdicts" },
-        ...Object.entries(c.verdicts).map(([name, verdict]) =>
-          h(
-            "div",
-            { class: "verdict" },
-            h("div", { class: "verdict__head" }, pill(verdict.outcome), tools[name]?.label ?? name, h("span", { class: "muted", style: "font-weight:500" }, OUTCOME_LABEL[verdict.outcome])),
-            verdict.reasons.length ? h("ul", {}, ...verdict.reasons.map((r) => h("li", {}, r))) : null,
-          ),
+        "button",
+        {
+          class: "case__summary",
+          type: "button",
+          "aria-expanded": String(open),
+          "aria-controls": `detail-${id}`,
+          onclick: () => {
+            state.open = open ? "" : id;
+            history.replaceState(null, "", open ? location.pathname : `#case=${id}`);
+            renderCases(data, tools);
+          },
+        },
+        h("span", { class: "case__id" }, id),
+        h(
+          "span",
+          { class: "case__title" },
+          c.title,
+          c.status === "provisional" ? h("span", { class: "badge" }, "provisional") : null,
+          filedFor(c).length ? h("span", { class: "badge badge--filed", title: filedFor(c).map((u) => `${u.label}: ${u.title}`).join("\n") }, "filed upstream") : null,
+        ),
+        h(
+          "span",
+          { class: "case__marks" },
+          tools.map((t) => {
+            const o = OUTCOME[outcomeOf(c, t)];
+            return h("span", { class: `mark mark--${o.cls}`, "data-tool": t.label, title: `${t.label}: ${o.label}`, "aria-label": `${t.label}: ${o.label}` }, o.mark);
+          }),
         ),
       ),
-    ),
+      open ? renderDetail(data, tools, c) : null,
+    );
+  });
+  table.replaceChildren(head, ...(rows.length ? rows : [h("p", { class: "empty" }, "No cases match these filters.")]));
+}
+
+function applyHash(data, tools, scroll) {
+  const params = new URLSearchParams(location.hash.slice(1));
+  const toolName = params.get("tool");
+  const caseId = params.get("case");
+  if (toolName && tools.some((t) => t.name === toolName)) {
+    Object.assign(state, { tool: toolName, category: "", onlyDiffers: false, onlyFiled: false, open: "" });
+    renderCases(data, tools);
+    if (scroll) $("#cases").scrollIntoView();
+  } else if (caseId && data.cases.some((c) => shortId(c) === caseId)) {
+    const c = data.cases.find((x) => shortId(x) === caseId);
+    const tool = tools.find((t) => t.name === state.tool);
+    if (tool && !differs(outcomeOf(c, tool))) state.tool = "";
+    if (state.category && state.category !== c.category) state.category = "";
+    state.onlyDiffers = false;
+    state.onlyFiled = false;
+    state.open = caseId;
+    renderCases(data, tools);
+    if (scroll) $(`#case-${caseId}`).scrollIntoView();
+  }
+}
+
+// ---------------------------------------------------------------- page
+
+function render(data) {
+  const tools = [...data.tools].sort(
+    (a, b) => b.score.all.passed / b.score.all.applicable - a.score.all.passed / a.score.all.applicable,
   );
-  drawer.hidden = false;
-  document.body.style.overflow = "hidden";
-  if (location.hash !== `#case/${id}`) history.replaceState(null, "", `#case/${id}`);
-  drawer.querySelector(".drawer__close").focus();
+  $("#case-count").textContent = data.cases.length;
+  $("#cases-meta").textContent = `${data.suite.cases} cases · ${data.suite.citations} quotes from ${data.suite.pages} documentation pages`;
+  $("#footer-date").textContent = `Scored ${data.date} against the versions in adapters.json.`;
+
+  const select = $("#tool-filter");
+  select.replaceChildren(h("option", { value: "" }, "all tools"), ...tools.map((t) => h("option", { value: t.name }, t.label)));
+  select.addEventListener("change", () => {
+    state.tool = select.value;
+    history.replaceState(null, "", state.tool ? `#tool=${state.tool}` : location.pathname);
+    renderCases(data, tools);
+  });
+  $("#only-differs").addEventListener("change", (e) => {
+    state.onlyDiffers = e.target.checked;
+    renderCases(data, tools);
+  });
+  $("#only-filed").addEventListener("change", (e) => {
+    state.onlyFiled = e.target.checked;
+    renderCases(data, tools);
+  });
+
+  renderMatrix(data, tools);
+  renderCases(data, tools);
+  applyHash(data, tools, true);
+  window.addEventListener("hashchange", () => applyHash(data, tools, true));
 }
 
-function closeCase() {
-  const drawer = $("#drawer");
-  if (drawer.hidden) return;
-  drawer.hidden = true;
-  document.body.style.overflow = "";
-  if (location.hash.startsWith("#case/")) history.replaceState(null, "", "#cases");
-}
-
-// ---------------------------------------------------------------- boot
-
-async function main() {
-  const response = await fetch("data.json");
-  const data = await response.json();
-  renderHero(data);
-  renderImpact(data);
-  renderExample(data);
-  renderTools(data);
-  renderFilters(data);
-  renderMatrix(data);
-  $("#method-note").textContent =
-    `${data.suite.confirmed} cases are confirmed: the expectation follows from the quoted documentation. ` +
-    `${data.suite.provisional} are provisional: the documentation leaves the behavior open, so the case names the open question ` +
-    `and the public source its expectation is pinned to, until it is checked on a Looker instance.`;
-  $("#footer-date").textContent = `Scorecard from ${data.date} · ${data.tools.map((t) => `${t.label} ${t.version}`).join(" · ")}`;
-
-  document.querySelectorAll("[data-close]").forEach((el) => el.addEventListener("click", closeCase));
-  document.addEventListener("keydown", (event) => event.key === "Escape" && closeCase());
-  const fromHash = () => {
-    const match = location.hash.match(/^#case\/(.+)$/);
-    if (match) openCase(data, decodeURIComponent(match[1]));
-  };
-  window.addEventListener("hashchange", fromHash);
-  fromHash();
-}
-
-main().catch((error) => {
-  document.querySelector("main").prepend(h("p", { class: "wrap empty" }, `Could not load data.json: ${error}`));
-});
+fetch("data.json")
+  .then((response) => {
+    if (!response.ok) throw new Error(`data.json: HTTP ${response.status}`);
+    return response.json();
+  })
+  .then(render)
+  .catch((error) => {
+    $("#results").append(h("p", { class: "note" }, `Could not load the results (${error.message}). They are also in `, h("a", { href: `${REPO}/blob/main/results/latest.md` }, "results/latest.md"), "."));
+  });
