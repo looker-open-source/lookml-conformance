@@ -1,5 +1,9 @@
 # lookml-conformance
 
+[![CI](https://github.com/josephaxisa/lookml-conformance/actions/workflows/ci.yml/badge.svg)](https://github.com/josephaxisa/lookml-conformance/actions/workflows/ci.yml)
+[![Citations](https://github.com/josephaxisa/lookml-conformance/actions/workflows/citations.yml/badge.svg)](https://github.com/josephaxisa/lookml-conformance/actions/workflows/citations.yml)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue)](pyproject.toml)
+
 A conformance suite for tools that resolve LookML projects: metadata catalogs, orchestrators,
 parsers and linters that read LookML from git instead of asking a Looker instance.
 
