@@ -171,9 +171,9 @@ a.matrix__lead:hover .matrix__name { color: var(--pass-text); }
 .has-focus .mark.is-focus { margin-block: -6px; }
 .has-focus .tool-head.is-focus { align-items: flex-end; padding: 12px 8px 8px; margin: -14px 0 -8px; color: var(--ink); font-weight: 600; }
 .has-focus .tool-head:not(.is-focus) { color: var(--faint); font-weight: 400; }
-.has-focus .mark--pass:not(.is-focus) { color: #a9b9b1; font-weight: 400; font-size: 15px; }
-.has-focus .mark--fail:not(.is-focus), .has-focus .mark--error:not(.is-focus) { color: #d6a189; font-weight: 400; font-size: 15px; }
-.has-focus .mark--na:not(.is-focus) { color: #c9c2af; }
+.has-focus .mark--pass:not(.is-focus) { color: #789185; font-weight: 400; font-size: 15px; }
+.has-focus .mark--fail:not(.is-focus), .has-focus .mark--error:not(.is-focus) { color: #c47856; font-weight: 400; font-size: 15px; }
+.has-focus .mark--na:not(.is-focus) { color: #908977; }
 .mark { text-align: center; font: 600 18px/1 var(--mono); }
 .mark--pass { color: var(--pass); }
 .mark--fail, .mark--error { color: var(--fail-text); }
