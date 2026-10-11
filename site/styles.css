@@ -166,6 +166,13 @@ a.matrix__lead:hover .matrix__name { color: var(--pass-text); }
 .badge { margin-left: 8px; font: 11px/1 var(--mono); padding: 2px 6px; border: 1px dashed #8a6414; color: #8a6414; white-space: nowrap; vertical-align: 2px; }
 .badge--filed { border-style: solid; border-color: var(--pass-text); color: var(--pass-text); }
 .case__marks { display: contents; }
+/* A selected tool: its column keeps full strength on a light band, the other tools fade. */
+.has-focus .tool-head.is-focus, .has-focus .mark.is-focus { align-self: stretch; display: flex; align-items: center; justify-content: center; background: rgba(15, 63, 51, 0.07); }
+.has-focus .mark.is-focus { margin-block: -6px; }
+.has-focus .tool-head.is-focus { align-items: flex-end; padding-bottom: 8px; margin-bottom: -8px; color: var(--ink); font-weight: 600; }
+.has-focus .tool-head:not(.is-focus) { color: var(--faint); }
+.has-focus .mark--pass:not(.is-focus) { color: #5f7d72; font-weight: 400; }
+.has-focus .mark--fail:not(.is-focus), .has-focus .mark--error:not(.is-focus) { color: #b8714e; font-weight: 400; }
 .mark { text-align: center; font: 600 18px/1 var(--mono); }
 .mark--pass { color: var(--pass); }
 .mark--fail, .mark--error { color: var(--fail-text); }
@@ -245,6 +252,7 @@ a.matrix__lead:hover .matrix__name { color: var(--pass-text); }
   .case__summary { grid-template-columns: 44px minmax(0, 1fr); row-gap: 8px; }
   .case__marks { grid-column: 2; display: flex; flex-wrap: wrap; gap: 4px 14px; }
   .case__marks .mark { text-align: left; font-size: 14px; }
+  .has-focus .case__marks .mark.is-focus { order: -1; display: inline; background: none; font-weight: 600; }
   .case__marks .mark::after { content: attr(data-tool); font: 400 12px var(--mono); color: var(--muted); margin-left: 4px; }
   .detail { padding-left: 0; }
   .runbox pre { border-right: 0; border-bottom: 1px solid var(--rule); }

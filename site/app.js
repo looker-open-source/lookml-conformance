@@ -302,12 +302,15 @@ function renderCases(data, tools) {
 
   const table = $("#cases-table");
   table.style.setProperty("--tools", tools.length);
+  // With a tool selected, its column stays at full strength and the others fade.
+  table.classList.toggle("has-focus", Boolean(tool));
+  const focus = (t) => (tool && t.name === tool.name ? " is-focus" : "");
   const head = h(
     "div",
     { class: "cases__head" },
     h("span", {}, "case"),
     h("span", {}, "rule"),
-    tools.map((t) => h("span", {}, t.label)),
+    tools.map((t) => h("span", { class: `tool-head${focus(t)}` }, t.label)),
   );
   const rows = shown.map((c) => {
     const id = shortId(c);
@@ -343,7 +346,7 @@ function renderCases(data, tools) {
             const o = OUTCOME[outcomeOf(c, t)];
             return h(
               "span",
-              { class: `mark mark--${o.cls}`, "data-tool": t.label, title: `${t.label}: ${o.label}` },
+              { class: `mark mark--${o.cls}${focus(t)}`, "data-tool": t.label, title: `${t.label}: ${o.label}` },
               h("span", { "aria-hidden": "true" }, o.mark),
               h("span", { class: "sr-only" }, `${t.label}: ${o.label}.`),
             );
