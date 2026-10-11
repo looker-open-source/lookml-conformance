@@ -1,5 +1,8 @@
 # The Looker adapter
 
+**Not yet run on a Looker instance.** Treat its results as unverified until Stage 1 of
+[the procedure](confirming-provisional-cases.md#stage-1-prove-the-setup) passes on a real instance.
+
 The Looker adapter resolves each case on a real Looker instance through the Looker API, so the
 scorecard shows what Looker itself does. It is how provisional cases are checked; the procedure for
 that is [confirming-provisional-cases.md](confirming-provisional-cases.md). Nothing runs on the
