@@ -557,7 +557,8 @@ def _env(name: str) -> str | None:
 class LookerAdapter(Adapter):
     name = "looker"
     distribution = "looker"
-    capabilities = Capabilities(imported_projects=False)
+    # The API does not expose derived table parameters other than the generated SQL.
+    capabilities = Capabilities(imported_projects=False, derived_table_params=False)
 
     @classmethod
     def add_arguments(cls, parser: argparse.ArgumentParser) -> None:

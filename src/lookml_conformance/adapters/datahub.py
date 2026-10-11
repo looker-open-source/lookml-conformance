@@ -37,7 +37,7 @@ from datahub.utilities.urns.dataset_urn import DatasetUrn
 from lookml_conformance.adapter import Adapter
 from lookml_conformance.adapters import kit
 from lookml_conformance.normalize import collapse_whitespace
-from lookml_conformance.protocol import ExploreOutput, ModelOutput, Upstream, ViewOutput
+from lookml_conformance.protocol import Capabilities, ExploreOutput, ModelOutput, Upstream, ViewOutput
 
 # The suite checks LookML resolution only, so every connection maps to one placeholder warehouse.
 PLACEHOLDER_CONNECTION = LookerConnectionDefinition(
@@ -48,6 +48,14 @@ PLACEHOLDER_CONNECTION = LookerConnectionDefinition(
 class DataHubAdapter(Adapter):
     name = "datahub"
     distribution = "acryl-datahub"
+    # LookMLSource emits views only: it resolves explores to find reachable views and to draw the
+    # lineage of native derived tables, but explore entities come from DataHub's Looker API source.
+    # A view's schema fields (ViewField) carry no filters or timeframes, and the only derived table
+    # parameters it reads besides sql decide the materialized flag of native derived tables.
+    # The adapter still reports explores, so that lineage through them can be followed.
+    capabilities = Capabilities(
+        explores=False, field_filters=False, field_timeframes=False, derived_table_params=False
+    )
 
     @classmethod
     def add_arguments(cls, parser: argparse.ArgumentParser) -> None:

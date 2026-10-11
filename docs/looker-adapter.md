@@ -59,7 +59,7 @@ The pushed copy differs from the case in two ways only:
 | measure `filters` | Explore metadata, with a `view.` prefix removed from field names | Small |
 | explore `view_name`, `label`, joins | Explore metadata | None |
 | explore `from` | Inferred: when the base view's alias is the explore name and the metadata's `view_name` differs, `from` is that `view_name` | An inference |
-| `extends`, `derived_table` parameters other than `sql` | Not exposed by the API; reported as unknown | Cases that assert them fail for this reason |
+| `extends`, `derived_table` parameters other than `sql` | Not exposed by the API; reported as unknown | The adapter declares `derived_table_params: false`, so r11 is N/A. No case asserts `extends`. |
 | exposed views (`absent_views`) | The views reported through explores. A view with no explore cannot appear. | None |
 
 When Looker refuses an explore (for example because of a LookML error), the view of that name is

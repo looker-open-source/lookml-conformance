@@ -64,7 +64,7 @@ Other hooks on `Adapter`:
 
 | Hook | Use |
 | --- | --- |
-| `capabilities = Capabilities(...)` | Set a capability to `False` only when the tool never produces that output: `per_model=False` for a tool without model scoping (return one model), `explores=False` for a tool that does not read explores, `lineage=False` for a tool that builds no lineage. |
+| `capabilities = Capabilities(...)` | Set a capability to `False` only when the tool never produces that output: `per_model=False` for a tool without model scoping (return one model), `explores=False` for a tool that does not read explores, `lineage=False` for a tool that builds no lineage, and `field_filters`, `field_timeframes` or `derived_table_params` `False` for a tool whose output has no place for field `filters`, dimension group `timeframes` or derived table parameters other than `sql`. Base the choice on what the tool emits, not on what it gets right. |
 | `add_arguments(parser)` | Add tool options; read them from `self.options`. |
 | `self.warn(message)` | Report a diagnostic while still returning a result. |
 

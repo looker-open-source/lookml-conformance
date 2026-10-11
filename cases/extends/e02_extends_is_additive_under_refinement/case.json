@@ -18,15 +18,12 @@
       "quote": "Then, if there are any conflicts, priority is given to the last item in the chain of extends."
     }
   ],
+  "rationale": "The case asserts what the appended extends produces: the table of base_b, the last view in the chain, and the fields of both bases. Several tools, and the Looker API, do not report the extends list itself.",
   "expect": {
     "models": {
       "m": {
         "views": {
           "orders": {
-            "extends": [
-              "base_a",
-              "base_b"
-            ],
             "sql_table_name": "b.t",
             "fields": [
               "a_field",

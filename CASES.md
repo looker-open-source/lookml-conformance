@@ -357,6 +357,8 @@ Rule: extends in a refinement is appended to the view's extends, and the last li
 
 > Then, if there are any conflicts, priority is given to the last item in the chain of extends.<br>[lookml-refinements#additive](https://docs.cloud.google.com/looker/docs/lookml-refinements#additive)
 
+Why: The case asserts what the appended extends produces: the table of base_b, the last view in the chain, and the fields of both bases. Several tools, and the Looker API, do not report the extends list itself.
+
 Files: [`case.json`](cases/extends/e02_extends_is_additive_under_refinement/case.json) · [`project/`](cases/extends/e02_extends_is_additive_under_refinement/project)
 
 ### `e03_multiple_extends_last_listed_wins`

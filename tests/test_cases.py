@@ -259,6 +259,22 @@ def test_rejects_non_object_json(tmp_path: Path) -> None:
             set(),
         ),
         (None, {"models": {"m": {"views": {"orders": {"upstream_tables": ["raw.orders"]}}}}}, {"lineage"}),
+        (
+            None,
+            {"models": {"m": {"views": {"orders": {"field_params": {"n": {"filters": [{"a": "b"}]}}}}}}},
+            {"field_filters"},
+        ),
+        (
+            None,
+            {"models": {"m": {"views": {"orders": {"field_params": {"c": {"timeframes": ["date"]}}}}}}},
+            {"field_timeframes"},
+        ),
+        (None, {"models": {"m": {"views": {"orders": {"derived_table": {"sql": "SELECT 1"}}}}}}, set()),
+        (
+            None,
+            {"models": {"m": {"views": {"orders": {"derived_table": {"sql": "x", "persist_for": "1h"}}}}}},
+            {"derived_table_params"},
+        ),
     ],
 )
 def test_requires_is_derived_from_the_case(

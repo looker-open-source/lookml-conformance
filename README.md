@@ -13,17 +13,33 @@ Results and case explorer: https://josephaxisa.github.io/lookml-conformance/
 
 ## Results
 
-Released versions, scored on 2026-10-10 ([full scorecard](results/latest.md)):
+Released versions, scored on 2026-10-11 ([full scorecard](results/latest.md)):
 
 | Tool | Version | Confirmed | Provisional | All |
 | --- | --- | ---: | ---: | ---: |
-| [node-lookml-parser](https://github.com/fabio-looker/node-lookml-parser) | `lookml-parser` 9.1.0 | 19 / 26 | 6 / 8 | **25 / 34** |
+| [node-lookml-parser](https://github.com/fabio-looker/node-lookml-parser) | `lookml-parser` 9.1.0 | 20 / 26 | 6 / 8 | **26 / 34** |
 | [Dagster](https://github.com/dagster-io/dagster) | `dagster-looker` 0.29.25 | 16 / 31 | 5 / 8 | **21 / 39** |
-| [DataHub](https://github.com/datahub-project/datahub) | `acryl-datahub[lookml]` 1.7.0.14 | 16 / 31 | 1 / 8 | **17 / 39** |
-| [OpenMetadata](https://github.com/open-metadata/OpenMetadata) | `openmetadata-ingestion[looker]` 2.0.5.0 | 10 / 29 | 0 / 8 | **10 / 37** |
+| [DataHub](https://github.com/datahub-project/datahub) | `acryl-datahub[lookml]` 1.7.0.14 | 14 / 26 | 1 / 8 | **15 / 34** |
+| [OpenMetadata](https://github.com/open-metadata/OpenMetadata) | `openmetadata-ingestion[looker]` 2.0.5.0 | 9 / 26 | 0 / 8 | **9 / 34** |
 
-OpenMetadata reads explores from the Looker API, so the two explore cases do not apply to it.
-node-lookml-parser builds no lineage, so the five lineage cases do not apply to it.
+A case applies to a tool only when the tool emits what the case checks:
+
+- node-lookml-parser builds no lineage, so the five lineage cases do not apply to it.
+- OpenMetadata reads explores from the Looker API, and the view model of the released version has
+  no field `filters`, no `timeframes` and no derived table parameters other than `sql`. The explore
+  cases, r09, r11 and r13 do not apply to it. The adapter reads this from the installed version, so
+  r09 applies to versions that keep measure filters.
+- DataHub's LookML source emits views but not explores (those come from its Looker API source), and
+  its view fields carry no `filters` or `timeframes`. The explore cases, r09, r11 and r13 do not
+  apply to it.
+- Dagster hands the resolved LookML of each view and explore to its public translator class, which
+  users override to build assets, so every case applies to it.
+
+Dagster applies refinements, and OpenMetadata keeps one of two views with the same name, in the
+order the file system lists the project's files. The adapters list files in path order so that
+results reproduce. On another machine, the cases in which several files refine or define the same
+view (i01, i02, i03, i07, r03, r04, r10) can resolve to a different table, because neither tool uses
+include order to decide.
 
 ## Cases
 

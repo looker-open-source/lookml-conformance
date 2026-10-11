@@ -10,8 +10,10 @@ function the connector applies to ``sql_table_name`` and derived table SQL.
 A view's upstream is the lineage the connector draws for it. The adapter runs the connector's own
 view-lineage method on each view, with the calls to the OpenMetadata server replaced by recorders:
 a table lineage request becomes a table upstream, and a view-to-view request (for ``extends``) a
-view upstream. The connector draws lineage view by view in the order ``os.walk`` lists the view
-files, which depends on the file system; the adapter uses path order so that results reproduce.
+view upstream. The connector reads view files in the order ``os.walk`` lists them, which
+depends on the file system: when two files define a view of the same name, the one listed last is
+kept, and lineage is drawn view by view in that order. The adapter gives the parser a reader that
+lists files in path order, and draws lineage in path order, so that results reproduce.
 """
 
 from __future__ import annotations
@@ -26,7 +28,11 @@ import networkx as nx
 from metadata.ingestion.lineage.models import Dialect
 from metadata.ingestion.source.dashboard.looker.bulk_parser import BulkLkmlParser
 from metadata.ingestion.source.dashboard.looker.metadata import LookerSource
-from metadata.ingestion.source.dashboard.looker.models import LookMLManifest
+from metadata.ingestion.source.dashboard.looker.models import (
+    LookMlDerivedTableField,
+    LookMlField,
+    LookMLManifest,
+)
 from metadata.readers.file.local import LocalReader
 from metadata.utils.singleton import Singleton
 
@@ -40,11 +46,20 @@ PROJECT_WIDE = "*"
 class OpenMetadataAdapter(Adapter):
     name = "openmetadata"
     distribution = "openmetadata-ingestion"
-    capabilities = Capabilities(per_model=False, explores=False)
+    # What the connector can report is what its view model (LookMlField, LookMlDerivedTableField)
+    # keeps. Released versions keep no field filters; later ones keep measure filters as
+    # ``filters__all``. No version keeps timeframes or derived table parameters other than SQL.
+    capabilities = Capabilities(
+        per_model=False,
+        explores=False,
+        field_filters="filters__all" in LookMlField.model_fields,
+        field_timeframes="timeframes" in LookMlField.model_fields,
+        derived_table_params=bool(set(LookMlDerivedTableField.model_fields) - {"sql", "sql_create"}),
+    )
 
     def resolve(self, project: Path) -> dict[str, ModelOutput]:
         Singleton.clear_all()  # BulkLkmlParser is a process-wide singleton
-        parser = BulkLkmlParser(reader=LocalReader(base_path=project))
+        parser = BulkLkmlParser(reader=SortedLocalReader(base_path=project))
         constants = manifest_constants(project)
         # Every view the connector would ingest, including refinements it indexes as "+name" views.
         names = indexed_view_names(parser)
@@ -71,6 +86,13 @@ class OpenMetadataAdapter(Adapter):
             return None if view is None else summarize_view(view, constants, upstream)
         except Exception as exc:  # reported for this view only
             return ViewOutput(error=repr(exc))
+
+
+class SortedLocalReader(LocalReader):
+    """A ``LocalReader`` that lists files in path order instead of ``os.walk`` order."""
+
+    def get_local_files(self, search_key: str, excluded_files: list[str] | None = None) -> list[str]:
+        return sorted(super().get_local_files(search_key, excluded_files))
 
 
 def summarize_view(

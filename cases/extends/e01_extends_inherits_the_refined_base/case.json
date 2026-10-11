@@ -29,9 +29,6 @@
             "fields": [
               "extra",
               "id"
-            ],
-            "extends": [
-              "orders"
             ]
           }
         }

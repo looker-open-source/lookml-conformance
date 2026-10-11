@@ -141,5 +141,11 @@ Some tools do not produce a kind of output at all. A case needs a capability whe
 | `imported_projects` | its project has an `imported_projects/` directory |
 | `constants` | its `manifest.lkml` declares a `constant` |
 | `lineage` | it asserts `upstream_tables` |
+| `field_filters` | it asserts `filters` in `field_params` |
+| `field_timeframes` | it asserts `timeframes` in `field_params` |
+| `derived_table_params` | it asserts a `derived_table` parameter other than `sql` |
 
-An adapter that declares the capability `false` is scored N/A on those cases.
+An adapter that declares the capability `false` is scored N/A on those cases. A capability is
+about what the tool emits: a tool that has a place for a value in its output and gets it wrong
+fails the case. A case is N/A as a whole, so assert the keys the rule is about and avoid incidental
+keys that would make the case N/A for tools that could otherwise be checked.

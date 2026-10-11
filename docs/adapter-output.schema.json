@@ -20,7 +20,10 @@
         "explores": {"type": "boolean"},
         "imported_projects": {"type": "boolean"},
         "constants": {"type": "boolean"},
-        "lineage": {"type": "boolean"}
+        "lineage": {"type": "boolean"},
+        "field_filters": {"type": "boolean"},
+        "field_timeframes": {"type": "boolean"},
+        "derived_table_params": {"type": "boolean"}
       }
     },
     "models": {

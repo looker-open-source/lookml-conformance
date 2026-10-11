@@ -26,6 +26,10 @@ class Capabilities:
     ``per_model`` is false for tools that resolve a project without model scoping. Their single
     reported model is then compared against every expected model, which is how leakage of a
     refinement into a model that never included it shows up as a failure.
+
+    ``field_filters``, ``field_timeframes`` and ``derived_table_params`` are false for tools that
+    resolve views but never report a field's ``filters``, a dimension group's ``timeframes``, or a
+    derived table parameter other than ``sql``.
     """
 
     per_model: bool = True
@@ -33,6 +37,9 @@ class Capabilities:
     imported_projects: bool = True
     constants: bool = True
     lineage: bool = True
+    field_filters: bool = True
+    field_timeframes: bool = True
+    derived_table_params: bool = True
 
     @classmethod
     def from_dict(cls, data: Any) -> Capabilities:

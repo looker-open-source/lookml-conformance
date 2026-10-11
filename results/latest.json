@@ -1,5 +1,5 @@
 {
-  "date": "2026-10-10",
+  "date": "2026-10-11",
   "adapters": [
     {
       "name": "node-lookml-parser",
@@ -257,15 +257,15 @@
           ]
         },
         "openmetadata": {
-          "outcome": "fail",
+          "outcome": "n/a",
           "reasons": [
-            "m.orders.n.filters: expected [{'status': 'complete'}, {'region': 'EU'}], got None"
+            "adapter does not support field_filters"
           ]
         },
         "datahub": {
-          "outcome": "fail",
+          "outcome": "n/a",
           "reasons": [
-            "m.orders.n.filters: expected [{'status': 'complete'}, {'region': 'EU'}], got [{'region': 'EU'}]"
+            "adapter does not support field_filters"
           ]
         },
         "dagster": {
@@ -317,15 +317,15 @@
           "reasons": []
         },
         "openmetadata": {
-          "outcome": "fail",
+          "outcome": "n/a",
           "reasons": [
-            "m.orders.derived_table.datagroup_trigger: expected 'daily', got None"
+            "adapter does not support derived_table_params"
           ]
         },
         "datahub": {
-          "outcome": "fail",
+          "outcome": "n/a",
           "reasons": [
-            "m.orders.derived_table.datagroup_trigger: expected 'daily', got None"
+            "adapter does not support derived_table_params"
           ]
         },
         "dagster": {
@@ -369,15 +369,16 @@
           "reasons": []
         },
         "openmetadata": {
-          "outcome": "fail",
+          "outcome": "n/a",
           "reasons": [
-            "m.orders.fields: expected ['created'], got []",
-            "m.orders.created: field not resolved"
+            "adapter does not support field_timeframes"
           ]
         },
         "datahub": {
-          "outcome": "pass",
-          "reasons": []
+          "outcome": "n/a",
+          "reasons": [
+            "adapter does not support field_timeframes"
+          ]
         },
         "dagster": {
           "outcome": "fail",
@@ -568,8 +569,10 @@
           "reasons": []
         },
         "openmetadata": {
-          "outcome": "pass",
-          "reasons": []
+          "outcome": "fail",
+          "reasons": [
+            "m.orders.sql_table_name: expected 'shared.orders', got 'raw.orders'"
+          ]
         },
         "datahub": {
           "outcome": "pass",
@@ -669,25 +672,21 @@
       "status": "confirmed",
       "verdicts": {
         "node-lookml-parser": {
-          "outcome": "fail",
-          "reasons": [
-            "m.orders.extends: expected ['base_a', 'base_b'], got ['base_b']"
-          ]
+          "outcome": "pass",
+          "reasons": []
         },
         "openmetadata": {
           "outcome": "fail",
           "reasons": [
             "m.orders.sql_table_name: expected 'b.t', got None",
-            "m.orders.fields: expected ['a_field', 'b_field', 'id'], got ['id']",
-            "m.orders.extends: expected ['base_a', 'base_b'], got ['base_a']"
+            "m.orders.fields: expected ['a_field', 'b_field', 'id'], got ['id']"
           ]
         },
         "datahub": {
           "outcome": "fail",
           "reasons": [
             "m.orders.sql_table_name: expected 'b.t', got 'a.t'",
-            "m.orders.fields: expected ['a_field', 'b_field', 'id'], got ['a_field', 'id']",
-            "m.orders.extends: expected ['base_a', 'base_b'], got ['base_a']"
+            "m.orders.fields: expected ['a_field', 'b_field', 'id'], got ['a_field', 'id']"
           ]
         },
         "dagster": {
@@ -805,9 +804,9 @@
           ]
         },
         "datahub": {
-          "outcome": "fail",
+          "outcome": "n/a",
           "reasons": [
-            "m.explore.customer_orders.label: expected 'Customer Orders', got None"
+            "adapter does not support explores"
           ]
         },
         "dagster": {
@@ -832,8 +831,10 @@
           ]
         },
         "datahub": {
-          "outcome": "pass",
-          "reasons": []
+          "outcome": "n/a",
+          "reasons": [
+            "adapter does not support explores"
+          ]
         },
         "dagster": {
           "outcome": "pass",

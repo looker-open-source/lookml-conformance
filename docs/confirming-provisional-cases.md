@@ -90,8 +90,8 @@ $LOOKER $EVIDENCE/variants/s4-r10b $EVIDENCE/variants/s4-r12b \
   $EVIDENCE/variants/s4-i01b $EVIDENCE/variants/s4-e01b > $EVIDENCE/variants.jsonl
 ```
 
-`run` exits with status 1 when any case fails, which is expected (e01 and others assert keys the
-API does not expose). It takes about 10 to 20 minutes.
+`run` exits with status 1 when any case fails. Some confirmed cases may fail on Looker; Stage 3
+says how to read them. It takes about 10 to 20 minutes.
 
 ## Stage 3: read the evidence
 
@@ -99,13 +99,13 @@ For each case, read the files named below in `$LOOKER_DUMP/<case id>/`, not only
 case dump has `commit.txt` and `validation.json`; check that `validation.json` has no message you
 cannot explain.
 
-Keys the API does not expose fail for that reason alone: `extends` (e01, e02) and
-`derived_table.datagroup_trigger` (r11). Imported-project cases (i05, i06, i07) are N/A.
+The adapter declares what the API cannot show, so those cases are N/A rather than failures: r11
+(`derived_table.datagroup_trigger`) and the imported-project cases (i05, i06, i07).
 
 | Case | Read | Expectation holds if | Otherwise |
 | --- | --- | --- | --- |
 | r06 | `sql__m__orders__orders.sql`; warnings in `validation.json` | `FROM refined AS orders` | `raw.orders`: the refinement does not apply when included before its base. Expect `raw.orders`. |
-| r10 | `validation.json` first, then `sql__m__orders__orders.sql` | An error about the refinement after `final: yes`, and `FROM a.final AS orders` | `b.later`: the later refinement applies despite the error, and the rule is wrong. If Looker rejects the explore (the verdict says `Looker rejected explore orders`), Looker resolves no view at all and the expectation must be reconsidered. |
+| r10 | `validation.json` first, then `sql__m__orders__orders.sql` | An error about the refinement after `final: yes`, and either `FROM a.final AS orders` or a rejected explore (the verdict passes with `accepted for a project Looker rejects: ... Looker rejected explore orders`). Record which: a rejected explore means tools should report an error, and the case can then assert that. | `b.later`: the later refinement applies despite the error, and the rule is wrong. |
 | s4-r10b | `validation.json`, `sql__m__orders__orders.sql` | No error, `FROM a.final AS orders` | An error means `final: yes` also rejects refinements applied before it. |
 | r12 | `sql__m__orders__orders.sql`, `validation.json` | `FROM raw.orders AS orders`. Record whether the validator reports an error, a warning or nothing for `+ghost`. | A different table means the stray refinement affects other views. |
 | s4-r12b | `validation.json`; `explore__m__ghost.json` if it exists | Looker rejects `explore: ghost` | If the explore loads and `sql__m__ghost__ghost.sql` reads `FROM x.y`, a refinement can create a view and the rule is wrong. |
@@ -114,7 +114,7 @@ Keys the API does not expose fail for that reason alone: `extends` (e01, e02) an
 | i02 | `sql__m1__orders__orders.sql`, `sql__m2__orders__orders.sql` | `m1` reads `FROM a`, `m2` reads `FROM c` | `m1` reading `b`: a nested include lands after the including file's own declarations, as node-lookml-parser does, and the DataHub fixture is wrong. |
 | i03 | `sql__m__orders__orders.sql` | `FROM a AS orders` | `b`: a second include moves the file to the later position. |
 | i08 | `validation.json`, `sql__m__orders__orders.sql` | `FROM b AS orders`. Record any message about the include cycle. | `raw.orders`: the refinement in the cycle is dropped. A rejected explore: Looker refuses the cycle. |
-| e01 | `sql__main__orders_ext__orders_ext.sql`, `explore__main__orders_ext.json` | `FROM analytics.orders_clean AS orders_ext`, and fields `extra` and `id` in the explore. The `extends` key fails because the API does not expose it. | `raw.orders`: `extends` copies the view before refinements apply. |
+| e01 | `sql__main__orders_ext__orders_ext.sql`, `explore__main__orders_ext.json` | `FROM analytics.orders_clean AS orders_ext`, and fields `extra` and `id` in the explore. | `raw.orders`: `extends` copies the view before refinements apply. |
 | s4-e01b | `sql__main__orders_ext__orders_ext.sql` | Either answer is a result | `analytics.orders_clean`: the refinement reaches the extending view even when included after it. `raw.orders`: include position matters. |
 
 ## Stage 4: record

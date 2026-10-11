@@ -1,5 +1,5 @@
 {
- "date": "2026-10-10",
+ "date": "2026-10-11",
  "suite": {
   "cases": 39,
   "confirmed": 31,
@@ -52,11 +52,11 @@
    "version": "9.1.0",
    "score": {
     "all": {
-     "passed": 25,
+     "passed": 26,
      "applicable": 34
     },
     "confirmed": {
-     "passed": 19,
+     "passed": 20,
      "applicable": 26
     },
     "provisional": {
@@ -75,12 +75,12 @@
    "version": "2.0.5.0",
    "score": {
     "all": {
-     "passed": 10,
-     "applicable": 37
+     "passed": 9,
+     "applicable": 34
     },
     "confirmed": {
-     "passed": 10,
-     "applicable": 29
+     "passed": 9,
+     "applicable": 26
     },
     "provisional": {
      "passed": 0,
@@ -98,12 +98,12 @@
    "version": "1.7.0.14",
    "score": {
     "all": {
-     "passed": 17,
-     "applicable": 39
+     "passed": 15,
+     "applicable": 34
     },
     "confirmed": {
-     "passed": 16,
-     "applicable": 31
+     "passed": 14,
+     "applicable": 26
     },
     "provisional": {
      "passed": 1,
@@ -860,15 +860,15 @@
      ]
     },
     "openmetadata": {
-     "outcome": "fail",
+     "outcome": "n/a",
      "reasons": [
-      "m.orders.n.filters: expected [{'status': 'complete'}, {'region': 'EU'}], got None"
+      "adapter does not support field_filters"
      ]
     },
     "datahub": {
-     "outcome": "fail",
+     "outcome": "n/a",
      "reasons": [
-      "m.orders.n.filters: expected [{'status': 'complete'}, {'region': 'EU'}], got [{'region': 'EU'}]"
+      "adapter does not support field_filters"
      ]
     },
     "dagster": {
@@ -1025,15 +1025,15 @@
      "reasons": []
     },
     "openmetadata": {
-     "outcome": "fail",
+     "outcome": "n/a",
      "reasons": [
-      "m.orders.derived_table.datagroup_trigger: expected 'daily', got None"
+      "adapter does not support derived_table_params"
      ]
     },
     "datahub": {
-     "outcome": "fail",
+     "outcome": "n/a",
      "reasons": [
-      "m.orders.derived_table.datagroup_trigger: expected 'daily', got None"
+      "adapter does not support derived_table_params"
      ]
     },
     "dagster": {
@@ -1191,15 +1191,16 @@
      "reasons": []
     },
     "openmetadata": {
-     "outcome": "fail",
+     "outcome": "n/a",
      "reasons": [
-      "m.orders.fields: expected ['created'], got []",
-      "m.orders.created: field not resolved"
+      "adapter does not support field_timeframes"
      ]
     },
     "datahub": {
-     "outcome": "pass",
-     "reasons": []
+     "outcome": "n/a",
+     "reasons": [
+      "adapter does not support field_timeframes"
+     ]
     },
     "dagster": {
      "outcome": "fail",
@@ -1761,8 +1762,10 @@
      "reasons": []
     },
     "openmetadata": {
-     "outcome": "pass",
-     "reasons": []
+     "outcome": "fail",
+     "reasons": [
+      "m.orders.sql_table_name: expected 'shared.orders', got 'raw.orders'"
+     ]
     },
     "datahub": {
      "outcome": "pass",
@@ -1959,9 +1962,6 @@
         "fields": [
          "extra",
          "id"
-        ],
-        "extends": [
-         "orders"
         ]
        }
       },
@@ -2040,7 +2040,7 @@
      "label": "lookml-refinements#additive"
     }
    ],
-   "rationale": null,
+   "rationale": "The case asserts what the appended extends produces: the table of base_b, the last view in the chain, and the fields of both bases. Several tools, and the Looker API, do not report the extends list itself.",
    "provisional": null,
    "observations": [],
    "invalid_in_looker": false,
@@ -2049,10 +2049,6 @@
      "m": {
       "views": {
        "orders": {
-        "extends": [
-         "base_a",
-         "base_b"
-        ],
         "sql_table_name": "b.t",
         "fields": [
          "a_field",
@@ -2086,25 +2082,21 @@
    ],
    "verdicts": {
     "node-lookml-parser": {
-     "outcome": "fail",
-     "reasons": [
-      "m.orders.extends: expected ['base_a', 'base_b'], got ['base_b']"
-     ]
+     "outcome": "pass",
+     "reasons": []
     },
     "openmetadata": {
      "outcome": "fail",
      "reasons": [
       "m.orders.sql_table_name: expected 'b.t', got None",
-      "m.orders.fields: expected ['a_field', 'b_field', 'id'], got ['id']",
-      "m.orders.extends: expected ['base_a', 'base_b'], got ['base_a']"
+      "m.orders.fields: expected ['a_field', 'b_field', 'id'], got ['id']"
      ]
     },
     "datahub": {
      "outcome": "fail",
      "reasons": [
       "m.orders.sql_table_name: expected 'b.t', got 'a.t'",
-      "m.orders.fields: expected ['a_field', 'b_field', 'id'], got ['a_field', 'id']",
-      "m.orders.extends: expected ['base_a', 'base_b'], got ['base_a']"
+      "m.orders.fields: expected ['a_field', 'b_field', 'id'], got ['a_field', 'id']"
      ]
     },
     "dagster": {
@@ -2460,9 +2452,9 @@
      ]
     },
     "datahub": {
-     "outcome": "fail",
+     "outcome": "n/a",
      "reasons": [
-      "m.explore.customer_orders.label: expected 'Customer Orders', got None"
+      "adapter does not support explores"
      ]
     },
     "dagster": {
@@ -2560,8 +2552,10 @@
      ]
     },
     "datahub": {
-     "outcome": "pass",
-     "reasons": []
+     "outcome": "n/a",
+     "reasons": [
+      "adapter does not support explores"
+     ]
     },
     "dagster": {
      "outcome": "pass",

@@ -71,7 +71,7 @@ timeout is 300 seconds per project. `lookml-conformance run --no-batch`, or `"ba
 | `adapter` | Required. The adapter's name. |
 | `version` | The tool version that ran. |
 | `project` | The project path as received. Required when the adapter is given several projects. |
-| `capabilities` | Optional; every capability defaults to `true`. Set one to `false` only when the tool produces no output of that kind, for example explores for a tool that reads them from the Looker API. Cases that need it are scored N/A. |
+| `capabilities` | Optional; every capability defaults to `true`. Set one to `false` only when the tool produces no output of that kind, for example explores for a tool that reads them from the Looker API. Cases that need it are scored N/A. The capabilities are `per_model`, `explores`, `imported_projects`, `constants`, `lineage`, `field_filters`, `field_timeframes` and `derived_table_params`; [case-format.md](case-format.md#capabilities) says which cases need each. |
 | `models` | One entry per model, keyed by model name. |
 | `models.*.views` | Each resolved view. `field_params` holds the parameters the cases check: `sql`, `label`, `type`, `timeframes`, `filters` (a list of one-key objects). `upstream` is described below. A view the tool failed on can be reported as `{"error": "..."}`. |
 | `models.*.explores` | Each resolved explore, with joins keyed by join name. |

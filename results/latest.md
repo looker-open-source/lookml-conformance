@@ -1,4 +1,4 @@
-# LookML conformance scorecard, 2026-10-10
+# LookML conformance scorecard, 2026-10-11
 
 ✅ pass · ❌ fail · ⚠️ adapter error · N/A not applicable (the tool does not produce that output). *confirmed* cases follow from the cited Looker documentation; *provisional* cases cover behavior the documentation leaves open and are pinned to a named public source.
 
@@ -6,9 +6,9 @@
 
 | Tool | Version | confirmed | provisional | All |
 | --- | --- | --- | --- | --- |
-| node-lookml-parser | `9.1.0` | 19 / 26 | 6 / 8 | **25 / 34** |
-| OpenMetadata | `2.0.5.0` | 10 / 29 | 0 / 8 | **10 / 37** |
-| DataHub | `1.7.0.14` | 16 / 31 | 1 / 8 | **17 / 39** |
+| node-lookml-parser | `9.1.0` | 20 / 26 | 6 / 8 | **26 / 34** |
+| OpenMetadata | `2.0.5.0` | 9 / 26 | 0 / 8 | **9 / 34** |
+| DataHub | `1.7.0.14` | 14 / 26 | 1 / 8 | **15 / 34** |
 | Dagster | `0.29.25` | 16 / 31 | 5 / 8 | **21 / 39** |
 
 ## Results
@@ -23,27 +23,27 @@
 | `r06_refinement_included_before_its_base` | provisional | ✅ | ❌ | ❌ | ✅ |
 | `r07_field_refinement_keeps_unset_parameters` | confirmed | ✅ | ❌ | ✅ | ❌ |
 | `r08_refinement_adds_fields` | confirmed | ✅ | ❌ | ✅ | ✅ |
-| `r09_field_filters_are_additive` | confirmed | ❌ | ❌ | ❌ | ❌ |
+| `r09_field_filters_are_additive` | confirmed | ❌ | N/A | N/A | ❌ |
 | `r10_final_refinement_blocks_later_ones` | provisional | ❌ | ❌ | ❌ | ❌ |
-| `r11_derived_table_refined_parameter_by_parameter` | confirmed | ✅ | ❌ | ❌ | ✅ |
+| `r11_derived_table_refined_parameter_by_parameter` | confirmed | ✅ | N/A | N/A | ✅ |
 | `r12_refinement_without_a_base_view` | provisional | ✅ | ❌ | ✅ | ✅ |
-| `r13_dimension_group_timeframes_override` | confirmed | ✅ | ❌ | ✅ | ❌ |
+| `r13_dimension_group_timeframes_override` | confirmed | ✅ | N/A | N/A | ❌ |
 | `i01_wildcard_include_applies_in_path_order` | provisional | ✅ | ❌ | ❌ | ✅ |
 | `i02_nested_include_expands_in_place` | provisional | ❌ | ❌ | ❌ | ❌ |
 | `i03_file_included_twice_keeps_first_position` | provisional | ✅ | ❌ | ❌ | ❌ |
 | `i04_relative_include_resolves_from_the_including_file` | confirmed | ✅ | ❌ | ❌ | ✅ |
 | `i05_project_wildcards_do_not_reach_imported_projects` | confirmed | ❌ | ✅ | ✅ | ❌ |
 | `i06_imported_project_view_can_be_refined` | confirmed | ✅ | ❌ | ❌ | ✅ |
-| `i07_absolute_include_inside_an_imported_project` | confirmed | ✅ | ✅ | ✅ | ❌ |
+| `i07_absolute_include_inside_an_imported_project` | confirmed | ✅ | ❌ | ✅ | ❌ |
 | `i08_include_cycle_terminates` | provisional | ✅ | ❌ | ❌ | ✅ |
 | `i09_dashboard_files_are_not_views` | confirmed | ✅ | ✅ | ✅ | ✅ |
 | `e01_extends_inherits_the_refined_base` | provisional | ✅ | ❌ | ❌ | ✅ |
-| `e02_extends_is_additive_under_refinement` | confirmed | ❌ | ❌ | ❌ | ❌ |
+| `e02_extends_is_additive_under_refinement` | confirmed | ✅ | ❌ | ❌ | ❌ |
 | `e03_multiple_extends_last_listed_wins` | confirmed | ✅ | ❌ | ❌ | ✅ |
 | `e04_child_overrides_extended_bases` | confirmed | ✅ | ❌ | ❌ | ❌ |
 | `m01_model_without_the_refinement_sees_the_base` | confirmed | ✅ | ❌ | ❌ | ❌ |
-| `x01_explore_view_name_binds_base_view` | confirmed | ✅ | N/A | ❌ | ✅ |
-| `x02_explore_from_and_join_from_bind_views` | confirmed | ✅ | N/A | ✅ | ✅ |
+| `x01_explore_view_name_binds_base_view` | confirmed | ✅ | N/A | N/A | ✅ |
+| `x02_explore_from_and_join_from_bind_views` | confirmed | ✅ | N/A | N/A | ✅ |
 | `c01_manifest_constant_in_sql_table_name` | confirmed | ❌ | ✅ | ✅ | ❌ |
 | `c02_manifest_constant_in_derived_table_sql` | confirmed | ❌ | ✅ | ✅ | ❌ |
 | `l01_derived_table_reads_view_table` | confirmed | N/A | ❌ | ✅ | ✅ |
@@ -76,17 +76,12 @@
 - `r07_field_refinement_keeps_unset_parameters` · **Dagster**: m.orders.id.sql: expected '${TABLE}.id', got None; m.orders.id.type: expected 'number', got None
 - `r08_refinement_adds_fields` · **OpenMetadata**: m.orders.fields: expected ['created', 'id', 'n', 'status'], got ['id', 'n']
 - `r09_field_filters_are_additive` · **node-lookml-parser**: m.orders.n.filters: expected [{'status': 'complete'}, {'region': 'EU'}], got [{'region': 'EU'}]
-- `r09_field_filters_are_additive` · **OpenMetadata**: m.orders.n.filters: expected [{'status': 'complete'}, {'region': 'EU'}], got None
-- `r09_field_filters_are_additive` · **DataHub**: m.orders.n.filters: expected [{'status': 'complete'}, {'region': 'EU'}], got [{'region': 'EU'}]
 - `r09_field_filters_are_additive` · **Dagster**: m.orders.n.filters: expected [{'status': 'complete'}, {'region': 'EU'}], got [{'region': 'EU'}]
 - `r10_final_refinement_blocks_later_ones` · **node-lookml-parser**: m.orders.sql_table_name: expected 'a.final', got 'b.later'
 - `r10_final_refinement_blocks_later_ones` · **OpenMetadata**: m.orders.sql_table_name: expected 'a.final', got 'raw.orders'
 - `r10_final_refinement_blocks_later_ones` · **DataHub**: m.orders.sql_table_name: expected 'a.final', got 'raw.orders'
 - `r10_final_refinement_blocks_later_ones` · **Dagster**: m.orders.sql_table_name: expected 'a.final', got 'b.later'
-- `r11_derived_table_refined_parameter_by_parameter` · **OpenMetadata**: m.orders.derived_table.datagroup_trigger: expected 'daily', got None
-- `r11_derived_table_refined_parameter_by_parameter` · **DataHub**: m.orders.derived_table.datagroup_trigger: expected 'daily', got None
 - `r12_refinement_without_a_base_view` · **OpenMetadata**: views that must not exist were exposed: ['+ghost']
-- `r13_dimension_group_timeframes_override` · **OpenMetadata**: m.orders.fields: expected ['created'], got []; m.orders.created: field not resolved
 - `r13_dimension_group_timeframes_override` · **Dagster**: m.orders.created.type: expected 'time', got None; m.orders.created.sql: expected '${TABLE}.created_at', got None
 - `i01_wildcard_include_applies_in_path_order` · **OpenMetadata**: m.orders.sql_table_name: expected 'from_b', got 'raw.orders'
 - `i01_wildcard_include_applies_in_path_order` · **DataHub**: m.orders.sql_table_name: expected 'from_b', got 'raw.orders'
@@ -103,14 +98,14 @@
 - `i05_project_wildcards_do_not_reach_imported_projects` · **Dagster**: m.orders.sql_table_name: expected 'raw.orders', got 'imported'
 - `i06_imported_project_view_can_be_refined` · **OpenMetadata**: m.orders.sql_table_name: expected 'local.orders', got 'raw.orders'
 - `i06_imported_project_view_can_be_refined` · **DataHub**: m.orders.sql_table_name: expected 'local.orders', got 'raw.orders'
+- `i07_absolute_include_inside_an_imported_project` · **OpenMetadata**: m.orders.sql_table_name: expected 'shared.orders', got 'raw.orders'
 - `i07_absolute_include_inside_an_imported_project` · **Dagster**: m.orders.sql_table_name: expected 'shared.orders', got 'raw.orders'
 - `i08_include_cycle_terminates` · **OpenMetadata**: m.orders.sql_table_name: expected 'b', got 'raw.orders'
 - `i08_include_cycle_terminates` · **DataHub**: m.orders.sql_table_name: expected 'b', got 'raw.orders'
 - `e01_extends_inherits_the_refined_base` · **OpenMetadata**: main.orders.sql_table_name: expected 'analytics.orders_clean', got 'raw.orders'; main.orders_ext.sql_table_name: expected 'analytics.orders_clean', got None; main.orders_ext.fields: expected ['extra', 'id'], got ['extra']
 - `e01_extends_inherits_the_refined_base` · **DataHub**: main.orders.sql_table_name: expected 'analytics.orders_clean', got 'raw.orders'; main.orders_ext.sql_table_name: expected 'analytics.orders_clean', got 'raw.orders'
-- `e02_extends_is_additive_under_refinement` · **node-lookml-parser**: m.orders.extends: expected ['base_a', 'base_b'], got ['base_b']
-- `e02_extends_is_additive_under_refinement` · **OpenMetadata**: m.orders.sql_table_name: expected 'b.t', got None; m.orders.fields: expected ['a_field', 'b_field', 'id'], got ['id']; m.orders.extends: expected ['base_a', 'base_b'], got ['base_a']
-- `e02_extends_is_additive_under_refinement` · **DataHub**: m.orders.sql_table_name: expected 'b.t', got 'a.t'; m.orders.fields: expected ['a_field', 'b_field', 'id'], got ['a_field', 'id']; m.orders.extends: expected ['base_a', 'base_b'], got ['base_a']
+- `e02_extends_is_additive_under_refinement` · **OpenMetadata**: m.orders.sql_table_name: expected 'b.t', got None; m.orders.fields: expected ['a_field', 'b_field', 'id'], got ['id']
+- `e02_extends_is_additive_under_refinement` · **DataHub**: m.orders.sql_table_name: expected 'b.t', got 'a.t'; m.orders.fields: expected ['a_field', 'b_field', 'id'], got ['a_field', 'id']
 - `e02_extends_is_additive_under_refinement` · **Dagster**: m.orders.sql_table_name: expected 'b.t', got 'a.t'; m.orders.fields: expected ['a_field', 'b_field', 'id'], got ['a_field', 'id']
 - `e03_multiple_extends_last_listed_wins` · **OpenMetadata**: m.combined.sql_table_name: expected 'b.t', got None; m.combined.fields: expected ['a_field', 'b_field', 'own', 'shared'], got ['own']; m.combined.shared: field not resolved
 - `e03_multiple_extends_last_listed_wins` · **DataHub**: m.combined.fields: expected ['a_field', 'b_field', 'own', 'shared'], got ['b_field', 'own', 'shared']
@@ -120,7 +115,6 @@
 - `m01_model_without_the_refinement_sees_the_base` · **OpenMetadata**: refined.orders.sql_table_name: expected 'analytics.orders_clean', got 'raw.orders'; views that must not exist were exposed: ['+orders']
 - `m01_model_without_the_refinement_sees_the_base` · **DataHub**: refined.orders.sql_table_name: expected 'analytics.orders_clean', got 'raw.orders'
 - `m01_model_without_the_refinement_sees_the_base` · **Dagster**: plain.orders.sql_table_name: expected 'raw.orders', got 'analytics.orders_clean'
-- `x01_explore_view_name_binds_base_view` · **DataHub**: m.explore.customer_orders.label: expected 'Customer Orders', got None
 - `c01_manifest_constant_in_sql_table_name` · **node-lookml-parser**: m.orders.sql_table_name: expected 'analytics_prod.orders', got '@{ANALYTICS_SCHEMA}.orders'
 - `c01_manifest_constant_in_sql_table_name` · **Dagster**: m.orders.sql_table_name: expected 'analytics_prod.orders', got '@{ANALYTICS_SCHEMA}.orders'
 - `c02_manifest_constant_in_derived_table_sql` · **node-lookml-parser**: m.orders.derived_table.sql: expected 'SELECT id FROM `bq_project.raw.orders`', got 'SELECT id FROM `@{RAW_DATASET}.orders`'

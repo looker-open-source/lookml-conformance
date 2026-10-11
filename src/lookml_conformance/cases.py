@@ -168,8 +168,17 @@ class Case:
         needed = set()
         if any(model.explores for model in self.models.values()):
             needed.add("explores")
-        if any("upstream_tables" in view for model in self.models.values() for view in model.views.values()):
+        views = [view for model in self.models.values() for view in model.views.values()]
+        if any("upstream_tables" in view for view in views):
             needed.add("lineage")
+        field_params = [field for view in views for field in (view.get("field_params") or {}).values()]
+        params = {param for field in field_params for param in field}
+        if "filters" in params:
+            needed.add("field_filters")
+        if "timeframes" in params:
+            needed.add("field_timeframes")
+        if any(set(view.get("derived_table") or {}) - {"sql"} for view in views):
+            needed.add("derived_table_params")
         if (self.project / IMPORTED_PROJECTS_DIR).is_dir():
             needed.add("imported_projects")
         manifest = self.project / "manifest.lkml"
