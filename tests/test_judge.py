@@ -23,6 +23,7 @@ def make_case(
     explores: dict[str, Any] | None = None,
     models: dict[str, ModelExpectation] | None = None,
     absent_views: tuple[str, ...] = (),
+    invalid_in_looker: bool = False,
 ) -> Case:
     (tmp_path / "project").mkdir(exist_ok=True)
     return Case(
@@ -35,6 +36,7 @@ def make_case(
         models=models or {"m": ModelExpectation(views=views or {}, explores=explores or {})},
         directory=tmp_path,
         absent_views=absent_views,
+        invalid_in_looker=invalid_in_looker,
     )
 
 
@@ -310,3 +312,18 @@ def test_lineage_cases_are_not_applicable_without_lineage(tmp_path: Path) -> Non
     verdict = judge(case, output(capabilities=Capabilities(lineage=False)))
 
     assert verdict == Verdict(Outcome.NOT_APPLICABLE, ("adapter does not support lineage",))
+
+
+def test_view_error_is_accepted_for_a_project_looker_rejects(tmp_path: Path) -> None:
+    case = make_case(tmp_path, {"orders": {"sql_table_name": "a.final"}}, invalid_in_looker=True)
+    rejected = output({"orders": ViewOutput(error="Looker rejected explore orders")})
+
+    assert judge(case, rejected).outcome is Outcome.PASS
+    assert judge(case, output({"orders": ViewOutput(sql_table_name="a.final")})).outcome is Outcome.PASS
+    assert judge(case, output({"orders": ViewOutput(sql_table_name="b.later")})).outcome is Outcome.FAIL
+
+
+def test_view_error_fails_a_valid_project(tmp_path: Path) -> None:
+    case = make_case(tmp_path, {"orders": {"sql_table_name": "a.final"}})
+
+    assert judge(case, output({"orders": ViewOutput(error="KeyError('x')")})).outcome is Outcome.FAIL

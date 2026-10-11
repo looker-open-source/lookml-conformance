@@ -49,7 +49,27 @@ def judge(case: Case, output: AdapterOutput) -> Verdict:
         ),
         *_check_absent_views(case.absent_views, output),
     ]
+    if case.invalid_in_looker:
+        # Looker rejects the project, so a tool may report an error for a view instead of resolving
+        # it. It still fails if it resolves the view to anything but the expectation.
+        errors = set(_view_errors(case, output))
+        accepted = [reason for reason in reasons if reason in errors]
+        reasons = [reason for reason in reasons if reason not in errors]
+        if not reasons:
+            return Verdict(
+                Outcome.PASS, tuple(f"accepted for a project Looker rejects: {r}" for r in accepted)
+            )
     return Verdict(Outcome.FAIL, tuple(reasons)) if reasons else Verdict(Outcome.PASS)
+
+
+def _view_errors(case: Case, output: AdapterOutput) -> Iterator[str]:
+    """The reasons ``_check_model`` gives for expected views the tool reported as errors."""
+    for model_name, expected in case.models.items():
+        model = _model_for(model_name, output)
+        for view_name in expected.views:
+            view = None if model is None else model.views.get(view_name)
+            if view is not None and view.error is not None:
+                yield f"{model_name}.{view_name}: {view.error}"
 
 
 def _model_for(name: str, output: AdapterOutput) -> ModelOutput | None:

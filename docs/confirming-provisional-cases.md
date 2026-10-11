@@ -172,9 +172,10 @@ For each provisional case, from its section in `NOTES.md`
    ]
    ```
 
-3. If Looker gave no result the expectation can hold (for example, it rejected the explore in r10
-   or i08), leave the case provisional, record the finding in `NOTES.md`, and decide what the case
-   should assert before changing it.
+3. If Looker gave no result the expectation can hold (for example, it rejected the explore in
+   i08), leave the case provisional, record the finding in `NOTES.md`, and decide what the case
+   should assert before changing it. r10 accepts a rejected explore, since the case is marked
+   `invalid_in_looker`.
 
 The variants are not cases. Their findings go in `NOTES.md` and can sharpen a case's rule, for
 example i01's "lexical path order" once s4-i01b shows which order Looker uses.

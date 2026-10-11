@@ -26,7 +26,7 @@ a snake_case summary, and match the directory name.
 | `rationale` | no | How the quotes lead to the expectation, when that is not immediate. |
 | `provisional` | provisional only | `{"question", "pinned_to"}`: what the documentation leaves open, and the public source the expectation follows. |
 | `observations` | with basis `observation` | One or more `{"looker_version", "date", "finding", "evidence"}`, described below. |
-| `invalid_in_looker` | no | `true` when Looker rejects the project (for example a refinement after `final: yes`). Tools may report an error but must not produce the forbidden result. |
+| `invalid_in_looker` | no | `true` when Looker rejects the project (for example a refinement after `final: yes`). Tools may report an error but must not produce the forbidden result: the judge accepts a view reported as an error, and still fails a view resolved to anything but the expectation. |
 | `expect` | yes | `{"models": {...}, "absent_views": [...]}`, described below. |
 
 ### Status and basis

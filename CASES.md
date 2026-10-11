@@ -143,9 +143,9 @@ Rule: final: yes on a refinement stops any later refinement of the same view fro
 
 > The Looker IDE will return a LookML error if there are existing refinements that would be applied after this final refinement<br>[lookml-refinements#final](https://docs.cloud.google.com/looker/docs/lookml-refinements#final)
 
-Why: Looker rejects the project with a LookML error. A tool may report an error, but must not resolve the view with the later refinement applied.
+Why: Looker rejects the project with a LookML error. A tool may report an error for the view, which the judge accepts because the case is invalid in Looker, but must not resolve the view with the later refinement applied.
 
-Open question: Looker reports a LookML error for a refinement applied after one with final: yes. Does Looker still resolve the view, and if so to which table? Until that is checked, the case expects the final refinement to win.
+Open question: Looker reports a LookML error for a refinement applied after one with final: yes. Does Looker still resolve the view, and if so to which table? Until that is checked, the case accepts an error for the view or the final refinement's table, and fails a tool that applies the later refinement.
 
 Pinned to: this suite's reading of the final: yes documentation; no tool or public fixture produces it yet
 
