@@ -111,7 +111,7 @@ function renderMatrix(data, tools) {
       { class: "matrix__row" },
       h(
         "a",
-        { class: "matrix__lead", href: `#tool=${tool.name}`, "aria-label": `${tool.label} (${tool.kind}): show the cases where it differs from Looker` },
+        { class: "matrix__lead", href: `#tool=${tool.name}&differs=1`, "aria-label": `${tool.label} (${tool.kind}): show the cases where it differs from Looker` },
         h("span", { class: "kind" }, tool.kind ?? ""),
         h("span", { class: "matrix__name" }, tool.label),
       ),
@@ -258,8 +258,7 @@ function visibleCases(data, tools, category = state.category) {
   const tool = tools.find((t) => t.name === state.tool);
   return data.cases.filter((c) => {
     if (category && c.category !== category) return false;
-    if (tool && !differs(outcomeOf(c, tool))) return false;
-    if (state.onlyDiffers && !tools.some((t) => differs(outcomeOf(c, t)))) return false;
+    if (state.onlyDiffers && !(tool ? differs(outcomeOf(c, tool)) : tools.some((t) => differs(outcomeOf(c, t))))) return false;
     if (state.onlyFiled && !filedFor(c).some((u) => !tool || u.tool === tool.name)) return false;
     return true;
   });
@@ -294,9 +293,12 @@ function renderCases(data, tools) {
   const shown = visibleCases(data, tools);
   const tool = tools.find((t) => t.name === state.tool);
   const filedCount = UPSTREAM.filter((u) => tool && u.tool === tool.name).length;
-  $("#filter-note").textContent = tool
-    ? `The ${shown.length} cases where ${tool.label} ${tool.version} differs from Looker${state.category ? ` in ${data.categories.find((c) => c.id === state.category).title.toLowerCase()}` : ""}.${filedCount ? ` ${filedCount} filed upstream.` : ""}`
-    : "";
+  const inCategory = state.category ? ` in ${data.categories.find((c) => c.id === state.category).title.toLowerCase()}` : "";
+  $("#filter-note").textContent = !tool
+    ? ""
+    : state.onlyDiffers
+      ? `${shown.length === 0 ? "No cases" : shown.length === 1 ? "The one case" : `The ${shown.length} cases`} where ${tool.label} ${tool.version} differs from Looker${inCategory}${state.onlyFiled ? " and a fix was filed upstream" : ""}.${filedCount && !state.onlyFiled ? ` ${filedCount} filed upstream.` : ""}`
+      : `${tool.label} ${tool.version} matches Looker in ${tool.score.all.passed} of the ${tool.score.all.applicable} cases that apply to it.`;
 
   const table = $("#cases-table");
   table.style.setProperty("--tools", tools.length);
@@ -359,13 +361,11 @@ function applyHash(data, tools, scroll) {
   const toolName = params.get("tool");
   const caseId = params.get("case");
   if (toolName && tools.some((t) => t.name === toolName)) {
-    Object.assign(state, { tool: toolName, category: "", onlyDiffers: false, onlyFiled: false, open: "" });
+    Object.assign(state, { tool: toolName, category: "", onlyDiffers: params.get("differs") === "1", onlyFiled: false, open: "" });
     renderCases(data, tools);
     if (scroll) $("#cases").scrollIntoView();
   } else if (caseId && data.cases.some((c) => shortId(c) === caseId)) {
     const c = data.cases.find((x) => shortId(x) === caseId);
-    const tool = tools.find((t) => t.name === state.tool);
-    if (tool && !differs(outcomeOf(c, tool))) state.tool = "";
     if (state.category && state.category !== c.category) state.category = "";
     state.onlyDiffers = false;
     state.onlyFiled = false;
@@ -377,6 +377,29 @@ function applyHash(data, tools, scroll) {
 
 // ---------------------------------------------------------------- page
 
+// Marks the menu link of the section in view, so the floating header shows where you are.
+function trackSection() {
+  const links = new Map([...document.querySelectorAll(".nav nav a[href^='#']")].map((a) => [a.getAttribute("href").slice(1), a]));
+  const sections = [...links.keys()].map((id) => document.getElementById(id)).filter(Boolean);
+  if (!sections.length) return;
+  let queued = false;
+  const update = () => {
+    queued = false;
+    // The current section is the last one whose top has passed a third of the way down the window.
+    const line = innerHeight / 3;
+    const current = sections.filter((s) => s.getBoundingClientRect().top <= line).pop();
+    for (const [id, a] of links) {
+      if (current && id === current.id) a.setAttribute("aria-current", "true");
+      else a.removeAttribute("aria-current");
+    }
+  };
+  addEventListener("scroll", () => {
+    if (!queued) requestAnimationFrame(update);
+    queued = true;
+  }, { passive: true });
+  update();
+}
+
 function render(data) {
   const tools = [...data.tools].sort(
     (a, b) => b.score.all.passed / b.score.all.applicable - a.score.all.passed / a.score.all.applicable,
@@ -387,13 +410,15 @@ function render(data) {
 
   const select = $("#tool-filter");
   select.replaceChildren(h("option", { value: "" }, "all tools"), ...tools.map((t) => h("option", { value: t.name }, t.label)));
+  const syncHash = () => history.replaceState(null, "", state.tool ? `#tool=${state.tool}${state.onlyDiffers ? "&differs=1" : ""}` : location.pathname);
   select.addEventListener("change", () => {
     state.tool = select.value;
-    history.replaceState(null, "", state.tool ? `#tool=${state.tool}` : location.pathname);
+    syncHash();
     renderCases(data, tools);
   });
   $("#only-differs").addEventListener("change", (e) => {
     state.onlyDiffers = e.target.checked;
+    syncHash();
     renderCases(data, tools);
   });
   $("#only-filed").addEventListener("change", (e) => {
@@ -403,6 +428,7 @@ function render(data) {
 
   renderMatrix(data, tools);
   renderCases(data, tools);
+  trackSection();
   applyHash(data, tools, true);
   window.addEventListener("hashchange", () => applyHash(data, tools, true));
 }

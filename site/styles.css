@@ -48,6 +48,11 @@ pre { font-size: 12.5px; line-height: 1.6; }
 .brand { font-weight: 600; font-size: 14px; text-decoration: none; }
 .nav nav { display: flex; flex-wrap: wrap; gap: 8px 28px; }
 .nav nav a { text-decoration: none; }
+.nav nav a[aria-current="true"] { text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 6px; }
+@media (min-width: 721px) {
+  .nav { position: sticky; top: 0; z-index: 10; background: var(--paper); }
+  html { scroll-padding-top: 56px; }
+}
 .nav nav a.gh { text-decoration: underline; }
 
 /* Hero */
@@ -70,7 +75,7 @@ pre { font-size: 12.5px; line-height: 1.6; }
 .small { font: 12px/1.6 var(--mono); color: var(--muted); }
 
 /* Matrix */
-.scroll { overflow-x: auto; padding-bottom: 8px; }
+.scroll { position: relative; overflow-x: auto; padding-bottom: 8px; }
 .matrix { display: flex; flex-direction: column; gap: 3px; width: max-content; }
 .matrix__groups, .matrix__row, .matrix__ids { display: flex; gap: 3px; align-items: center; }
 .matrix__groups { align-items: end; margin-bottom: 10px; }
