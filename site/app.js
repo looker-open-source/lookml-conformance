@@ -108,29 +108,36 @@ function renderMatrix(data, tools) {
   const rows = tools.map((tool) =>
     h(
       "div",
-      { class: "matrix__row", role: "row" },
+      { class: "matrix__row" },
       h(
         "a",
-        { class: "matrix__lead", href: `#tool=${tool.name}`, role: "rowheader", title: `Show the cases where ${tool.label} differs` },
+        { class: "matrix__lead", href: `#tool=${tool.name}`, "aria-label": `${tool.label} (${tool.kind}): show the cases where it differs from Looker` },
         h("span", { class: "kind" }, tool.kind ?? ""),
         h("span", { class: "matrix__name" }, tool.label),
       ),
       cases.map((c) => {
         const o = OUTCOME[outcomeOf(c, tool)];
-        return h("a", { class: `cell cell--${o.cls}`, href: `#case=${shortId(c)}`, role: "cell", "aria-label": `${shortId(c)}, ${tool.label}: ${o.label}`, title: `${shortId(c)} · ${o.label}` });
+        return h("span", { class: `cell cell--${o.cls}`, "aria-hidden": "true", "data-case": shortId(c), title: `${shortId(c)} · ${tool.label}: ${o.label}` });
       }),
-      h("span", { class: "matrix__score", role: "cell" }, `${tool.score.all.passed}`, h("span", {}, ` / ${tool.score.all.applicable}`)),
+      h("span", { class: "matrix__score" }, `${tool.score.all.passed}`, h("span", {}, ` / ${tool.score.all.applicable}`), h("span", { class: "sr-only" }, " cases match Looker")),
     ),
   );
 
   const ids = h(
     "div",
-    { class: "matrix__ids" },
+    { class: "matrix__ids", "aria-hidden": "true" },
     h("span", { class: "matrix__lead" }, "case"),
-    cases.map((c) => h("a", { class: "matrix__id", href: `#case=${shortId(c)}`, title: c.title }, shortId(c))),
+    cases.map((c) => h("span", { class: "matrix__id", "data-case": shortId(c), title: c.title }, shortId(c))),
   );
 
+  // The squares and case ids are mouse shortcuts into the case list. Keyboard and screen reader
+  // users reach the same cases through the tool links and the case list, whose rows are
+  // full-size buttons, so the squares stay out of the tab order and the accessibility tree.
   $("#matrix").replaceChildren(groups, ...rows, ids);
+  $("#matrix").onclick = (event) => {
+    const target = event.target.closest("[data-case]");
+    if (target) location.hash = `case=${target.dataset.case}`;
+  };
 }
 
 // ---------------------------------------------------------------- cases
@@ -230,7 +237,7 @@ function renderDetail(data, tools, c) {
                 { class: "result__report" },
                 filed
                   ? ["Filed upstream: ", h("a", { href: filed.url }, filed.label)]
-                  : h("a", { href: issueUrl(data, c, tool), target: "_blank", rel: "noopener" }, `Report to ${tool.label} ↗`),
+                  : h("a", { href: issueUrl(data, c, tool), target: "_blank", rel: "noopener" }, `Report to ${tool.label} `, h("span", { "aria-hidden": "true" }, "↗"), h("span", { class: "sr-only" }, "(opens a prefilled issue in a new tab)")),
               )
             : null,
         );
@@ -247,10 +254,10 @@ function renderDetail(data, tools, c) {
   return h("div", { class: "detail", id: `detail-${shortId(c)}` }, left, right);
 }
 
-function visibleCases(data, tools) {
+function visibleCases(data, tools, category = state.category) {
   const tool = tools.find((t) => t.name === state.tool);
   return data.cases.filter((c) => {
-    if (state.category && c.category !== state.category) return false;
+    if (category && c.category !== category) return false;
     if (tool && !differs(outcomeOf(c, tool))) return false;
     if (state.onlyDiffers && !tools.some((t) => differs(outcomeOf(c, t)))) return false;
     if (state.onlyFiled && !filedFor(c).some((u) => !tool || u.tool === tool.name)) return false;
@@ -259,13 +266,17 @@ function visibleCases(data, tools) {
 }
 
 function renderCases(data, tools) {
-  const counts = Object.fromEntries(data.categories.map((cat) => [cat.id, data.cases.filter((c) => c.category === cat.id).length]));
+  // Counts follow the other filters; a category with nothing to show is disabled.
+  const matching = visibleCases(data, tools, "");
+  const counts = Object.fromEntries(data.categories.map((cat) => [cat.id, matching.filter((c) => c.category === cat.id).length]));
+  if (state.category && !counts[state.category]) state.category = "";
   const chip = (id, label, n) =>
     h(
       "button",
       {
         class: "chip",
         type: "button",
+        disabled: id !== "" && n === 0,
         "aria-pressed": String(state.category === id),
         onclick: () => {
           state.category = id;
@@ -275,7 +286,7 @@ function renderCases(data, tools) {
       `${label} `,
       h("span", {}, n),
     );
-  $("#chips").replaceChildren(chip("", "All", data.cases.length), ...data.categories.map((cat) => chip(cat.id, cat.title, counts[cat.id])));
+  $("#chips").replaceChildren(chip("", "All", matching.length), ...data.categories.map((cat) => chip(cat.id, cat.title, counts[cat.id])));
   $("#tool-filter").value = state.tool;
   $("#only-differs").checked = state.onlyDiffers;
   $("#only-filed").checked = state.onlyFiled;
@@ -328,7 +339,12 @@ function renderCases(data, tools) {
           { class: "case__marks" },
           tools.map((t) => {
             const o = OUTCOME[outcomeOf(c, t)];
-            return h("span", { class: `mark mark--${o.cls}`, "data-tool": t.label, title: `${t.label}: ${o.label}`, "aria-label": `${t.label}: ${o.label}` }, o.mark);
+            return h(
+              "span",
+              { class: `mark mark--${o.cls}`, "data-tool": t.label, title: `${t.label}: ${o.label}` },
+              h("span", { "aria-hidden": "true" }, o.mark),
+              h("span", { class: "sr-only" }, `${t.label}: ${o.label}.`),
+            );
           }),
         ),
       ),

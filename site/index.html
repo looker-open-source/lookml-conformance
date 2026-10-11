@@ -45,10 +45,10 @@
 
     <section class="section" id="results">
       <div class="section__head">
-        <h2><span class="n">01</span><span id="results-title">Every rule, every tool</span></h2>
+        <h2><span class="n" aria-hidden="true">01</span><span id="results-title">Every rule, every tool</span></h2>
         <p class="small" id="results-date"></p>
       </div>
-      <div class="scroll"><div class="matrix" id="matrix" role="table" aria-label="Every case against every tool"></div></div>
+      <div class="scroll"><div class="matrix" id="matrix"></div></div>
       <p class="legend">
         <span><i class="cell cell--pass"></i>matches Looker</span>
         <span><i class="cell cell--fail"></i>differs</span>
@@ -59,7 +59,7 @@
     </section>
 
     <section class="section" id="case-study">
-      <div class="section__head"><h2><span class="n">02</span>Why it matters</h2></div>
+      <div class="section__head"><h2><span class="n" aria-hidden="true">02</span>Why it matters</h2></div>
       <div class="study">
         <div class="study__text">
           <p class="small">Case study · l04 · lineage</p>
@@ -124,7 +124,7 @@ derived_table: { sql: SELECT … FROM ${orders.SQL_TABLE_NAME} ;; }</pre>
 
     <section class="section" id="cases">
       <div class="section__head">
-        <h2><span class="n">03</span>The cases</h2>
+        <h2><span class="n" aria-hidden="true">03</span>The cases</h2>
         <p class="small" id="cases-meta"></p>
       </div>
       <div class="toolbar" role="toolbar" aria-label="Filter cases">
@@ -140,7 +140,7 @@ derived_table: { sql: SELECT … FROM ${orders.SQL_TABLE_NAME} ;; }</pre>
     </section>
 
     <section class="section" id="method">
-      <div class="section__head"><h2><span class="n">04</span>Every expectation is traceable</h2></div>
+      <div class="section__head"><h2><span class="n" aria-hidden="true">04</span>Every expectation is traceable</h2></div>
       <ol class="steps">
         <li><span>1</span><h3>One rule</h3><p>A case states a single rule in one sentence, such as “the file included last wins”.</p></li>
         <li><span>2</span><h3>A verbatim quote</h3><p>The rule cites the Looker documentation word for word. <code>check-citations</code> re-reads every page each week and fails if a quote changes.</p></li>
@@ -152,7 +152,7 @@ derived_table: { sql: SELECT … FROM ${orders.SQL_TABLE_NAME} ;; }</pre>
     </section>
 
     <section class="section" id="test">
-      <div class="section__head"><h2><span class="n">05</span>Test your tool</h2></div>
+      <div class="section__head"><h2><span class="n" aria-hidden="true">05</span>Test your tool</h2></div>
       <p class="section__intro" style="font-size:22px;color:var(--ink)">Looker’s resolver isn’t public. This is the first open test suite for it.</p>
       <div class="runbox">
         <pre><span class="c"># score your tool or your branch</span>
