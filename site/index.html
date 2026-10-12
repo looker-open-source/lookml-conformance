@@ -56,21 +56,21 @@
       <figure class="hero__fig">
         <p class="hf-q">Which table does <code>orders_rollup</code> read?</p>
         <svg viewBox="0 0 480 196" role="img" aria-labelledby="hero-fig-title">
-          <title id="hero-fig-title">Asked which table orders_rollup reads, Looker answers analytics.orders_clean, which is correct. DataHub and OpenMetadata answer raw.orders, which is wrong, so dropping analytics.orders_clean looks safe in those catalogs.</title>
+          <title id="hero-fig-title">Two candidate sources flow into the derived table orders_rollup. Looker reads analytics.orders_clean, which is correct. DataHub and OpenMetadata record raw.orders, which is wrong.</title>
           <defs>
             <marker id="hf-pass" orient="auto" markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="10" viewBox="0 0 8 8" refX="7" refY="4"><path d="M0 0 L8 4 L0 8 Z" fill="#1d6b57"/></marker>
             <marker id="hf-fail" orient="auto" markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="10" viewBox="0 0 8 8" refX="7" refY="4"><path d="M0 0 L8 4 L0 8 Z" fill="#b4400e"/></marker>
           </defs>
-          <rect class="hf-node" x="2" y="90" width="150" height="56"/>
-          <text class="hf-kind" x="16" y="111">DERIVED TABLE</text><text class="hf-name" x="16" y="132">orders_rollup</text>
-          <path class="hf-edge hf-edge--pass" d="M 152 110 C 190 110, 196 46, 244 46" marker-end="url(#hf-pass)"/>
-          <path class="hf-edge hf-edge--fail" d="M 152 126 C 190 126, 196 166, 244 166" marker-end="url(#hf-fail)"/>
-          <text class="hf-who hf-who--pass" x="250" y="14">LOOKER</text>
-          <rect class="hf-node hf-node--pass" x="246" y="22" width="232" height="48"/>
-          <text class="hf-name" x="260" y="51">analytics.orders_clean</text><text class="hf-mark hf-mark--pass" x="456" y="52">✓</text>
-          <text class="hf-who hf-who--fail" x="250" y="134">DATAHUB, OPENMETADATA</text>
-          <rect class="hf-node hf-node--fail" x="246" y="142" width="232" height="48"/>
-          <text class="hf-name" x="260" y="171">raw.orders</text><text class="hf-mark hf-mark--fail" x="456" y="172">✗</text>
+          <path class="hf-edge hf-edge--pass" d="M 234 46 C 276 46, 282 110, 326 110" marker-end="url(#hf-pass)"/>
+          <path class="hf-edge hf-edge--fail" d="M 234 166 C 276 166, 282 126, 326 126" marker-end="url(#hf-fail)"/>
+          <text class="hf-who hf-who--pass" x="6" y="14">LOOKER</text>
+          <rect class="hf-node hf-node--pass" x="2" y="22" width="232" height="48"/>
+          <text class="hf-name" x="16" y="51">analytics.orders_clean</text><text class="hf-mark hf-mark--pass" x="212" y="52">✓</text>
+          <text class="hf-who hf-who--fail" x="6" y="134">DATAHUB, OPENMETADATA</text>
+          <rect class="hf-node hf-node--fail" x="2" y="142" width="232" height="48"/>
+          <text class="hf-name" x="16" y="171">raw.orders</text><text class="hf-mark hf-mark--fail" x="212" y="172">✗</text>
+          <rect class="hf-node" x="328" y="90" width="150" height="56"/>
+          <text class="hf-kind" x="342" y="111">DERIVED TABLE</text><text class="hf-name" x="342" y="132">orders_rollup</text>
         </svg>
         <p class="hf-consequence">So in those catalogs, dropping <code>analytics.orders_clean</code> looks safe.</p>
         <figcaption class="small">From case l04. <a href="#case-study">See why</a></figcaption>
