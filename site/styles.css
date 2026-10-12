@@ -45,7 +45,8 @@ pre { font-size: 12.5px; line-height: 1.6; }
 /* Header */
 .nav { border-bottom: 1px solid var(--ink); }
 .nav .wrap { display: flex; flex-wrap: wrap; gap: 16px 32px; align-items: baseline; justify-content: space-between; padding-block: 18px; font: 13px/1.4 var(--mono); }
-.brand { font-weight: 600; font-size: 14px; text-decoration: none; }
+.brand { display: inline-flex; align-items: center; gap: 10px; font-weight: 600; font-size: 14px; text-decoration: none; align-self: center; }
+.brand img { display: block; }
 .nav nav { display: flex; flex-wrap: wrap; gap: 8px 28px; }
 .nav nav a { text-decoration: none; }
 .nav nav a[aria-current="true"] { text-decoration: underline; text-decoration-color: var(--pass-text); text-decoration-thickness: 2px; text-underline-offset: 6px; }
