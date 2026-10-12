@@ -91,7 +91,7 @@ pre { font-size: 12.5px; line-height: 1.6; }
 .section h2 { font-size: 30px; font-weight: 500; line-height: 1.2; }
 .section h2 .n { font: 13px/1 var(--mono); color: var(--pass-text); margin-right: 14px; vertical-align: 0.35em; }
 .section__intro { font-size: 18px; color: var(--ink-2); max-width: 820px; margin: -12px 0 28px; }
-.note { font-size: 16px; color: var(--muted); max-width: 860px; margin-top: 14px; }
+.note { font-size: 16px; color: var(--muted); margin-top: 14px; text-wrap: pretty; }
 .small { font: 12px/1.6 var(--mono); color: var(--muted); }
 
 /* Matrix */
