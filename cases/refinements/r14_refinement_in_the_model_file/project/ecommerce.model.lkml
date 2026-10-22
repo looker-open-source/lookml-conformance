@@ -1,0 +1,7 @@
+connection: "wh"
+include: "/views/orders.view.lkml"
+view: +orders {
+  sql_table_name: analytics.orders_clean ;;
+  dimension: status { sql: ${TABLE}.status ;; }
+}
+explore: orders {}

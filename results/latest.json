@@ -388,6 +388,38 @@
       }
     },
     {
+      "case": "r14_refinement_in_the_model_file",
+      "category": "refinements",
+      "status": "confirmed",
+      "verdicts": {
+        "node-lookml-parser": {
+          "outcome": "pass",
+          "reasons": []
+        },
+        "openmetadata": {
+          "outcome": "fail",
+          "reasons": [
+            "ecommerce.orders.sql_table_name: expected 'analytics.orders_clean', got 'raw.orders'",
+            "ecommerce.orders.fields: expected ['id', 'status'], got ['id']"
+          ]
+        },
+        "datahub": {
+          "outcome": "fail",
+          "reasons": [
+            "ecommerce.orders.sql_table_name: expected 'analytics.orders_clean', got 'raw.orders'",
+            "ecommerce.orders.fields: expected ['id', 'status'], got ['id']"
+          ]
+        },
+        "dagster": {
+          "outcome": "fail",
+          "reasons": [
+            "ecommerce.orders.sql_table_name: expected 'analytics.orders_clean', got 'raw.orders'",
+            "ecommerce.orders.fields: expected ['id', 'status'], got ['id']"
+          ]
+        }
+      }
+    },
+    {
       "case": "i01_wildcard_include_applies_in_path_order",
       "category": "includes",
       "status": "provisional",

@@ -1,0 +1,35 @@
+{
+  "id": "r14_refinement_in_the_model_file",
+  "title": "A refinement in the model file applies",
+  "rule": "A refinement declared in a model file applies to the view in that model, like one in an included file.",
+  "status": "confirmed",
+  "basis": ["documentation"],
+  "citations": [
+    {
+      "url": "https://docs.cloud.google.com/looker/docs/lookml-refinements",
+      "quote": "This refinement can go in any LookML file in the project, such as a model file, view file, or in its own dedicated LookML file."
+    },
+    {
+      "url": "https://docs.cloud.google.com/looker/docs/lookml-refinements#using_refinements_to_add_layers_to_your_model",
+      "quote": "You can also use the model file to add refinements to point your views at the database tables you want to reference:"
+    }
+  ],
+  "expect": {
+    "models": {
+      "ecommerce": {
+        "views": {
+          "orders": {
+            "sql_table_name": "analytics.orders_clean",
+            "fields": [
+              "id",
+              "status"
+            ]
+          }
+        }
+      }
+    },
+    "absent_views": [
+      "+orders"
+    ]
+  }
+}

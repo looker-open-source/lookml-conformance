@@ -6,10 +6,10 @@
 
 | Tool | Version | confirmed | provisional | All |
 | --- | --- | --- | --- | --- |
-| node-lookml-parser | `9.1.0` | 20 / 26 | 6 / 8 | **26 / 34** |
-| OpenMetadata | `2.0.5.0` | 7 / 26 | 0 / 8 | **7 / 34** |
-| DataHub | `1.7.0.14` | 14 / 26 | 1 / 8 | **15 / 34** |
-| Dagster | `0.29.25` | 16 / 31 | 6 / 8 | **22 / 39** |
+| node-lookml-parser | `9.1.0` | 21 / 27 | 6 / 8 | **27 / 35** |
+| OpenMetadata | `2.0.5.0` | 7 / 27 | 0 / 8 | **7 / 35** |
+| DataHub | `1.7.0.14` | 14 / 27 | 1 / 8 | **15 / 35** |
+| Dagster | `0.29.25` | 16 / 32 | 6 / 8 | **22 / 40** |
 
 ## Results
 
@@ -28,6 +28,7 @@
 | `r11_derived_table_refined_parameter_by_parameter` | confirmed | ✅ | N/A | N/A | ✅ |
 | `r12_refinement_without_a_base_view` | provisional | ✅ | ❌ | ✅ | ✅ |
 | `r13_dimension_group_timeframes_override` | confirmed | ✅ | N/A | N/A | ❌ |
+| `r14_refinement_in_the_model_file` | confirmed | ✅ | ❌ | ❌ | ❌ |
 | `i01_wildcard_include_applies_in_path_order` | provisional | ✅ | ❌ | ❌ | ✅ |
 | `i02_nested_include_expands_in_place` | provisional | ❌ | ❌ | ❌ | ❌ |
 | `i03_file_included_twice_keeps_first_position` | provisional | ✅ | ❌ | ❌ | ❌ |
@@ -82,6 +83,9 @@
 - `r10_final_refinement_blocks_later_ones` · **DataHub**: m.orders.sql_table_name: expected 'a.final', got 'raw.orders'
 - `r12_refinement_without_a_base_view` · **OpenMetadata**: views that must not exist were exposed: ['+ghost']
 - `r13_dimension_group_timeframes_override` · **Dagster**: m.orders.created.type: expected 'time', got None; m.orders.created.sql: expected '${TABLE}.created_at', got None
+- `r14_refinement_in_the_model_file` · **OpenMetadata**: ecommerce.orders.sql_table_name: expected 'analytics.orders_clean', got 'raw.orders'; ecommerce.orders.fields: expected ['id', 'status'], got ['id']
+- `r14_refinement_in_the_model_file` · **DataHub**: ecommerce.orders.sql_table_name: expected 'analytics.orders_clean', got 'raw.orders'; ecommerce.orders.fields: expected ['id', 'status'], got ['id']
+- `r14_refinement_in_the_model_file` · **Dagster**: ecommerce.orders.sql_table_name: expected 'analytics.orders_clean', got 'raw.orders'; ecommerce.orders.fields: expected ['id', 'status'], got ['id']
 - `i01_wildcard_include_applies_in_path_order` · **OpenMetadata**: m.orders.sql_table_name: expected 'from_b', got 'raw.orders'
 - `i01_wildcard_include_applies_in_path_order` · **DataHub**: m.orders.sql_table_name: expected 'from_b', got 'raw.orders'
 - `i02_nested_include_expands_in_place` · **node-lookml-parser**: m1.orders.sql_table_name: expected 'a', got 'b'

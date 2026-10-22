@@ -1,10 +1,10 @@
 {
  "date": "2026-10-20",
  "suite": {
-  "cases": 39,
-  "confirmed": 31,
+  "cases": 40,
+  "confirmed": 32,
   "provisional": 8,
-  "citations": 76,
+  "citations": 78,
   "pages": 15
  },
  "categories": [
@@ -52,12 +52,12 @@
    "version": "9.1.0",
    "score": {
     "all": {
-     "passed": 26,
-     "applicable": 34
+     "passed": 27,
+     "applicable": 35
     },
     "confirmed": {
-     "passed": 20,
-     "applicable": 26
+     "passed": 21,
+     "applicable": 27
     },
     "provisional": {
      "passed": 6,
@@ -76,11 +76,11 @@
    "score": {
     "all": {
      "passed": 7,
-     "applicable": 34
+     "applicable": 35
     },
     "confirmed": {
      "passed": 7,
-     "applicable": 26
+     "applicable": 27
     },
     "provisional": {
      "passed": 0,
@@ -99,11 +99,11 @@
    "score": {
     "all": {
      "passed": 15,
-     "applicable": 34
+     "applicable": 35
     },
     "confirmed": {
      "passed": 14,
-     "applicable": 26
+     "applicable": 27
     },
     "provisional": {
      "passed": 1,
@@ -122,11 +122,11 @@
    "score": {
     "all": {
      "passed": 22,
-     "applicable": 39
+     "applicable": 40
     },
     "confirmed": {
      "passed": 16,
-     "applicable": 31
+     "applicable": 32
     },
     "provisional": {
      "passed": 6,
@@ -1205,6 +1205,88 @@
      "reasons": [
       "m.orders.created.type: expected 'time', got None",
       "m.orders.created.sql: expected '${TABLE}.created_at', got None"
+     ]
+    }
+   }
+  },
+  {
+   "id": "r14_refinement_in_the_model_file",
+   "category": "refinements",
+   "title": "A refinement in the model file applies",
+   "rule": "A refinement declared in a model file applies to the view in that model, like one in an included file.",
+   "status": "confirmed",
+   "basis": [
+    "documentation"
+   ],
+   "citations": [
+    {
+     "url": "https://docs.cloud.google.com/looker/docs/lookml-refinements",
+     "quote": "This refinement can go in any LookML file in the project, such as a model file, view file, or in its own dedicated LookML file.",
+     "label": "lookml-refinements"
+    },
+    {
+     "url": "https://docs.cloud.google.com/looker/docs/lookml-refinements#using_refinements_to_add_layers_to_your_model",
+     "quote": "You can also use the model file to add refinements to point your views at the database tables you want to reference:",
+     "label": "lookml-refinements#using_refinements_to_add_layers_to_your_model"
+    }
+   ],
+   "rationale": null,
+   "provisional": null,
+   "observations": [],
+   "invalid_in_looker": false,
+   "expect": {
+    "models": {
+     "ecommerce": {
+      "views": {
+       "orders": {
+        "sql_table_name": "analytics.orders_clean",
+        "fields": [
+         "id",
+         "status"
+        ]
+       }
+      },
+      "explores": {}
+     }
+    },
+    "absent_views": [
+     "+orders"
+    ]
+   },
+   "files": [
+    {
+     "path": "ecommerce.model.lkml",
+     "content": "connection: \"wh\"\ninclude: \"/views/orders.view.lkml\"\nview: +orders {\n  sql_table_name: analytics.orders_clean ;;\n  dimension: status { sql: ${TABLE}.status ;; }\n}\nexplore: orders {}\n"
+    },
+    {
+     "path": "views/orders.view.lkml",
+     "content": "view: orders {\n  sql_table_name: raw.orders ;;\n  dimension: id {\n    type: number\n    sql: ${TABLE}.id ;;\n  }\n}\n"
+    }
+   ],
+   "verdicts": {
+    "node-lookml-parser": {
+     "outcome": "pass",
+     "reasons": []
+    },
+    "openmetadata": {
+     "outcome": "fail",
+     "reasons": [
+      "ecommerce.orders.sql_table_name: expected 'analytics.orders_clean', got 'raw.orders'",
+      "ecommerce.orders.fields: expected ['id', 'status'], got ['id']"
+     ]
+    },
+    "datahub": {
+     "outcome": "fail",
+     "reasons": [
+      "ecommerce.orders.sql_table_name: expected 'analytics.orders_clean', got 'raw.orders'",
+      "ecommerce.orders.fields: expected ['id', 'status'], got ['id']"
+     ]
+    },
+    "dagster": {
+     "outcome": "fail",
+     "reasons": [
+      "ecommerce.orders.sql_table_name: expected 'analytics.orders_clean', got 'raw.orders'",
+      "ecommerce.orders.fields: expected ['id', 'status'], got ['id']"
      ]
     }
    }

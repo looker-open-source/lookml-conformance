@@ -21,10 +21,10 @@ Released versions, scored on 2026-10-20 on macOS (APFS) ([full scorecard](result
 
 | Tool | Version | Confirmed | Provisional | All |
 | --- | --- | ---: | ---: | ---: |
-| [node-lookml-parser](https://github.com/fabio-looker/node-lookml-parser) | `lookml-parser` 9.1.0 | 20 / 26 | 6 / 8 | **26 / 34** |
-| [Dagster](https://github.com/dagster-io/dagster) | `dagster-looker` 0.29.25 | 16 / 31 | 6 / 8 | **22 / 39** |
-| [DataHub](https://github.com/datahub-project/datahub) | `acryl-datahub[lookml]` 1.7.0.14 | 14 / 26 | 1 / 8 | **15 / 34** |
-| [OpenMetadata](https://github.com/open-metadata/OpenMetadata) | `openmetadata-ingestion[looker]` 2.0.5.0 | 7 / 26 | 0 / 8 | **7 / 34** |
+| [node-lookml-parser](https://github.com/fabio-looker/node-lookml-parser) | `lookml-parser` 9.1.0 | 21 / 27 | 6 / 8 | **27 / 35** |
+| [Dagster](https://github.com/dagster-io/dagster) | `dagster-looker` 0.29.25 | 16 / 32 | 6 / 8 | **22 / 40** |
+| [DataHub](https://github.com/datahub-project/datahub) | `acryl-datahub[lookml]` 1.7.0.14 | 14 / 27 | 1 / 8 | **15 / 35** |
+| [OpenMetadata](https://github.com/open-metadata/OpenMetadata) | `openmetadata-ingestion[looker]` 2.0.5.0 | 7 / 27 | 0 / 8 | **7 / 35** |
 
 A case applies to a tool only when the tool emits what the case checks:
 
@@ -63,11 +63,11 @@ Each adapter runs its tool the way a user runs it and reports what that run prod
 
 ## Cases
 
-39 cases in eight categories. [CASES.md](CASES.md) lists each one with its rule and quotes.
+40 cases in eight categories. [CASES.md](CASES.md) lists each one with its rule and quotes.
 
 | Category | Cases | What it covers |
 | --- | ---: | --- |
-| Refinements | 13 | Overrides, field-level merges, include order, order within a file, additive `filters`, `final: yes`, `derived_table` merges |
+| Refinements | 14 | Overrides, field-level merges, include order, order within a file, additive `filters`, `final: yes`, `derived_table` merges |
 | Includes | 9 | Wildcards, nested includes, relative paths, imported projects, cycles, dashboard files |
 | Extends | 4 | Several parents, `extends` added by a refinement, child overrides |
 | Model scope | 1 | A refinement does not leak into a model that does not include it |
@@ -95,7 +95,7 @@ the Looker documentation it comes from, and lists the expected resolution per mo
 }
 ```
 
-Cases are **confirmed** when the expectation follows from the quoted documentation (31 cases) and
+Cases are **confirmed** when the expectation follows from the quoted documentation (32 cases) and
 **provisional** when the documentation leaves the behavior open (8 cases). A provisional case states
 the open question and names the public source its expectation is pinned to, until it is checked on
 a Looker instance, which the [Looker adapter](docs/looker-adapter.md) does through the Looker API

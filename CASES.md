@@ -11,7 +11,7 @@ expectation is pinned to.
 
 | Category | Cases | Confirmed | Provisional |
 | --- | ---: | ---: | ---: |
-| [Refinements](#refinements) | 13 | 10 | 3 |
+| [Refinements](#refinements) | 14 | 11 | 3 |
 | [Includes](#includes) | 9 | 5 | 4 |
 | [Extends](#extends) | 4 | 3 | 1 |
 | [Model scope](#model-scope) | 1 | 1 | 0 |
@@ -19,7 +19,7 @@ expectation is pinned to.
 | [Constants](#constants) | 2 | 2 | 0 |
 | [Lineage](#lineage) | 5 | 5 | 0 |
 | [Syntax](#syntax) | 3 | 3 | 0 |
-| **Total** | 39 | 31 | 8 |
+| **Total** | 40 | 32 | 8 |
 
 ## Refinements
 
@@ -198,6 +198,18 @@ Rule: timeframes is not additive, so a refinement replaces the list and keeps th
 Why: timeframes is not on the documentation's list of additive parameters, so the refinement's value overrides the base value.
 
 Files: [`case.json`](cases/refinements/r13_dimension_group_timeframes_override/case.json) · [`project/`](cases/refinements/r13_dimension_group_timeframes_override/project)
+
+### `r14_refinement_in_the_model_file`
+
+**A refinement in the model file applies.** *confirmed · documentation*
+
+Rule: A refinement declared in a model file applies to the view in that model, like one in an included file.
+
+> This refinement can go in any LookML file in the project, such as a model file, view file, or in its own dedicated LookML file.<br>[lookml-refinements](https://docs.cloud.google.com/looker/docs/lookml-refinements)
+
+> You can also use the model file to add refinements to point your views at the database tables you want to reference:<br>[lookml-refinements#using_refinements_to_add_layers_to_your_model](https://docs.cloud.google.com/looker/docs/lookml-refinements#using_refinements_to_add_layers_to_your_model)
+
+Files: [`case.json`](cases/refinements/r14_refinement_in_the_model_file/case.json) · [`project/`](cases/refinements/r14_refinement_in_the_model_file/project)
 
 ## Includes
 
