@@ -21,10 +21,10 @@ Released versions, scored on 2026-10-20 on macOS (APFS) ([full scorecard](result
 
 | Tool | Version | Confirmed | Provisional | All |
 | --- | --- | ---: | ---: | ---: |
-| [node-lookml-parser](https://github.com/fabio-looker/node-lookml-parser) | `lookml-parser` 9.1.0 | 21 / 27 | 6 / 8 | **27 / 35** |
-| [Dagster](https://github.com/dagster-io/dagster) | `dagster-looker` 0.29.25 | 16 / 32 | 5 / 8 | **21 / 40** |
-| [DataHub](https://github.com/datahub-project/datahub) | `acryl-datahub[lookml]` 1.7.0.14 | 14 / 27 | 1 / 8 | **15 / 35** |
-| [OpenMetadata](https://github.com/open-metadata/OpenMetadata) | `openmetadata-ingestion[looker]` 2.0.5.0 | 7 / 27 | 0 / 8 | **7 / 35** |
+| [node-lookml-parser](https://github.com/fabio-looker/node-lookml-parser) | `lookml-parser` 9.1.0 | 19 / 24 | 8 / 11 | **27 / 35** |
+| [Dagster](https://github.com/dagster-io/dagster) | `dagster-looker` 0.29.25 | 14 / 29 | 7 / 11 | **21 / 40** |
+| [DataHub](https://github.com/datahub-project/datahub) | `acryl-datahub[lookml]` 1.7.0.14 | 12 / 25 | 3 / 10 | **15 / 35** |
+| [OpenMetadata](https://github.com/open-metadata/OpenMetadata) | `openmetadata-ingestion[looker]` 2.0.5.0 | 6 / 25 | 1 / 10 | **7 / 35** |
 
 A case applies to a tool only when the tool emits what the case checks:
 
@@ -98,8 +98,8 @@ the Looker documentation it comes from, and lists the expected resolution per mo
 }
 ```
 
-Cases are **confirmed** when the expectation follows from the quoted documentation (32 cases) and
-**provisional** when the documentation leaves the behavior open (8 cases). A provisional case states
+Cases are **confirmed** when the expectation follows from the quoted documentation (29 cases) and
+**provisional** when the documentation leaves the behavior open (11 cases). A provisional case states
 the open question and names the public source its expectation is pinned to, until it is checked on
 a Looker instance, which the [Looker adapter](docs/looker-adapter.md) does through the Looker API
 ([procedure](docs/confirming-provisional-cases.md)).
@@ -189,8 +189,9 @@ def test_lookml_conformance(case_file, request):
 A change that breaks a passing case fails the run. A fix that makes a known failure pass also fails
 it, until the case is removed from the list. To update, copy the cases again from a newer release.
 
-`order_variants` in `case.json` lists pairs of files: the case passes only if it also passes with
-the contents of each pair exchanged and the include statements that name them rewritten
+Two keys of `case.json` change how a case is checked. `unordered` lists parameters to compare in any
+order. `order_variants` lists pairs of files: the case passes only if it also passes with the
+contents of each pair exchanged and the include statements that name them rewritten
 ([file order](docs/case-format.md#file-order)). To check those layouts too, write them with
 `lookml_conformance.file_order.layout`, or exchange the files by hand.
 

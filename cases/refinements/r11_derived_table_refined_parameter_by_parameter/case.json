@@ -2,8 +2,11 @@
   "id": "r11_derived_table_refined_parameter_by_parameter",
   "title": "Refining a derived_table adds parameters without dropping its SQL",
   "rule": "A refinement of derived_table merges the sub-parameters it sets into the base derived_table.",
-  "status": "confirmed",
-  "basis": ["documentation"],
+  "status": "provisional",
+  "provisional": {
+    "question": "The documentation lists bind_filters, dev_filters, filters and sorts as additive derived table parameters, and says refinements of a PDT's view do not create a new copy of the table. It does not say whether refining derived_table with only datagroup_trigger keeps the base view's sql. Does it?",
+    "pinned_to": "node-lookml-parser 9.1.0 and dagster-looker 0.29.25, which merge derived_table parameter by parameter"
+  },
   "citations": [
     {
       "url": "https://docs.cloud.google.com/looker/docs/lookml-refinements",
@@ -18,7 +21,7 @@
       "quote": "The following parameters are additive:"
     }
   ],
-  "rationale": "The documentation recommends refinements for adding to persistent derived tables, and lists derived-table sub-parameters among the additive parameters, which only works if derived_table is merged parameter by parameter.",
+  "rationale": "The documentation recommends refinements for adding to persistent derived tables, and its additive list names derived table sub-parameters, which suggests that derived_table is merged parameter by parameter rather than replaced as a whole. The expectation follows that reading.",
   "expect": {
     "models": {
       "m": {

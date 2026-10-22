@@ -2,14 +2,22 @@
   "id": "p01_single_semicolon_inside_sql_block",
   "title": "A single semicolon inside a SQL block is kept verbatim",
   "rule": "SQL blocks end only at ;;, so a single ; inside the SQL is part of the SQL.",
-  "status": "confirmed",
-  "basis": ["documentation"],
+  "status": "provisional",
+  "provisional": {
+    "question": "Every SQL block in the documentation's examples ends with ;;, but no page states that ;; is what ends a SQL block or that a single ; inside one is kept. Does Looker keep a single ; inside a SQL block?",
+    "pinned_to": "lkml 1.3.7, the LookML parser DataHub, OpenMetadata and Dagster use, which ends a SQL block only at ;;"
+  },
   "citations": [
     {
-      "url": "https://community.looker.com/technical-tips-tricks-1021/when-are-semicolons-used-in-lookml-25425",
-      "quote": "The double semicolon is used to end SQL and HTML blocks."
+      "url": "https://docs.cloud.google.com/looker/docs/reference/param-field-sql#sql_for_dimensions",
+      "quote": "The sql block for dimensions can generally take any valid SQL that would go into a single column of a SELECT statement."
+    },
+    {
+      "url": "https://docs.cloud.google.com/looker/docs/reference/param-view-derived-table",
+      "quote": "Declares the SQL query for a derived table."
     }
   ],
+  "rationale": "The case's SQL is valid SQL with a semicolon inside a string literal. The citation that stated the rule, a Looker Community article, can no longer be fetched, so the case is provisional until Looker is checked.",
   "expect": {
     "models": {
       "m": {

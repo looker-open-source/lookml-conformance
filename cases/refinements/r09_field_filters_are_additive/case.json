@@ -1,7 +1,7 @@
 {
   "id": "r09_field_filters_are_additive",
   "title": "filters on a measure accumulate across the base view and a refinement",
-  "rule": "filters on a field is additive under refinement: the refinement's filters are appended to the base filters.",
+  "rule": "filters on a field is additive under refinement: the field keeps the base view's filters and gains the refinement's.",
   "status": "confirmed",
   "basis": ["documentation"],
   "citations": [
@@ -14,7 +14,8 @@
       "quote": "meaning that the values from the base object are used in conjunction with the values from the refined object"
     }
   ],
-  "rationale": "The additive list on that page includes filters for dimensions and measures.",
+  "rationale": "The additive list on that page includes filters for dimensions and measures. The documentation says the values are used in conjunction but not in which order, so the case compares the filters in any order.",
+  "unordered": ["filters"],
   "expect": {
     "models": {
       "m": {

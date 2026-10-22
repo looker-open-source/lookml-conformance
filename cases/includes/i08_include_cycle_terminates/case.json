@@ -4,7 +4,7 @@
   "rule": "Files that include each other are each processed once and resolution terminates.",
   "status": "provisional",
   "provisional": {
-    "question": "Looker's resulting order for mutually including files is not documented. The tool must terminate either way.",
+    "question": "Looker's resulting order for mutually including files is not documented, and the tool must terminate either way. The expectation b also depends on r06's open question: the model includes a.view.lkml, which includes b.view.lkml before it defines orders, so the refinement in b can be read before the view it refines. If Looker does not apply a refinement read before its base view, orders resolves to raw.orders.",
     "pinned_to": "node-lookml-parser 9.1.0"
   },
   "citations": [

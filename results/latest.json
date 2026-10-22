@@ -196,7 +196,7 @@
     {
       "case": "r07_field_refinement_keeps_unset_parameters",
       "category": "refinements",
-      "status": "confirmed",
+      "status": "provisional",
       "verdicts": {
         "node-lookml-parser": {
           "outcome": "pass",
@@ -254,7 +254,7 @@
         "node-lookml-parser": {
           "outcome": "fail",
           "reasons": [
-            "m.orders.n.filters: expected [{'status': 'complete'}, {'region': 'EU'}], got [{'region': 'EU'}]"
+            "m.orders.n.filters: expected [{'status': 'complete'}, {'region': 'EU'}], got [{'region': 'EU'}] (compared in any order)"
           ]
         },
         "openmetadata": {
@@ -272,7 +272,7 @@
         "dagster": {
           "outcome": "fail",
           "reasons": [
-            "m.orders.n.filters: expected [{'status': 'complete'}, {'region': 'EU'}], got [{'region': 'EU'}]"
+            "m.orders.n.filters: expected [{'status': 'complete'}, {'region': 'EU'}], got [{'region': 'EU'}] (compared in any order)"
           ]
         }
       }
@@ -312,7 +312,7 @@
     {
       "case": "r11_derived_table_refined_parameter_by_parameter",
       "category": "refinements",
-      "status": "confirmed",
+      "status": "provisional",
       "verdicts": {
         "node-lookml-parser": {
           "outcome": "pass",
@@ -1082,7 +1082,7 @@
     {
       "case": "p01_single_semicolon_inside_sql_block",
       "category": "syntax",
-      "status": "confirmed",
+      "status": "provisional",
       "verdicts": {
         "node-lookml-parser": {
           "outcome": "fail",

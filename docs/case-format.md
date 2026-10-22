@@ -27,6 +27,7 @@ a snake_case summary, and match the directory name.
 | `provisional` | provisional only | `{"question", "pinned_to"}`: what the documentation leaves open, and the public source the expectation follows. |
 | `observations` | with basis `observation` | One or more `{"looker_version", "date", "finding", "evidence"}`, described below. |
 | `invalid_in_looker` | no | `true` when Looker rejects the project (for example a refinement after `final: yes`). Tools may report an error but must not produce the forbidden result: the judge accepts a view reported as an error, and still fails a view resolved to anything but the expectation. |
+| `unordered` | no | Parameters the case compares in any order. Only `filters` is allowed; see [Expectations](#expectations). |
 | `order_variants` | no | Pairs of files whose order decides the result of a tool that reads files in the order the file system lists them. The case also runs with the contents of each pair exchanged; see [File order](#file-order). |
 | `expect` | yes | `{"models": {...}, "absent_views": [...]}`, described below. |
 
@@ -118,12 +119,16 @@ Expectations are per model. A model name is the file name of a `<name>.model.lkm
 | `sql_table_name` | Text with whitespace collapsed. `null` asserts that the view has no table name. |
 | `derived_table` | Each listed parameter, as text. Unlisted parameters are ignored. |
 | `fields` | Set of dimension, dimension group and measure names. |
-| `field_params` | Per field, per listed parameter. `filters` is an ordered list of one-key objects; `timeframes` is compared as a set; anything else as text. |
+| `field_params` | Per field, per listed parameter. `filters` is an ordered list of one-key objects, compared in order unless the case lists `filters` in `unordered`; `timeframes` is compared as a set; anything else as text. |
 | `extends` | Ordered list. |
 | `upstream_tables` | Set of warehouse tables the view reads, lower-cased. The tool's view and explore upstreams are followed to their tables (see [adapter-protocol.md](adapter-protocol.md#lineage)). |
 | explore `view_name`, `from`, `label` | Text. |
 | explore `joins` | Per join, per listed parameter (`from`, `view_label`, `sql_on`, `relationship`, `type`), as text. |
 | `absent_views` | Names that no model may expose as a view, such as a refinement mistaken for a view (`+orders`). |
+
+`"unordered": ["filters"]` makes the case compare `filters` as a collection: the same entries, each
+as many times, in any order. Use it when the documentation says which filters a field has but not in
+which order, as for the additive `filters` of a refinement (r09).
 
 ## File order
 

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from collections.abc import Iterator, Mapping, Sequence
 from dataclasses import dataclass
 from enum import Enum
@@ -45,7 +46,7 @@ def judge(case: Case, output: AdapterOutput) -> Verdict:
         *(
             reason
             for model_name, expected in case.models.items()
-            for reason in _check_model(model_name, expected, _model_for(model_name, output))
+            for reason in _check_model(model_name, expected, _model_for(model_name, output), case.unordered)
         ),
         *_check_absent_views(case.absent_views, output),
     ]
@@ -106,7 +107,9 @@ def _model_for(name: str, output: AdapterOutput) -> ModelOutput | None:
     return None
 
 
-def _check_model(name: str, expected: ModelExpectation, got: ModelOutput | None) -> Iterator[str]:
+def _check_model(
+    name: str, expected: ModelExpectation, got: ModelOutput | None, unordered: frozenset[str] = frozenset()
+) -> Iterator[str]:
     if got is None:
         yield f"{name}: model not resolved"
         return
@@ -118,7 +121,7 @@ def _check_model(name: str, expected: ModelExpectation, got: ModelOutput | None)
         elif view.error is not None:
             yield f"{where}: {view.error}"
         else:
-            yield from _check_view(where, expected_view, view)
+            yield from _check_view(where, expected_view, view, unordered)
             if "upstream_tables" in expected_view:
                 yield from _check_upstream(where, expected_view["upstream_tables"], view, got)
     for explore_name, expected_explore in expected.explores.items():
@@ -130,7 +133,9 @@ def _check_model(name: str, expected: ModelExpectation, got: ModelOutput | None)
             yield from _check_explore(where, expected_explore, explore)
 
 
-def _check_view(where: str, expected: Mapping[str, Any], got: ViewOutput) -> Iterator[str]:
+def _check_view(
+    where: str, expected: Mapping[str, Any], got: ViewOutput, unordered: frozenset[str] = frozenset()
+) -> Iterator[str]:
     if "sql_table_name" in expected:
         yield from _compare_text(f"{where}.sql_table_name", expected["sql_table_name"], got.sql_table_name)
     if "derived_table" in expected:
@@ -146,7 +151,7 @@ def _check_view(where: str, expected: Mapping[str, Any], got: ViewOutput) -> Ite
             continue
         for param, value in params.items():
             yield from _compare_field_param(
-                f"{where}.{field_name}.{param}", param, value, actual_params.get(param)
+                f"{where}.{field_name}.{param}", param, value, actual_params.get(param), param in unordered
             )
     if "extends" in expected and list(got.extends or []) != expected["extends"]:
         yield _mismatch(
@@ -207,9 +212,15 @@ def _table_key(name: str) -> str:
     return (collapse_whitespace(name) or "").lower()
 
 
-def _compare_field_param(where: str, param: str, expected: Any, actual: Any) -> Iterator[str]:
-    if param == "filters":
-        # Filters are compared in order: refinement filters are appended after the base filters.
+def _compare_field_param(
+    where: str, param: str, expected: Any, actual: Any, unordered: bool = False
+) -> Iterator[str]:
+    if param == "filters" and unordered:
+        # The case compares filters as a collection: the same entries, each as often, in any order.
+        if not isinstance(actual, list) or _multiset(actual) != _multiset(expected):
+            yield _mismatch(where, expected, actual) + " (compared in any order)"
+    elif param == "filters":
+        # Filters are compared in order unless the case lists them in ``unordered``.
         if actual != expected:
             yield _mismatch(where, expected, actual)
     elif param == "timeframes":
@@ -217,6 +228,10 @@ def _compare_field_param(where: str, param: str, expected: Any, actual: Any) -> 
             yield _mismatch(where, sorted(expected), None if actual is None else sorted(actual))
     else:
         yield from _compare_text(where, expected, actual)
+
+
+def _multiset(entries: list[Any]) -> list[str]:
+    return sorted(json.dumps(entry, sort_keys=True) for entry in entries)
 
 
 def _check_explore(where: str, expected: Mapping[str, Any], got: ExploreOutput) -> Iterator[str]:

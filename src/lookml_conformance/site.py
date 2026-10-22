@@ -89,6 +89,7 @@ def _case(case: Case, verdicts: Any) -> dict[str, Any]:
             for observation in case.observations
         ],
         "invalid_in_looker": case.invalid_in_looker,
+        "unordered": sorted(case.unordered),
         "order_variants": [list(order.exchange or ()) for order in case.order_variants],
         "expect": {
             "models": {

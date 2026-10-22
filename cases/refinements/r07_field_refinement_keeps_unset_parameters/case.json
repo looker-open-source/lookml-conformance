@@ -2,8 +2,11 @@
   "id": "r07_field_refinement_keeps_unset_parameters",
   "title": "Refining a field changes only the parameters the refinement sets",
   "rule": "Refining an existing field overrides the parameters the refinement sets and keeps the others.",
-  "status": "confirmed",
-  "basis": ["documentation"],
+  "status": "provisional",
+  "provisional": {
+    "question": "The documentation's example refines hidden on a dimension that sets nothing else, so it does not show what happens to the parameters a field refinement leaves unset. When a refinement sets only label on a dimension, does the dimension keep its type and sql?",
+    "pinned_to": "node-lookml-parser 9.1.0"
+  },
   "citations": [
     {
       "url": "https://docs.cloud.google.com/looker/docs/lookml-refinements#refinements_override_parameters",
@@ -14,7 +17,7 @@
       "quote": "The last refinement takes precedence, so hidden: no is applied and the dimension will be displayed in the final view."
     }
   ],
-  "rationale": "The documentation's example refines only hidden on an existing dimension and the dimension stays in the view, so its other parameters are kept.",
+  "rationale": "A refinement overrides the settings it contains. The case reads that as overriding only the parameters the refinement sets, so the field keeps the others; the documentation's example does not show it.",
   "expect": {
     "models": {
       "m": {

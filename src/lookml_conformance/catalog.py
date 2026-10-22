@@ -84,6 +84,9 @@ def _case(case: Case, cases_path: str) -> list[str]:
     ]
     if case.rationale:
         lines += [f"Why: {case.rationale}", ""]
+    if case.unordered:
+        names = ", ".join(f"`{name}`" for name in sorted(case.unordered))
+        lines += [f"Compared in any order: {names}.", ""]
     if exchanged := [order.exchange for order in case.order_variants if order.exchange is not None]:
         pairs = "; ".join(f"`{first}` and `{second}`" for first, second in exchanged)
         lines += [

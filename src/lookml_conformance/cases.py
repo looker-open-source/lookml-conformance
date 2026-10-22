@@ -45,6 +45,8 @@ VIEW_KEYS = frozenset(
 EXPLORE_KEYS = frozenset({"view_name", "from", "label", "joins"})
 JOIN_KEYS = frozenset({"from", "view_label", "sql_on", "relationship", "type"})
 FIELD_LIST_PARAMS = frozenset({"timeframes"})
+# List-valued parameters a case may compare without regard to order (``unordered``).
+UNORDERED_PARAMS = frozenset({"filters"})
 
 _TOP_KEYS = frozenset(
     {
@@ -58,6 +60,7 @@ _TOP_KEYS = frozenset(
         "provisional",
         "observations",
         "invalid_in_looker",
+        "unordered",
         "order_variants",
         "expect",
     }
@@ -183,6 +186,7 @@ class Case:
     provisional: Provenance | None = None
     basis: tuple[Basis, ...] = ()
     observations: tuple[Observation, ...] = ()
+    unordered: frozenset[str] = frozenset()
     order_variants: tuple[FileOrder, ...] = ()
 
     @property
@@ -252,6 +256,7 @@ def load_case(directory: Path) -> Case:
     observations = check.observations(data, status, basis, directory.parent.parent.parent)
     models, absent_views = check.expectations(data.get("expect"))
     check.project(directory / PROJECT_DIR, models)
+    unordered = check.unordered(data)
     order_variants = check.order_variants(data, directory / PROJECT_DIR)
 
     case = Case(
@@ -269,6 +274,7 @@ def load_case(directory: Path) -> Case:
         provisional=provisional,
         basis=basis,
         observations=observations,
+        unordered=unordered,
         order_variants=order_variants,
     )
     if check.problems:
@@ -538,6 +544,16 @@ class _Checker:
                 self.problem(f"{where}.joins.{join_name} must be an object")
                 continue
             self.no_unknown_keys(join, JOIN_KEYS, f"{where}.joins.{join_name}")
+
+    def unordered(self, data: Mapping[str, Any]) -> frozenset[str]:
+        raw = data.get("unordered")
+        if raw is None:
+            return frozenset()
+        allowed = sorted(UNORDERED_PARAMS)
+        if not _is_list_of(raw, str) or not raw or any(item not in UNORDERED_PARAMS for item in raw):
+            self.problem(f"'unordered' must be a non-empty list of parameter names from {allowed}")
+            return frozenset()
+        return frozenset(raw)
 
     def order_variants(self, data: Mapping[str, Any], project: Path) -> tuple[FileOrder, ...]:
         raw = data.get("order_variants")

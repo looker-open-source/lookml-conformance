@@ -323,7 +323,7 @@ def test_load_cases_rejects_duplicate_ids(make_case: MakeCase, tmp_path: Path) -
         load_cases(tmp_path / "cases")
 
 
-def test_loads_order_variants(make_case: MakeCase) -> None:
+def test_loads_order_variants_and_unordered(make_case: MakeCase) -> None:
     files = {
         "m.model.lkml": 'connection: "wh"\ninclude: "/*.view"\n',
         "orders.view.lkml": "view: orders {}\n",
@@ -333,10 +333,12 @@ def test_loads_order_variants(make_case: MakeCase) -> None:
     case = load_case(
         make_case(
             files=files,
+            unordered=["filters"],
             order_variants=[["a.view.lkml", "b.view.lkml"], ["orders.view.lkml", "a.view.lkml"]],
         )
     )
 
+    assert case.unordered == frozenset({"filters"})
     assert case.file_orders == (
         AS_WRITTEN,
         FileOrder(("a.view.lkml", "b.view.lkml")),
@@ -392,3 +394,10 @@ ORDER_FILES = {
 )
 def test_rejects_invalid_order_variants(make_case: MakeCase, variants: Any, expected: str) -> None:
     assert expected in problems_of(make_case(files=ORDER_FILES, order_variants=variants))
+
+
+@pytest.mark.parametrize("unordered", [[], "filters", ["timeframes"], ["filters", 1]])
+def test_rejects_invalid_unordered(make_case: MakeCase, unordered: Any) -> None:
+    assert "'unordered' must be a non-empty list of parameter names from ['filters']" in problems_of(
+        make_case(unordered=unordered)
+    )

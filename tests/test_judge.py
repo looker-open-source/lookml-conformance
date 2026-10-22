@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import replace
 from pathlib import Path
 from typing import Any
 
@@ -327,3 +328,35 @@ def test_view_error_fails_a_valid_project(tmp_path: Path) -> None:
     case = make_case(tmp_path, {"orders": {"sql_table_name": "a.final"}})
 
     assert judge(case, output({"orders": ViewOutput(error="KeyError('x')")})).outcome is Outcome.FAIL
+
+
+def filters_case(tmp_path: Path, unordered: frozenset[str]) -> Case:
+    expected = {"n": {"filters": [{"status": "complete"}, {"region": "EU"}]}}
+    case = make_case(tmp_path, {"orders": {"field_params": expected}})
+    return replace(case, unordered=unordered)
+
+
+def filters_output(*filters: dict[str, str]) -> AdapterOutput:
+    return output({"orders": ViewOutput(field_params={"n": {"filters": list(filters)}})})
+
+
+def test_filters_are_compared_in_order_by_default(tmp_path: Path) -> None:
+    case = filters_case(tmp_path, frozenset())
+
+    assert judge(case, filters_output({"status": "complete"}, {"region": "EU"})).outcome is Outcome.PASS
+    assert judge(case, filters_output({"region": "EU"}, {"status": "complete"})).outcome is Outcome.FAIL
+
+
+def test_unordered_filters_are_compared_as_a_collection(tmp_path: Path) -> None:
+    case = filters_case(tmp_path, frozenset({"filters"}))
+
+    assert judge(case, filters_output({"region": "EU"}, {"status": "complete"})).outcome is Outcome.PASS
+    assert judge(case, filters_output({"status": "complete"}, {"region": "EU"})).outcome is Outcome.PASS
+    missing = judge(case, filters_output({"region": "EU"}))
+    assert missing.reasons == (
+        "m.orders.n.filters: expected [{'status': 'complete'}, {'region': 'EU'}], got [{'region': 'EU'}] "
+        "(compared in any order)",
+    )
+    repeated = filters_output({"region": "EU"}, {"region": "EU"}, {"status": "complete"})
+    assert judge(case, repeated).outcome is Outcome.FAIL
+    assert judge(case, output({"orders": ViewOutput(field_params={"n": {}})})).outcome is Outcome.FAIL

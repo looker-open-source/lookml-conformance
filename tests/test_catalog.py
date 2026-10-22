@@ -46,6 +46,7 @@ def test_render_catalog(make_case: MakeCase) -> None:
             id="r01_a",
             rationale="Because.",
             files=files,
+            unordered=["filters"],
             order_variants=[["a.view.lkml", "orders.view.lkml"]],
         )
     )
@@ -72,6 +73,7 @@ def test_render_catalog(make_case: MakeCase) -> None:
         "[lookml-refinements#refinements_override_parameters]"
     ) in catalog
     assert "Why: Because." in catalog
+    assert "Compared in any order: `filters`." in catalog
     assert (
         "File order: also run with the contents of these files exchanged: `a.view.lkml` and "
         "`orders.view.lkml`. The case passes only if it passes in every layout."

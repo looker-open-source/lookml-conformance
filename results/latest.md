@@ -6,10 +6,10 @@
 
 | Tool | Version | confirmed | provisional | All |
 | --- | --- | --- | --- | --- |
-| node-lookml-parser | `9.1.0` | 21 / 27 | 6 / 8 | **27 / 35** |
-| OpenMetadata | `2.0.5.0` | 7 / 27 | 0 / 8 | **7 / 35** |
-| DataHub | `1.7.0.14` | 14 / 27 | 1 / 8 | **15 / 35** |
-| Dagster | `0.29.25` | 16 / 32 | 5 / 8 | **21 / 40** |
+| node-lookml-parser | `9.1.0` | 19 / 24 | 8 / 11 | **27 / 35** |
+| OpenMetadata | `2.0.5.0` | 6 / 25 | 1 / 10 | **7 / 35** |
+| DataHub | `1.7.0.14` | 12 / 25 | 3 / 10 | **15 / 35** |
+| Dagster | `0.29.25` | 14 / 29 | 7 / 11 | **21 / 40** |
 
 ## Results
 
@@ -21,11 +21,11 @@
 | `r04_later_include_wins` | confirmed | ✅ | ❌ | ❌ | ❌ |
 | `r05_last_refinement_in_file_wins` | confirmed | ✅ | ❌ | ❌ | ✅ |
 | `r06_refinement_included_before_its_base` | provisional | ✅ | ❌ | ❌ | ✅ |
-| `r07_field_refinement_keeps_unset_parameters` | confirmed | ✅ | ❌ | ✅ | ❌ |
+| `r07_field_refinement_keeps_unset_parameters` | provisional | ✅ | ❌ | ✅ | ❌ |
 | `r08_refinement_adds_fields` | confirmed | ✅ | ❌ | ✅ | ✅ |
 | `r09_field_filters_are_additive` | confirmed | ❌ | N/A | N/A | ❌ |
 | `r10_final_refinement_blocks_later_ones` | provisional | ❌ | ❌ | ❌ | ❌ |
-| `r11_derived_table_refined_parameter_by_parameter` | confirmed | ✅ | N/A | N/A | ✅ |
+| `r11_derived_table_refined_parameter_by_parameter` | provisional | ✅ | N/A | N/A | ✅ |
 | `r12_refinement_without_a_base_view` | provisional | ✅ | ❌ | ✅ | ✅ |
 | `r13_dimension_group_timeframes_override` | confirmed | ✅ | N/A | N/A | ❌ |
 | `r14_refinement_in_the_model_file` | confirmed | ✅ | ❌ | ❌ | ❌ |
@@ -52,7 +52,7 @@
 | `l03_derived_table_reads_a_table_and_a_view` | confirmed | N/A | ❌ | ✅ | ❌ |
 | `l04_reference_follows_the_refined_table` | confirmed | N/A | ❌ | ❌ | ✅ |
 | `l05_native_derived_table_reads_its_explore` | confirmed | N/A | ❌ | ✅ | ❌ |
-| `p01_single_semicolon_inside_sql_block` | confirmed | ❌ | ✅ | ✅ | ✅ |
+| `p01_single_semicolon_inside_sql_block` | provisional | ❌ | ✅ | ✅ | ✅ |
 | `p02_hash_inside_sql_block_is_not_lookml_comment` | confirmed | ✅ | ✅ | ✅ | ✅ |
 | `p03_named_fields_errors_and_info` | confirmed | ❌ | ✅ | ✅ | ✅ |
 
@@ -76,8 +76,8 @@
 - `r07_field_refinement_keeps_unset_parameters` · **OpenMetadata**: m.orders.id.label: expected 'Order ID', got 'Id'
 - `r07_field_refinement_keeps_unset_parameters` · **Dagster**: m.orders.id.sql: expected '${TABLE}.id', got None; m.orders.id.type: expected 'number', got None
 - `r08_refinement_adds_fields` · **OpenMetadata**: m.orders.fields: expected ['created', 'id', 'n', 'status'], got ['id', 'n']
-- `r09_field_filters_are_additive` · **node-lookml-parser**: m.orders.n.filters: expected [{'status': 'complete'}, {'region': 'EU'}], got [{'region': 'EU'}]
-- `r09_field_filters_are_additive` · **Dagster**: m.orders.n.filters: expected [{'status': 'complete'}, {'region': 'EU'}], got [{'region': 'EU'}]
+- `r09_field_filters_are_additive` · **node-lookml-parser**: m.orders.n.filters: expected [{'status': 'complete'}, {'region': 'EU'}], got [{'region': 'EU'}] (compared in any order)
+- `r09_field_filters_are_additive` · **Dagster**: m.orders.n.filters: expected [{'status': 'complete'}, {'region': 'EU'}], got [{'region': 'EU'}] (compared in any order)
 - `r10_final_refinement_blocks_later_ones` · **node-lookml-parser**: m.orders.sql_table_name: expected 'a.final', got 'b.later'
 - `r10_final_refinement_blocks_later_ones` · **OpenMetadata**: m.orders.sql_table_name: expected 'a.final', got 'raw.orders'
 - `r10_final_refinement_blocks_later_ones` · **DataHub**: m.orders.sql_table_name: expected 'a.final', got 'raw.orders'

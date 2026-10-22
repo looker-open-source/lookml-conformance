@@ -1,6 +1,6 @@
 # Confirming the provisional cases on Looker
 
-Eight cases are provisional: the Looker documentation does not settle their behavior, so their
+Eleven cases are provisional: the Looker documentation does not settle their behavior, so their
 expectations are pinned to a public source instead. This procedure checks each of them on a Looker
 instance once, and keeps the evidence.
 
@@ -12,13 +12,16 @@ before any provisional result is trusted.
 | Case | Open question |
 | --- | --- |
 | r06 | Does a refinement apply when the model includes it before the base view? |
+| r07 | When a refinement sets only `label` on a dimension, does the dimension keep its `type` and `sql`? |
 | r10 | After `final: yes`, does Looker still resolve the view, and to which table? |
+| r11 | Does refining `derived_table` with only `datagroup_trigger` keep the base view's `sql`? |
 | r12 | Does a refinement of a view that does not exist create a view? |
 | i01 | In which order do files matched by one wildcard apply? |
 | i02 | Where do a nested include's declarations land in the include order? |
 | i03 | Does including a file a second time move it to the later position? |
-| i08 | What happens with files that include each other? |
+| i08 | What happens with files that include each other? (The expectation also depends on r06.) |
 | e01 | Does a view that extends a refined view inherit the refinement? |
+| p01 | Does Looker keep a single `;` inside a SQL block? |
 
 Five variant projects go with them (`scripts/s4/make_variants.py`): one negative control and four
 projects that each answer a second question the base case cannot.
@@ -100,7 +103,8 @@ case dump has `commit.txt` and `validation.json`; check that `validation.json` h
 cannot explain.
 
 The adapter declares what the API cannot show, so those cases are N/A rather than failures: r11
-(`derived_table.datagroup_trigger`) and the imported-project cases (i05, i06, i07).
+(`derived_table.datagroup_trigger`) and the imported-project cases (i05, i06, i07). r11 is
+provisional, so read its evidence by hand (row below).
 
 Cases with `order_variants` run once per layout. Read the dump of the layout as written,
 `$LOOKER_DUMP/<case id>/`; the exchanged layouts, `$LOOKER_DUMP/<case id>.exchange-<n>/`, must give
@@ -109,8 +113,10 @@ the same answer, and a difference means the setup or Looker depends on file name
 | Case | Read | Expectation holds if | Otherwise |
 | --- | --- | --- | --- |
 | r06 | `sql__m__orders__orders.sql`; warnings in `validation.json` | `FROM refined AS orders` | `raw.orders`: the refinement does not apply when included before its base. Expect `raw.orders`. |
+| r07 | `explore__m__orders.json` (field `orders.id`), `sql__m__orders__orders.sql` | The field's label is `Order ID`, its type `number`, and the SQL selects `orders.id` | A missing type or SQL: a field refinement replaces the whole field. Expect only `label`. |
 | r10 | `validation.json` first, then `sql__m__orders__orders.sql` | An error about the refinement after `final: yes`, and either `FROM a.final AS orders` or a rejected explore (the verdict passes with `accepted for a project Looker rejects: ... Looker rejected explore orders`). Record which: a rejected explore means tools should report an error, and the case can then assert that. | `b.later`: the later refinement applies despite the error, and the rule is wrong. |
 | s4-r10b | `validation.json`, `sql__m__orders__orders.sql` | No error, `FROM a.final AS orders` | An error means `final: yes` also rejects refinements applied before it. |
+| r11 | `sql__m__orders__orders.sql`, `validation.json`; in the Looker IDE, the metadata panel of the `orders` view | The SQL reads `SELECT id FROM raw.orders`, and the metadata panel shows the refinement's `datagroup_trigger: daily` on the same derived table | An error about a derived table without SQL: the refinement replaces `derived_table` as a whole. |
 | r12 | `sql__m__orders__orders.sql`, `validation.json` | `FROM raw.orders AS orders`. Record whether the validator reports an error, a warning or nothing for `+ghost`. | A different table means the stray refinement affects other views. |
 | s4-r12b | `validation.json`; `explore__m__ghost.json` if it exists | Looker rejects `explore: ghost` | If the explore loads and `sql__m__ghost__ghost.sql` reads `FROM x.y`, a refinement can create a view and the rule is wrong. |
 | i01 | `sql__m__orders__orders.sql` | `FROM from_b AS orders` | `from_a`: files do not apply in lexical path order. |
@@ -118,6 +124,7 @@ the same answer, and a difference means the setup or Looker depends on file name
 | i02 | `sql__m1__orders__orders.sql`, `sql__m2__orders__orders.sql` | `m1` reads `FROM a`, `m2` reads `FROM c` | `m1` reading `b`: a nested include lands after the including file's own declarations, as node-lookml-parser does, and the DataHub fixture is wrong. |
 | i03 | `sql__m__orders__orders.sql` | `FROM a AS orders` | `b`: a second include moves the file to the later position. |
 | i08 | `validation.json`, `sql__m__orders__orders.sql` | `FROM b AS orders`. Record any message about the include cycle. | `raw.orders`: the refinement in the cycle is dropped. A rejected explore: Looker refuses the cycle. |
+| p01 | `sql__m__orders__orders.sql` | The derived table reads `WHERE note != ';'` and the `cleaned` dimension `REGEXP_REPLACE(orders.note, ';', '')` | A validator error or truncated SQL: a single `;` ends the block. |
 | e01 | `sql__main__orders_ext__orders_ext.sql`, `explore__main__orders_ext.json` | `FROM analytics.orders_clean AS orders_ext`, and fields `extra` and `id` in the explore. | `raw.orders`: `extends` copies the view before refinements apply. |
 | s4-e01b | `sql__main__orders_ext__orders_ext.sql` | Either answer is a result | `analytics.orders_clean`: the refinement reaches the extending view even when included after it. `raw.orders`: include position matters. |
 

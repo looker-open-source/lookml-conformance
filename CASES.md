@@ -11,15 +11,15 @@ expectation is pinned to.
 
 | Category | Cases | Confirmed | Provisional |
 | --- | ---: | ---: | ---: |
-| [Refinements](#refinements) | 14 | 11 | 3 |
+| [Refinements](#refinements) | 14 | 9 | 5 |
 | [Includes](#includes) | 9 | 5 | 4 |
 | [Extends](#extends) | 4 | 3 | 1 |
 | [Model scope](#model-scope) | 1 | 1 | 0 |
 | [Explores](#explores) | 2 | 2 | 0 |
 | [Constants](#constants) | 2 | 2 | 0 |
 | [Lineage](#lineage) | 5 | 5 | 0 |
-| [Syntax](#syntax) | 3 | 3 | 0 |
-| **Total** | 40 | 32 | 8 |
+| [Syntax](#syntax) | 3 | 2 | 1 |
+| **Total** | 40 | 29 | 11 |
 
 ## Refinements
 
@@ -103,7 +103,7 @@ Files: [`case.json`](cases/refinements/r06_refinement_included_before_its_base/c
 
 ### `r07_field_refinement_keeps_unset_parameters`
 
-**Refining a field changes only the parameters the refinement sets.** *confirmed · documentation*
+**Refining a field changes only the parameters the refinement sets.** *provisional*
 
 Rule: Refining an existing field overrides the parameters the refinement sets and keeps the others.
 
@@ -111,7 +111,11 @@ Rule: Refining an existing field overrides the parameters the refinement sets an
 
 > The last refinement takes precedence, so hidden: no is applied and the dimension will be displayed in the final view.<br>[lookml-refinements#refinements_override_parameters](https://docs.cloud.google.com/looker/docs/lookml-refinements#refinements_override_parameters)
 
-Why: The documentation's example refines only hidden on an existing dimension and the dimension stays in the view, so its other parameters are kept.
+Why: A refinement overrides the settings it contains. The case reads that as overriding only the parameters the refinement sets, so the field keeps the others; the documentation's example does not show it.
+
+Open question: The documentation's example refines hidden on a dimension that sets nothing else, so it does not show what happens to the parameters a field refinement leaves unset. When a refinement sets only label on a dimension, does the dimension keep its type and sql?
+
+Pinned to: node-lookml-parser 9.1.0
 
 Files: [`case.json`](cases/refinements/r07_field_refinement_keeps_unset_parameters/case.json) · [`project/`](cases/refinements/r07_field_refinement_keeps_unset_parameters/project)
 
@@ -129,13 +133,15 @@ Files: [`case.json`](cases/refinements/r08_refinement_adds_fields/case.json) · 
 
 **filters on a measure accumulate across the base view and a refinement.** *confirmed · documentation*
 
-Rule: filters on a field is additive under refinement: the refinement's filters are appended to the base filters.
+Rule: filters on a field is additive under refinement: the field keeps the base view's filters and gains the refinement's.
 
 > The following parameters are additive:<br>[lookml-refinements#some_parameters_are_additive](https://docs.cloud.google.com/looker/docs/lookml-refinements#some_parameters_are_additive)
 
 > meaning that the values from the base object are used in conjunction with the values from the refined object<br>[lookml-refinements#some_parameters_are_additive](https://docs.cloud.google.com/looker/docs/lookml-refinements#some_parameters_are_additive)
 
-Why: The additive list on that page includes filters for dimensions and measures.
+Why: The additive list on that page includes filters for dimensions and measures. The documentation says the values are used in conjunction but not in which order, so the case compares the filters in any order.
+
+Compared in any order: `filters`.
 
 Files: [`case.json`](cases/refinements/r09_field_filters_are_additive/case.json) · [`project/`](cases/refinements/r09_field_filters_are_additive/project)
 
@@ -161,7 +167,7 @@ Files: [`case.json`](cases/refinements/r10_final_refinement_blocks_later_ones/ca
 
 ### `r11_derived_table_refined_parameter_by_parameter`
 
-**Refining a derived_table adds parameters without dropping its SQL.** *confirmed · documentation*
+**Refining a derived_table adds parameters without dropping its SQL.** *provisional*
 
 Rule: A refinement of derived_table merges the sub-parameters it sets into the base derived_table.
 
@@ -171,7 +177,11 @@ Rule: A refinement of derived_table merges the sub-parameters it sets into the b
 
 > The following parameters are additive:<br>[lookml-refinements#some_parameters_are_additive](https://docs.cloud.google.com/looker/docs/lookml-refinements#some_parameters_are_additive)
 
-Why: The documentation recommends refinements for adding to persistent derived tables, and lists derived-table sub-parameters among the additive parameters, which only works if derived_table is merged parameter by parameter.
+Why: The documentation recommends refinements for adding to persistent derived tables, and its additive list names derived table sub-parameters, which suggests that derived_table is merged parameter by parameter rather than replaced as a whole. The expectation follows that reading.
+
+Open question: The documentation lists bind_filters, dev_filters, filters and sorts as additive derived table parameters, and says refinements of a PDT's view do not create a new copy of the table. It does not say whether refining derived_table with only datagroup_trigger keeps the base view's sql. Does it?
+
+Pinned to: node-lookml-parser 9.1.0 and dagster-looker 0.29.25, which merge derived_table parameter by parameter
 
 Files: [`case.json`](cases/refinements/r11_derived_table_refined_parameter_by_parameter/case.json) · [`project/`](cases/refinements/r11_derived_table_refined_parameter_by_parameter/project)
 
@@ -291,7 +301,7 @@ Rule: An include starting with / only matches files of the current project, neve
 
 > To include a file from another project, use the filename with two forward slashes (//)<br>[importing-projects#include_files_from_an_imported_project](https://docs.cloud.google.com/looker/docs/importing-projects#include_files_from_an_imported_project)
 
-Why: Imported project files are reached through // includes. The suite places them under imported_projects/<name>/, the folder the IDE shows them in, which a / wildcard must not match.
+Why: Imported project files are reached through // includes. The documentation only says that / is the root of the current project; it does not say where an imported project's files sit relative to it. The suite places them under imported_projects/<name>/, the folder the IDE shows them in, and the case relies on the convention that /** does not match files under imported_projects/.
 
 Files: [`case.json`](cases/includes/i05_project_wildcards_do_not_reach_imported_projects/case.json) · [`project/`](cases/includes/i05_project_wildcards_do_not_reach_imported_projects/project)
 
@@ -333,7 +343,7 @@ Rule: Files that include each other are each processed once and resolution termi
 
 File order: also run with the contents of these files exchanged: `a.view.lkml` and `b.view.lkml`. The case passes only if it passes in every layout.
 
-Open question: Looker's resulting order for mutually including files is not documented. The tool must terminate either way.
+Open question: Looker's resulting order for mutually including files is not documented, and the tool must terminate either way. The expectation b also depends on r06's open question: the model includes a.view.lkml, which includes b.view.lkml before it defines orders, so the refinement in b can be read before the view it refines. If Looker does not apply a refinement read before its base view, orders resolves to raw.orders.
 
 Pinned to: node-lookml-parser 9.1.0
 
@@ -567,11 +577,19 @@ Files: [`case.json`](cases/lineage/l05_native_derived_table_reads_its_explore/ca
 
 ### `p01_single_semicolon_inside_sql_block`
 
-**A single semicolon inside a SQL block is kept verbatim.** *confirmed · documentation*
+**A single semicolon inside a SQL block is kept verbatim.** *provisional*
 
 Rule: SQL blocks end only at ;;, so a single ; inside the SQL is part of the SQL.
 
-> The double semicolon is used to end SQL and HTML blocks.<br>[when-are-semicolons-used-in-lookml-25425](https://community.looker.com/technical-tips-tricks-1021/when-are-semicolons-used-in-lookml-25425)
+> The sql block for dimensions can generally take any valid SQL that would go into a single column of a SELECT statement.<br>[param-field-sql#sql_for_dimensions](https://docs.cloud.google.com/looker/docs/reference/param-field-sql#sql_for_dimensions)
+
+> Declares the SQL query for a derived table.<br>[param-view-derived-table](https://docs.cloud.google.com/looker/docs/reference/param-view-derived-table)
+
+Why: The case's SQL is valid SQL with a semicolon inside a string literal. The citation that stated the rule, a Looker Community article, can no longer be fetched, so the case is provisional until Looker is checked.
+
+Open question: Every SQL block in the documentation's examples ends with ;;, but no page states that ;; is what ends a SQL block or that a single ; inside one is kept. Does Looker keep a single ; inside a SQL block?
+
+Pinned to: lkml 1.3.7, the LookML parser DataHub, OpenMetadata and Dagster use, which ends a SQL block only at ;;
 
 Files: [`case.json`](cases/syntax/p01_single_semicolon_inside_sql_block/case.json) · [`project/`](cases/syntax/p01_single_semicolon_inside_sql_block/project)
 

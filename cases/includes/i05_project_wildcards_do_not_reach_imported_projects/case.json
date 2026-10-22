@@ -14,7 +14,7 @@
       "quote": "To include a file from another project, use the filename with two forward slashes (//)"
     }
   ],
-  "rationale": "Imported project files are reached through // includes. The suite places them under imported_projects/<name>/, the folder the IDE shows them in, which a / wildcard must not match.",
+  "rationale": "Imported project files are reached through // includes. The documentation only says that / is the root of the current project; it does not say where an imported project's files sit relative to it. The suite places them under imported_projects/<name>/, the folder the IDE shows them in, and the case relies on the convention that /** does not match files under imported_projects/.",
   "expect": {
     "models": {
       "m": {

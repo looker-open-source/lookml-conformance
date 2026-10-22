@@ -2,10 +2,10 @@
  "date": "2026-10-20",
  "suite": {
   "cases": 40,
-  "confirmed": 32,
-  "provisional": 8,
-  "citations": 78,
-  "pages": 15
+  "confirmed": 29,
+  "provisional": 11,
+  "citations": 79,
+  "pages": 16
  },
  "categories": [
   {
@@ -56,12 +56,12 @@
      "applicable": 35
     },
     "confirmed": {
-     "passed": 21,
-     "applicable": 27
+     "passed": 19,
+     "applicable": 24
     },
     "provisional": {
-     "passed": 6,
-     "applicable": 8
+     "passed": 8,
+     "applicable": 11
     }
    }
   },
@@ -79,12 +79,12 @@
      "applicable": 35
     },
     "confirmed": {
-     "passed": 7,
-     "applicable": 27
+     "passed": 6,
+     "applicable": 25
     },
     "provisional": {
-     "passed": 0,
-     "applicable": 8
+     "passed": 1,
+     "applicable": 10
     }
    }
   },
@@ -102,12 +102,12 @@
      "applicable": 35
     },
     "confirmed": {
-     "passed": 14,
-     "applicable": 27
+     "passed": 12,
+     "applicable": 25
     },
     "provisional": {
-     "passed": 1,
-     "applicable": 8
+     "passed": 3,
+     "applicable": 10
     }
    }
   },
@@ -125,12 +125,12 @@
      "applicable": 40
     },
     "confirmed": {
-     "passed": 16,
-     "applicable": 32
+     "passed": 14,
+     "applicable": 29
     },
     "provisional": {
-     "passed": 5,
-     "applicable": 8
+     "passed": 7,
+     "applicable": 11
     }
    }
   }
@@ -161,6 +161,7 @@
    "provisional": null,
    "observations": [],
    "invalid_in_looker": false,
+   "unordered": [],
    "order_variants": [],
    "expect": {
     "models": {
@@ -240,6 +241,7 @@
    "provisional": null,
    "observations": [],
    "invalid_in_looker": false,
+   "unordered": [],
    "order_variants": [],
    "expect": {
     "models": {
@@ -320,6 +322,7 @@
    "provisional": null,
    "observations": [],
    "invalid_in_looker": false,
+   "unordered": [],
    "order_variants": [],
    "expect": {
     "models": {
@@ -425,6 +428,7 @@
    "provisional": null,
    "observations": [],
    "invalid_in_looker": false,
+   "unordered": [],
    "order_variants": [
     [
      "a.view.lkml",
@@ -508,6 +512,7 @@
    "provisional": null,
    "observations": [],
    "invalid_in_looker": false,
+   "unordered": [],
    "order_variants": [],
    "expect": {
     "models": {
@@ -585,6 +590,7 @@
    },
    "observations": [],
    "invalid_in_looker": false,
+   "unordered": [],
    "order_variants": [
     [
      "orders.view.lkml",
@@ -646,10 +652,8 @@
    "category": "refinements",
    "title": "Refining a field changes only the parameters the refinement sets",
    "rule": "Refining an existing field overrides the parameters the refinement sets and keeps the others.",
-   "status": "confirmed",
-   "basis": [
-    "documentation"
-   ],
+   "status": "provisional",
+   "basis": [],
    "citations": [
     {
      "url": "https://docs.cloud.google.com/looker/docs/lookml-refinements#refinements_override_parameters",
@@ -662,10 +666,14 @@
      "label": "lookml-refinements#refinements_override_parameters"
     }
    ],
-   "rationale": "The documentation's example refines only hidden on an existing dimension and the dimension stays in the view, so its other parameters are kept.",
-   "provisional": null,
+   "rationale": "A refinement overrides the settings it contains. The case reads that as overriding only the parameters the refinement sets, so the field keeps the others; the documentation's example does not show it.",
+   "provisional": {
+    "question": "The documentation's example refines hidden on a dimension that sets nothing else, so it does not show what happens to the parameters a field refinement leaves unset. When a refinement sets only label on a dimension, does the dimension keep its type and sql?",
+    "pinned_to": "node-lookml-parser 9.1.0"
+   },
    "observations": [],
    "invalid_in_looker": false,
+   "unordered": [],
    "order_variants": [],
    "expect": {
     "models": {
@@ -748,6 +756,7 @@
    "provisional": null,
    "observations": [],
    "invalid_in_looker": false,
+   "unordered": [],
    "order_variants": [],
    "expect": {
     "models": {
@@ -807,7 +816,7 @@
    "id": "r09_field_filters_are_additive",
    "category": "refinements",
    "title": "filters on a measure accumulate across the base view and a refinement",
-   "rule": "filters on a field is additive under refinement: the refinement's filters are appended to the base filters.",
+   "rule": "filters on a field is additive under refinement: the field keeps the base view's filters and gains the refinement's.",
    "status": "confirmed",
    "basis": [
     "documentation"
@@ -824,10 +833,13 @@
      "label": "lookml-refinements#some_parameters_are_additive"
     }
    ],
-   "rationale": "The additive list on that page includes filters for dimensions and measures.",
+   "rationale": "The additive list on that page includes filters for dimensions and measures. The documentation says the values are used in conjunction but not in which order, so the case compares the filters in any order.",
    "provisional": null,
    "observations": [],
    "invalid_in_looker": false,
+   "unordered": [
+    "filters"
+   ],
    "order_variants": [],
    "expect": {
     "models": {
@@ -876,7 +888,7 @@
     "node-lookml-parser": {
      "outcome": "fail",
      "reasons": [
-      "m.orders.n.filters: expected [{'status': 'complete'}, {'region': 'EU'}], got [{'region': 'EU'}]"
+      "m.orders.n.filters: expected [{'status': 'complete'}, {'region': 'EU'}], got [{'region': 'EU'}] (compared in any order)"
      ]
     },
     "openmetadata": {
@@ -894,7 +906,7 @@
     "dagster": {
      "outcome": "fail",
      "reasons": [
-      "m.orders.n.filters: expected [{'status': 'complete'}, {'region': 'EU'}], got [{'region': 'EU'}]"
+      "m.orders.n.filters: expected [{'status': 'complete'}, {'region': 'EU'}], got [{'region': 'EU'}] (compared in any order)"
      ]
     }
    }
@@ -920,6 +932,7 @@
    },
    "observations": [],
    "invalid_in_looker": true,
+   "unordered": [],
    "order_variants": [
     [
      "r_final.view.lkml",
@@ -990,10 +1003,8 @@
    "category": "refinements",
    "title": "Refining a derived_table adds parameters without dropping its SQL",
    "rule": "A refinement of derived_table merges the sub-parameters it sets into the base derived_table.",
-   "status": "confirmed",
-   "basis": [
-    "documentation"
-   ],
+   "status": "provisional",
+   "basis": [],
    "citations": [
     {
      "url": "https://docs.cloud.google.com/looker/docs/lookml-refinements",
@@ -1011,10 +1022,14 @@
      "label": "lookml-refinements#some_parameters_are_additive"
     }
    ],
-   "rationale": "The documentation recommends refinements for adding to persistent derived tables, and lists derived-table sub-parameters among the additive parameters, which only works if derived_table is merged parameter by parameter.",
-   "provisional": null,
+   "rationale": "The documentation recommends refinements for adding to persistent derived tables, and its additive list names derived table sub-parameters, which suggests that derived_table is merged parameter by parameter rather than replaced as a whole. The expectation follows that reading.",
+   "provisional": {
+    "question": "The documentation lists bind_filters, dev_filters, filters and sorts as additive derived table parameters, and says refinements of a PDT's view do not create a new copy of the table. It does not say whether refining derived_table with only datagroup_trigger keeps the base view's sql. Does it?",
+    "pinned_to": "node-lookml-parser 9.1.0 and dagster-looker 0.29.25, which merge derived_table parameter by parameter"
+   },
    "observations": [],
    "invalid_in_looker": false,
+   "unordered": [],
    "order_variants": [],
    "expect": {
     "models": {
@@ -1091,6 +1106,7 @@
    },
    "observations": [],
    "invalid_in_looker": false,
+   "unordered": [],
    "order_variants": [],
    "expect": {
     "models": {
@@ -1173,6 +1189,7 @@
    "provisional": null,
    "observations": [],
    "invalid_in_looker": false,
+   "unordered": [],
    "order_variants": [],
    "expect": {
     "models": {
@@ -1266,6 +1283,7 @@
    "provisional": null,
    "observations": [],
    "invalid_in_looker": false,
+   "unordered": [],
    "order_variants": [],
    "expect": {
     "models": {
@@ -1350,6 +1368,7 @@
    },
    "observations": [],
    "invalid_in_looker": false,
+   "unordered": [],
    "order_variants": [],
    "expect": {
     "models": {
@@ -1431,6 +1450,7 @@
    },
    "observations": [],
    "invalid_in_looker": false,
+   "unordered": [],
    "order_variants": [
     [
      "ra.view.lkml",
@@ -1541,6 +1561,7 @@
    },
    "observations": [],
    "invalid_in_looker": false,
+   "unordered": [],
    "order_variants": [
     [
      "ra.view.lkml",
@@ -1629,6 +1650,7 @@
    "provisional": null,
    "observations": [],
    "invalid_in_looker": false,
+   "unordered": [],
    "order_variants": [],
    "expect": {
     "models": {
@@ -1701,10 +1723,11 @@
      "label": "importing-projects#include_files_from_an_imported_project"
     }
    ],
-   "rationale": "Imported project files are reached through // includes. The suite places them under imported_projects/<name>/, the folder the IDE shows them in, which a / wildcard must not match.",
+   "rationale": "Imported project files are reached through // includes. The documentation only says that / is the root of the current project; it does not say where an imported project's files sit relative to it. The suite places them under imported_projects/<name>/, the folder the IDE shows them in, and the case relies on the convention that /** does not match files under imported_projects/.",
    "provisional": null,
    "observations": [],
    "invalid_in_looker": false,
+   "unordered": [],
    "order_variants": [],
    "expect": {
     "models": {
@@ -1786,6 +1809,7 @@
    "provisional": null,
    "observations": [],
    "invalid_in_looker": false,
+   "unordered": [],
    "order_variants": [],
    "expect": {
     "models": {
@@ -1862,6 +1886,7 @@
    "provisional": null,
    "observations": [],
    "invalid_in_looker": false,
+   "unordered": [],
    "order_variants": [],
    "expect": {
     "models": {
@@ -1933,11 +1958,12 @@
    ],
    "rationale": null,
    "provisional": {
-    "question": "Looker's resulting order for mutually including files is not documented. The tool must terminate either way.",
+    "question": "Looker's resulting order for mutually including files is not documented, and the tool must terminate either way. The expectation b also depends on r06's open question: the model includes a.view.lkml, which includes b.view.lkml before it defines orders, so the refinement in b can be read before the view it refines. If Looker does not apply a refinement read before its base view, orders resolves to raw.orders.",
     "pinned_to": "node-lookml-parser 9.1.0"
    },
    "observations": [],
    "invalid_in_looker": false,
+   "unordered": [],
    "order_variants": [
     [
      "a.view.lkml",
@@ -2019,6 +2045,7 @@
    "provisional": null,
    "observations": [],
    "invalid_in_looker": false,
+   "unordered": [],
    "order_variants": [],
    "expect": {
     "models": {
@@ -2095,6 +2122,7 @@
    },
    "observations": [],
    "invalid_in_looker": false,
+   "unordered": [],
    "order_variants": [
     [
      "views/ext.view.lkml",
@@ -2195,6 +2223,7 @@
    "provisional": null,
    "observations": [],
    "invalid_in_looker": false,
+   "unordered": [],
    "order_variants": [],
    "expect": {
     "models": {
@@ -2280,6 +2309,7 @@
    "provisional": null,
    "observations": [],
    "invalid_in_looker": false,
+   "unordered": [],
    "order_variants": [],
    "expect": {
     "models": {
@@ -2374,6 +2404,7 @@
    "provisional": null,
    "observations": [],
    "invalid_in_looker": false,
+   "unordered": [],
    "order_variants": [],
    "expect": {
     "models": {
@@ -2464,6 +2495,7 @@
    "provisional": null,
    "observations": [],
    "invalid_in_looker": false,
+   "unordered": [],
    "order_variants": [],
    "expect": {
     "models": {
@@ -2567,6 +2599,7 @@
    "provisional": null,
    "observations": [],
    "invalid_in_looker": false,
+   "unordered": [],
    "order_variants": [],
    "expect": {
     "models": {
@@ -2654,6 +2687,7 @@
    "provisional": null,
    "observations": [],
    "invalid_in_looker": false,
+   "unordered": [],
    "order_variants": [],
    "expect": {
     "models": {
@@ -2745,6 +2779,7 @@
    "provisional": null,
    "observations": [],
    "invalid_in_looker": false,
+   "unordered": [],
    "order_variants": [],
    "expect": {
     "models": {
@@ -2821,6 +2856,7 @@
    "provisional": null,
    "observations": [],
    "invalid_in_looker": false,
+   "unordered": [],
    "order_variants": [],
    "expect": {
     "models": {
@@ -2899,6 +2935,7 @@
    "provisional": null,
    "observations": [],
    "invalid_in_looker": false,
+   "unordered": [],
    "order_variants": [
     [
      "views/order_facts.view.lkml",
@@ -2978,6 +3015,7 @@
    "provisional": null,
    "observations": [],
    "invalid_in_looker": false,
+   "unordered": [],
    "order_variants": [
     [
      "views/orders.view.lkml",
@@ -3064,6 +3102,7 @@
    "provisional": null,
    "observations": [],
    "invalid_in_looker": false,
+   "unordered": [],
    "order_variants": [
     [
      "views/orders.view.lkml",
@@ -3151,6 +3190,7 @@
    "provisional": null,
    "observations": [],
    "invalid_in_looker": false,
+   "unordered": [],
    "order_variants": [
     [
      "views/orders.view.lkml",
@@ -3246,6 +3286,7 @@
    "provisional": null,
    "observations": [],
    "invalid_in_looker": false,
+   "unordered": [],
    "order_variants": [
     [
      "views/orders.view.lkml",
@@ -3320,21 +3361,28 @@
    "category": "syntax",
    "title": "A single semicolon inside a SQL block is kept verbatim",
    "rule": "SQL blocks end only at ;;, so a single ; inside the SQL is part of the SQL.",
-   "status": "confirmed",
-   "basis": [
-    "documentation"
-   ],
+   "status": "provisional",
+   "basis": [],
    "citations": [
     {
-     "url": "https://community.looker.com/technical-tips-tricks-1021/when-are-semicolons-used-in-lookml-25425",
-     "quote": "The double semicolon is used to end SQL and HTML blocks.",
-     "label": "when-are-semicolons-used-in-lookml-25425"
+     "url": "https://docs.cloud.google.com/looker/docs/reference/param-field-sql#sql_for_dimensions",
+     "quote": "The sql block for dimensions can generally take any valid SQL that would go into a single column of a SELECT statement.",
+     "label": "param-field-sql#sql_for_dimensions"
+    },
+    {
+     "url": "https://docs.cloud.google.com/looker/docs/reference/param-view-derived-table",
+     "quote": "Declares the SQL query for a derived table.",
+     "label": "param-view-derived-table"
     }
    ],
-   "rationale": null,
-   "provisional": null,
+   "rationale": "The case's SQL is valid SQL with a semicolon inside a string literal. The citation that stated the rule, a Looker Community article, can no longer be fetched, so the case is provisional until Looker is checked.",
+   "provisional": {
+    "question": "Every SQL block in the documentation's examples ends with ;;, but no page states that ;; is what ends a SQL block or that a single ; inside one is kept. Does Looker keep a single ; inside a SQL block?",
+    "pinned_to": "lkml 1.3.7, the LookML parser DataHub, OpenMetadata and Dagster use, which ends a SQL block only at ;;"
+   },
    "observations": [],
    "invalid_in_looker": false,
+   "unordered": [],
    "order_variants": [],
    "expect": {
     "models": {
@@ -3416,6 +3464,7 @@
    "provisional": null,
    "observations": [],
    "invalid_in_looker": false,
+   "unordered": [],
    "order_variants": [],
    "expect": {
     "models": {
@@ -3492,6 +3541,7 @@
    "provisional": null,
    "observations": [],
    "invalid_in_looker": false,
+   "unordered": [],
    "order_variants": [],
    "expect": {
     "models": {
