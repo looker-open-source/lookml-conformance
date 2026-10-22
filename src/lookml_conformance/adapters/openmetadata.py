@@ -7,13 +7,24 @@ Looker API, so the adapter reports views only. ``BulkLkmlParser`` has no model s
 are reported as one project-wide model. ``@{constant}`` references are substituted with the
 function the connector applies to ``sql_table_name`` and derived table SQL.
 
-A view's upstream is the lineage the connector draws for it. The adapter runs the connector's own
-view-lineage method on each view, with the calls to the OpenMetadata server replaced by recorders:
-a table lineage request becomes a table upstream, and a view-to-view request (for ``extends``) a
-view upstream. The connector reads view files in the order ``os.walk`` lists them, which
-depends on the file system: when two files define a view of the same name, the one listed last is
-kept, and lineage is drawn view by view in that order. The adapter gives the parser a reader that
-lists files in path order, and draws lineage in path order, so that results reproduce.
+How the connector runs: it clones the LookML repository and builds one ``BulkLkmlParser`` over it
+with a ``LocalReader``, which lists every ``*.view.lkml`` file with ``os.walk``. The parser keeps
+one view per name: when two files define a view of the same name, the file listed last wins. The
+adapter builds the parser the same way, with the connector's own ``LocalReader``, so files are read
+in the order the file system lists them. That order depends on the file system: APFS (macOS)
+lists a directory in an order fixed by the file names, and ext4 (Linux) in an order that also
+depends on a hash seed chosen when the file system was created. Versions of the parser that sort
+the paths themselves read them in path order.
+
+A view's upstream is the lineage the connector draws for it. Without a Looker instance there are
+no explores from the API, so every view is a standalone view: the adapter runs the connector's
+``_add_standalone_view_lineage`` on each view of the parser's cache, in the cache's order, which is
+how ``yield_standalone_datamodels`` and ``_yield_bulk_datamodel_lineage`` process them. The calls
+to the OpenMetadata server are replaced by recorders: a table lineage request becomes a table
+upstream, and a view-to-view request (for ``extends``) a view upstream. The order matters for
+``${view.SQL_TABLE_NAME}`` references, which the connector resolves only when the referenced view
+was drawn first. In a run against a Looker instance, the views of the explores the API returns are
+drawn first, through ``add_view_lineage``, which draws the same table and ``extends`` edges.
 """
 
 from __future__ import annotations
@@ -59,7 +70,7 @@ class OpenMetadataAdapter(Adapter):
 
     def resolve(self, project: Path) -> dict[str, ModelOutput]:
         Singleton.clear_all()  # BulkLkmlParser is a process-wide singleton
-        parser = BulkLkmlParser(reader=SortedLocalReader(base_path=project))
+        parser = BulkLkmlParser(reader=LocalReader(base_path=project))
         constants = manifest_constants(project)
         # Every view the connector would ingest, including refinements it indexes as "+name" views.
         names = indexed_view_names(parser)
@@ -86,13 +97,6 @@ class OpenMetadataAdapter(Adapter):
             return None if view is None else summarize_view(view, constants, upstream)
         except Exception as exc:  # reported for this view only
             return ViewOutput(error=repr(exc))
-
-
-class SortedLocalReader(LocalReader):
-    """A ``LocalReader`` that lists files in path order instead of ``os.walk`` order."""
-
-    def get_local_files(self, search_key: str, excluded_files: list[str] | None = None) -> list[str]:
-        return sorted(super().get_local_files(search_key, excluded_files))
 
 
 def summarize_view(
@@ -130,8 +134,8 @@ def indexed_view_names(parser: BulkLkmlParser) -> list[str]:
 
 
 def indexed_views(parser: BulkLkmlParser) -> list[tuple[str, Any]]:
-    """The indexed views in path order of their files, keeping the order within a file."""
-    return sorted(parser._views_cache.items(), key=lambda item: str(item[1].source_file))
+    """The indexed views in the order ``yield_standalone_datamodels`` iterates them."""
+    return list(parser._views_cache.items())
 
 
 class OfflineLineage(LookerSource):

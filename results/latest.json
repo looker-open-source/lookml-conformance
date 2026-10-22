@@ -1,5 +1,5 @@
 {
-  "date": "2026-10-11",
+  "date": "2026-10-20",
   "adapters": [
     {
       "name": "node-lookml-parser",
@@ -300,10 +300,8 @@
           ]
         },
         "dagster": {
-          "outcome": "fail",
-          "reasons": [
-            "m.orders.sql_table_name: expected 'a.final', got 'b.later'"
-          ]
+          "outcome": "pass",
+          "reasons": []
         }
       }
     },
@@ -444,7 +442,8 @@
         "dagster": {
           "outcome": "fail",
           "reasons": [
-            "m1.orders.sql_table_name: expected 'a', got 'c'"
+            "m1.orders.sql_table_name: expected 'a', got 'b'",
+            "m2.orders.sql_table_name: expected 'c', got 'b'"
           ]
         }
       }
@@ -935,8 +934,10 @@
           ]
         },
         "openmetadata": {
-          "outcome": "pass",
-          "reasons": []
+          "outcome": "fail",
+          "reasons": [
+            "m.orders_rollup_repeat.upstream_tables: expected ['raw.orders'], got []; reported upstream: []"
+          ]
         },
         "datahub": {
           "outcome": "pass",
@@ -960,8 +961,10 @@
           ]
         },
         "openmetadata": {
-          "outcome": "pass",
-          "reasons": []
+          "outcome": "fail",
+          "reasons": [
+            "m.orders_by_customer.upstream_tables: expected ['raw.customers', 'raw.orders'], got []; reported upstream: []"
+          ]
         },
         "datahub": {
           "outcome": "pass",

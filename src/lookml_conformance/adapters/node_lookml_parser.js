@@ -4,20 +4,26 @@
 //   node src/lookml_conformance/adapters/node_lookml_parser.js <project>...
 //
 // Parses every .lkml file of the project except LookML dashboards with
-// parseFiles({modelAssembly: true}) and prints one JSON line per project in the
-// format of docs/adapter-protocol.md. The parser is loaded with require('lookml-parser');
+// parseFiles({input: '**/*.lkml', cwd: project, modelAssembly: true}) and prints
+// one JSON line per project in the format of docs/adapter-protocol.md. The parser
+// finds the files with its own glob and sorts their paths (localeCompare); the
+// order matters, for example for the files a wildcard include matches. The
+// pattern is wider than the parser's default ('**/{*.model,*.explore,*.view,manifest}.lkml'),
+// because refinements can be declared in any LookML file. The parser is loaded with require('lookml-parser');
 // set LOOKML_PARSER_PATH to test another copy, such as a local checkout. The
 // parser maps `//project/...` includes to `imported_projects/project/...`,
 // which is the layout the suite uses.
 'use strict';
 
-const fs = require('fs');
 const path = require('path');
 
 const ADAPTER = 'node-lookml-parser';
 // The parser resolves LookML but builds no lineage graph.
 const CAPABILITIES = { lineage: false };
 const FIELD_TYPES = ['dimension', 'dimension_group', 'measure'];
+// Every LookML file except LookML dashboards; dot directories such as .git are skipped by glob.
+const INPUT = '**/*.lkml';
+const IGNORE = ['**/*.dashboard.lkml'];
 
 const parserPath = process.env.LOOKML_PARSER_PATH
   ? path.resolve(process.env.LOOKML_PARSER_PATH)
@@ -36,14 +42,6 @@ function asList(value) {
 // The parser annotates objects with `$`-prefixed metadata keys ($name, $type, ...).
 function ownEntries(object) {
   return Object.entries(object || {}).filter(([key]) => !key.startsWith('$'));
-}
-
-function lkmlFiles(dir) {
-  return fs.readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
-    const fullPath = path.join(dir, entry.name);
-    if (entry.isDirectory()) return entry.name === '.git' ? [] : lkmlFiles(fullPath);
-    return entry.name.endsWith('.lkml') && !entry.name.endsWith('.dashboard.lkml') ? [fullPath] : [];
-  });
 }
 
 function fieldParams(field) {
@@ -121,13 +119,15 @@ function summarizeModel(model) {
 }
 
 async function resolve(projectArg) {
-  const root = path.resolve(projectArg);
-  const source = lkmlFiles(root).map((file) => ({
-    path: path.relative(root, file),
-    content: fs.readFileSync(file, 'utf8'),
-  }));
   const silent = { log() {}, warn() {}, error() {} };
-  const project = await lookmlParser.parseFiles({ source, modelAssembly: true, strings: false, console: silent });
+  const project = await lookmlParser.parseFiles({
+    input: INPUT,
+    cwd: path.resolve(projectArg),
+    globOptions: { ignore: IGNORE },
+    modelAssembly: true,
+    strings: false,
+    console: silent,
+  });
   const models = Object.fromEntries(ownEntries(project.model).map(([name, model]) => [name, summarizeModel(model)]));
   return {
     capabilities: CAPABILITIES,

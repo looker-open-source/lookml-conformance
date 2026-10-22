@@ -1,5 +1,5 @@
 {
- "date": "2026-10-11",
+ "date": "2026-10-20",
  "suite": {
   "cases": 39,
   "confirmed": 31,
@@ -75,11 +75,11 @@
    "version": "2.0.5.0",
    "score": {
     "all": {
-     "passed": 9,
+     "passed": 7,
      "applicable": 34
     },
     "confirmed": {
-     "passed": 9,
+     "passed": 7,
      "applicable": 26
     },
     "provisional": {
@@ -121,7 +121,7 @@
    "version": "0.29.25",
    "score": {
     "all": {
-     "passed": 21,
+     "passed": 22,
      "applicable": 39
     },
     "confirmed": {
@@ -129,7 +129,7 @@
      "applicable": 31
     },
     "provisional": {
-     "passed": 5,
+     "passed": 6,
      "applicable": 8
     }
    }
@@ -951,10 +951,8 @@
      ]
     },
     "dagster": {
-     "outcome": "fail",
-     "reasons": [
-      "m.orders.sql_table_name: expected 'a.final', got 'b.later'"
-     ]
+     "outcome": "pass",
+     "reasons": []
     }
    }
   },
@@ -1388,7 +1386,8 @@
     "dagster": {
      "outcome": "fail",
      "reasons": [
-      "m1.orders.sql_table_name: expected 'a', got 'c'"
+      "m1.orders.sql_table_name: expected 'a', got 'b'",
+      "m2.orders.sql_table_name: expected 'c', got 'b'"
      ]
     }
    }
@@ -2853,8 +2852,10 @@
      ]
     },
     "openmetadata": {
-     "outcome": "pass",
-     "reasons": []
+     "outcome": "fail",
+     "reasons": [
+      "m.orders_rollup_repeat.upstream_tables: expected ['raw.orders'], got []; reported upstream: []"
+     ]
     },
     "datahub": {
      "outcome": "pass",
@@ -2924,8 +2925,10 @@
      ]
     },
     "openmetadata": {
-     "outcome": "pass",
-     "reasons": []
+     "outcome": "fail",
+     "reasons": [
+      "m.orders_by_customer.upstream_tables: expected ['raw.customers', 'raw.orders'], got []; reported upstream: []"
+     ]
     },
     "datahub": {
      "outcome": "pass",

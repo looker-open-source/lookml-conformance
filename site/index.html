@@ -4,9 +4,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>LookML Conformance</title>
-  <meta name="description" content="An open test suite for tools that read LookML: 39 rules of how Looker resolves a project, each checked on Looker, run against DataHub, OpenMetadata, Dagster and node-lookml-parser.">
+  <meta name="description" content="An open test suite for tools that read LookML: 40 rules of how Looker resolves a project, each checked on Looker, run against DataHub, OpenMetadata, Dagster and node-lookml-parser.">
   <meta property="og:title" content="LookML Conformance">
-  <meta property="og:description" content="Does your catalog trace Looker to the right tables? 39 rules of how Looker resolves LookML, checked on Looker.">
+  <meta property="og:description" content="Does your catalog trace Looker to the right tables? 40 rules of how Looker resolves LookML, checked on Looker.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://josephaxisa.github.io/lookml-conformance/">
   <meta property="og:image" content="https://josephaxisa.github.io/lookml-conformance/og.png">
@@ -47,7 +47,7 @@
       <div class="hero__text">
         <p class="eyebrow">For data teams whose catalog, lineage or orchestration reads LookML</p>
         <h1>Your catalog may be tracing Looker to the wrong tables.</h1>
-        <p class="lede"><span id="case-count">39</span> tests, each checked on Looker, show where the tools that read your LookML resolve it differently from Looker.</p>
+        <p class="lede"><span id="case-count">40</span> tests, each checked on Looker, show where the tools that read your LookML resolve it differently from Looker.</p>
         <div class="actions">
           <a class="btn btn--solid" href="#results">See where each tool differs</a>
           <a class="btn" href="#test">Test your tool</a>
@@ -90,6 +90,7 @@
         <span>select a row for that tool's differences, a column for the case</span>
       </p>
       <p class="note"><i>A snapshot of released versions, not a ranking.</i> Every difference comes with a minimal project that reproduces it, ready to use as a test for a fix.</p>
+      <p class="note">Each tool runs as a user runs it, on macOS. DataHub: the whole <code>LookMLSource</code> ingestion, which emits one entity per view; the first model in path order that includes a view decides it, and the entity is scored under every model. Its <code>process_refinements</code> option is turned on (the default is off) and <code>emit_reachable_views_only</code> off (the default is on). OpenMetadata and Dagster read files in the order the file system lists them, so a few cases can resolve differently on Linux. <a href="https://github.com/josephaxisa/lookml-conformance#results">Details</a></p>
     </section>
 
     <section class="section" id="case-study">
@@ -193,7 +194,7 @@ derived_table: { sql: SELECT … FROM ${orders.SQL_TABLE_NAME} ;; }</pre>
 lookml-conformance run \
   --command "python my_adapter.py"</pre>
         <dl class="facts">
-          <div><dt>Runs in</dt><dd>0.23 s</dd><dd>for all 39 cases, timed with node-lookml-parser; your tool’s start-up time adds to it</dd></div>
+          <div><dt>Runs in</dt><dd>0.23 s</dd><dd>for all 40 cases, timed with node-lookml-parser; your tool’s start-up time adds to it</dd></div>
           <div><dt>CI gate</dt><dd>exit 1</dd><dd>when a case differs from Looker</dd></div>
           <div><dt>Adapter</dt><dd>1 method</dd><dd>in Python, or any program that prints JSON</dd></div>
         </dl>

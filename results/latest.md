@@ -1,4 +1,4 @@
-# LookML conformance scorecard, 2026-10-11
+# LookML conformance scorecard, 2026-10-20
 
 ✅ pass · ❌ fail · ⚠️ adapter error · N/A not applicable (the tool does not produce that output). *confirmed* cases follow from the cited Looker documentation; *provisional* cases cover behavior the documentation leaves open and are pinned to a named public source.
 
@@ -7,9 +7,9 @@
 | Tool | Version | confirmed | provisional | All |
 | --- | --- | --- | --- | --- |
 | node-lookml-parser | `9.1.0` | 20 / 26 | 6 / 8 | **26 / 34** |
-| OpenMetadata | `2.0.5.0` | 9 / 26 | 0 / 8 | **9 / 34** |
+| OpenMetadata | `2.0.5.0` | 7 / 26 | 0 / 8 | **7 / 34** |
 | DataHub | `1.7.0.14` | 14 / 26 | 1 / 8 | **15 / 34** |
-| Dagster | `0.29.25` | 16 / 31 | 5 / 8 | **21 / 39** |
+| Dagster | `0.29.25` | 16 / 31 | 6 / 8 | **22 / 39** |
 
 ## Results
 
@@ -24,7 +24,7 @@
 | `r07_field_refinement_keeps_unset_parameters` | confirmed | ✅ | ❌ | ✅ | ❌ |
 | `r08_refinement_adds_fields` | confirmed | ✅ | ❌ | ✅ | ✅ |
 | `r09_field_filters_are_additive` | confirmed | ❌ | N/A | N/A | ❌ |
-| `r10_final_refinement_blocks_later_ones` | provisional | ❌ | ❌ | ❌ | ❌ |
+| `r10_final_refinement_blocks_later_ones` | provisional | ❌ | ❌ | ❌ | ✅ |
 | `r11_derived_table_refined_parameter_by_parameter` | confirmed | ✅ | N/A | N/A | ✅ |
 | `r12_refinement_without_a_base_view` | provisional | ✅ | ❌ | ✅ | ✅ |
 | `r13_dimension_group_timeframes_override` | confirmed | ✅ | N/A | N/A | ❌ |
@@ -47,8 +47,8 @@
 | `c01_manifest_constant_in_sql_table_name` | confirmed | ❌ | ✅ | ✅ | ❌ |
 | `c02_manifest_constant_in_derived_table_sql` | confirmed | ❌ | ✅ | ✅ | ❌ |
 | `l01_derived_table_reads_view_table` | confirmed | N/A | ❌ | ✅ | ✅ |
-| `l02_chained_derived_tables_reach_the_base_table` | confirmed | N/A | ✅ | ✅ | ✅ |
-| `l03_derived_table_reads_a_table_and_a_view` | confirmed | N/A | ✅ | ✅ | ❌ |
+| `l02_chained_derived_tables_reach_the_base_table` | confirmed | N/A | ❌ | ✅ | ✅ |
+| `l03_derived_table_reads_a_table_and_a_view` | confirmed | N/A | ❌ | ✅ | ❌ |
 | `l04_reference_follows_the_refined_table` | confirmed | N/A | ❌ | ❌ | ✅ |
 | `l05_native_derived_table_reads_its_explore` | confirmed | N/A | ❌ | ✅ | ❌ |
 | `p01_single_semicolon_inside_sql_block` | confirmed | ❌ | ✅ | ✅ | ✅ |
@@ -80,7 +80,6 @@
 - `r10_final_refinement_blocks_later_ones` · **node-lookml-parser**: m.orders.sql_table_name: expected 'a.final', got 'b.later'
 - `r10_final_refinement_blocks_later_ones` · **OpenMetadata**: m.orders.sql_table_name: expected 'a.final', got 'raw.orders'
 - `r10_final_refinement_blocks_later_ones` · **DataHub**: m.orders.sql_table_name: expected 'a.final', got 'raw.orders'
-- `r10_final_refinement_blocks_later_ones` · **Dagster**: m.orders.sql_table_name: expected 'a.final', got 'b.later'
 - `r12_refinement_without_a_base_view` · **OpenMetadata**: views that must not exist were exposed: ['+ghost']
 - `r13_dimension_group_timeframes_override` · **Dagster**: m.orders.created.type: expected 'time', got None; m.orders.created.sql: expected '${TABLE}.created_at', got None
 - `i01_wildcard_include_applies_in_path_order` · **OpenMetadata**: m.orders.sql_table_name: expected 'from_b', got 'raw.orders'
@@ -88,7 +87,7 @@
 - `i02_nested_include_expands_in_place` · **node-lookml-parser**: m1.orders.sql_table_name: expected 'a', got 'b'
 - `i02_nested_include_expands_in_place` · **OpenMetadata**: m1.orders.sql_table_name: expected 'a', got 'raw.orders'; m2.orders.sql_table_name: expected 'c', got 'raw.orders'
 - `i02_nested_include_expands_in_place` · **DataHub**: m1.orders.sql_table_name: expected 'a', got 'raw.orders'; m2.orders.sql_table_name: expected 'c', got 'raw.orders'
-- `i02_nested_include_expands_in_place` · **Dagster**: m1.orders.sql_table_name: expected 'a', got 'c'
+- `i02_nested_include_expands_in_place` · **Dagster**: m1.orders.sql_table_name: expected 'a', got 'b'; m2.orders.sql_table_name: expected 'c', got 'b'
 - `i03_file_included_twice_keeps_first_position` · **OpenMetadata**: m.orders.sql_table_name: expected 'a', got 'raw.orders'
 - `i03_file_included_twice_keeps_first_position` · **DataHub**: m.orders.sql_table_name: expected 'a', got 'raw.orders'
 - `i03_file_included_twice_keeps_first_position` · **Dagster**: m.orders.sql_table_name: expected 'a', got 'b'
@@ -120,6 +119,8 @@
 - `c02_manifest_constant_in_derived_table_sql` · **node-lookml-parser**: m.orders.derived_table.sql: expected 'SELECT id FROM `bq_project.raw.orders`', got 'SELECT id FROM `@{RAW_DATASET}.orders`'
 - `c02_manifest_constant_in_derived_table_sql` · **Dagster**: m.orders.derived_table.sql: expected 'SELECT id FROM `bq_project.raw.orders`', got 'SELECT id FROM `@{RAW_DATASET}.orders`'
 - `l01_derived_table_reads_view_table` · **OpenMetadata**: m.order_facts.upstream_tables: expected ['raw.orders'], got []; reported upstream: []
+- `l02_chained_derived_tables_reach_the_base_table` · **OpenMetadata**: m.orders_rollup_repeat.upstream_tables: expected ['raw.orders'], got []; reported upstream: []
+- `l03_derived_table_reads_a_table_and_a_view` · **OpenMetadata**: m.orders_by_customer.upstream_tables: expected ['raw.customers', 'raw.orders'], got []; reported upstream: []
 - `l03_derived_table_reads_a_table_and_a_view` · **Dagster**: m.orders_by_customer.upstream_tables: expected ['raw.customers', 'raw.orders'], got ['raw.orders']; reported upstream: ['view orders']
 - `l04_reference_follows_the_refined_table` · **OpenMetadata**: m.orders_rollup.upstream_tables: expected ['analytics.orders_clean'], got ['raw.orders']; reported upstream: ['table raw.orders']
 - `l04_reference_follows_the_refined_table` · **DataHub**: m.orders_rollup.upstream_tables: expected ['analytics.orders_clean'], got ['raw.orders']; reported upstream: ['view orders']

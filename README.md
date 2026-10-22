@@ -17,14 +17,14 @@ Results and case explorer: https://josephaxisa.github.io/lookml-conformance/
 
 ## Results
 
-Released versions, scored on 2026-10-11 ([full scorecard](results/latest.md)):
+Released versions, scored on 2026-10-20 on macOS (APFS) ([full scorecard](results/latest.md)):
 
 | Tool | Version | Confirmed | Provisional | All |
 | --- | --- | ---: | ---: | ---: |
 | [node-lookml-parser](https://github.com/fabio-looker/node-lookml-parser) | `lookml-parser` 9.1.0 | 20 / 26 | 6 / 8 | **26 / 34** |
-| [Dagster](https://github.com/dagster-io/dagster) | `dagster-looker` 0.29.25 | 16 / 31 | 5 / 8 | **21 / 39** |
+| [Dagster](https://github.com/dagster-io/dagster) | `dagster-looker` 0.29.25 | 16 / 31 | 6 / 8 | **22 / 39** |
 | [DataHub](https://github.com/datahub-project/datahub) | `acryl-datahub[lookml]` 1.7.0.14 | 14 / 26 | 1 / 8 | **15 / 34** |
-| [OpenMetadata](https://github.com/open-metadata/OpenMetadata) | `openmetadata-ingestion[looker]` 2.0.5.0 | 9 / 26 | 0 / 8 | **9 / 34** |
+| [OpenMetadata](https://github.com/open-metadata/OpenMetadata) | `openmetadata-ingestion[looker]` 2.0.5.0 | 7 / 26 | 0 / 8 | **7 / 34** |
 
 A case applies to a tool only when the tool emits what the case checks:
 
@@ -39,11 +39,27 @@ A case applies to a tool only when the tool emits what the case checks:
 - Dagster hands the resolved LookML of each view and explore to its public translator class, which
   users override to build assets, so every case applies to it.
 
-Dagster applies refinements, and OpenMetadata keeps one of two views with the same name, in the
-order the file system lists the project's files. The adapters list files in path order so that
-results reproduce. On another machine, the cases in which several files refine or define the same
-view (i01, i02, i03, i07, r03, r04, r10) can resolve to a different table, because neither tool uses
-include order to decide.
+Each adapter runs its tool the way a user runs it and reports what that run produces:
+
+- DataHub: the adapter runs `LookMLSource` over the whole project, as `datahub ingest` does. The
+  source emits one entity per view, not one per model: it reads the model files in path order, and
+  the first model that includes a view decides what the entity holds. The adapter reports that
+  entity under every model that includes the view, so r03 and m01 fail for any tool version that
+  emits one entity for a view two models resolve differently. Two options differ from the
+  source's defaults: `process_refinements` is on (the default is off), so that the refinement
+  resolver runs, and `emit_reachable_views_only` is off (the default is on), so that views no
+  explore reaches, such as those of the lineage cases, are emitted.
+- OpenMetadata reads view files in the order `os.walk` lists them and Dagster in the order
+  `Path.rglob` lists them; the adapters use the tools' own listing. That order depends on the file
+  system. On APFS it is fixed by the file names, so the results above reproduce on a Mac. On ext4
+  (Linux) it also depends on a hash seed chosen when the file system was created, so the cases in
+  which several files refine the same view (Dagster: i01, i02, i03, r03, r04, r10) or define a
+  view of the same name (OpenMetadata: i07), and the lineage cases in which a derived table reads
+  another view (OpenMetadata: l01 to l04), can resolve differently on another machine. Dagster's
+  pass on r10 comes from this order: it has no notion of `final: yes`, and APFS lists
+  `r_final.view.lkml` after `r_later.view.lkml`.
+- node-lookml-parser finds the files with its own glob (`**/*.lkml`, without LookML dashboards) and
+  sorts their paths, so its results do not depend on the file system.
 
 ## Cases
 

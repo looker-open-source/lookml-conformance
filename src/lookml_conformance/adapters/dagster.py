@@ -2,25 +2,28 @@
 
     python -m lookml_conformance.adapters.dagster <project>...
 
-``build_looker_view_specs`` and ``build_looker_explore_specs`` hand every resolved view and explore
-to a ``DagsterLookerLkmlTranslator``; the adapter passes one that records them, and records each
-view's upstream from the ``deps`` of its asset spec: asset keys ``["view", name]`` are Looker views,
-any other key is a warehouse table. dagster-looker resolves the project as a whole, so the result
-is reported as one project-wide model.
+The adapter calls ``build_looker_asset_specs``, the function users call to turn a LookML project
+into asset specs. It hands every resolved view and explore to a ``DagsterLookerLkmlTranslator``;
+the adapter passes one that records them, and records each view's upstream from the ``deps`` of
+its asset spec: asset keys ``["view", name]`` are Looker views, any other key is a warehouse
+table. dagster-looker resolves the project as a whole, so the result is reported as one
+project-wide model.
 
-dagster-looker finds files with ``Path.rglob`` and applies refinements in the order it lists them,
-which depends on the file system. The adapter passes a path whose ``rglob`` lists files in path
-order, so that results reproduce on every machine.
+dagster-looker finds files with ``Path.rglob`` and applies refinements in the order it lists them.
+The adapter passes a plain ``Path``, so files are read in the order the file system lists them, as
+in a real run. That order depends on the file system: APFS (macOS) lists a directory in an order
+fixed by the file names, and ext4 (Linux) in an order that also depends on a hash seed chosen when
+the file system was created.
 """
 
 from __future__ import annotations
 
-from collections.abc import Iterator, Mapping
+from collections.abc import Mapping
 from pathlib import Path
 from typing import Any
 
 from dagster import AssetKey, AssetSpec
-from dagster_looker.lkml import asset_utils
+from dagster_looker import build_looker_asset_specs
 from dagster_looker.lkml.dagster_looker_lkml_translator import (
     DagsterLookerLkmlTranslator,
     LookMLStructureType,
@@ -42,9 +45,7 @@ class DagsterAdapter(Adapter):
 
     def resolve(self, project: Path) -> dict[str, ModelOutput]:
         translator = RecordingTranslator()
-        root = SortedPath(project)
-        asset_utils.build_looker_view_specs(root, translator)
-        asset_utils.build_looker_explore_specs(root, translator)
+        build_looker_asset_specs(project_dir=project, dagster_looker_translator=translator)
         return {
             PROJECT_WIDE: ModelOutput(
                 views={
@@ -56,13 +57,6 @@ class DagsterAdapter(Adapter):
                 },
             )
         }
-
-
-class SortedPath(type(Path())):  # type: ignore[misc]
-    """A path whose ``rglob`` lists matches in path order instead of file system order."""
-
-    def rglob(self, pattern: str, *args: Any, **kwargs: Any) -> Iterator[Path]:  # type: ignore[override]
-        return iter(sorted(super().rglob(pattern, *args, **kwargs)))
 
 
 class RecordingTranslator(DagsterLookerLkmlTranslator):
