@@ -6,13 +6,15 @@ import datetime as dt
 import json
 import os
 import subprocess
+import tempfile
 from collections.abc import Callable, Iterable, Mapping, Sequence
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from lookml_conformance.cases import Case
-from lookml_conformance.judge import Verdict, judge
+from lookml_conformance.cases import Case, FileOrder
+from lookml_conformance.file_order import prepare
+from lookml_conformance.judge import Verdict, judge_file_orders
 from lookml_conformance.protocol import AdapterOutput, ProtocolError
 from lookml_conformance.scorecard import AdapterRun, CaseResult, Scorecard
 
@@ -180,6 +182,8 @@ def run_suite(
 
     With ``batch``, each adapter process resolves a chunk of cases, so a tool's start-up cost is
     paid once per chunk rather than once per case. ``jobs`` processes are shared between adapters.
+    A case with ``order_variants`` is resolved in each layout of its project (see ``file_order``),
+    written to a temporary directory, and passes only if it passes in all of them.
     """
     jobs = max(1, jobs)
     tasks = [
@@ -188,24 +192,37 @@ def run_suite(
         for chunk in _chunks(cases, max(1, jobs // len(adapters)) if batch and adapter.batch else len(cases))
     ]
 
-    def run_task(task: tuple[AdapterSpec, list[Case]]) -> list[tuple[str, str, AdapterOutput, Verdict]]:
-        adapter, chunk = task
-        outputs = adapter.invoke_many([case.project for case in chunk])
-        results = []
-        for case in chunk:
-            output = outputs[case.project.resolve()]
-            verdict = judge(case, output)
-            if progress is not None:
-                progress(case, adapter, verdict)
-            results.append((case.id, adapter.name, output, verdict))
-        return results
-
-    with ThreadPoolExecutor(max_workers=jobs) as pool:
-        runs = {
-            (case_id, name): (output, verdict)
-            for results in pool.map(run_task, tasks)
-            for case_id, name, output, verdict in results
+    with tempfile.TemporaryDirectory(prefix="lookml-conformance-") as scratch:
+        layouts: dict[str, list[tuple[FileOrder, Path]]] = {
+            case.id: prepare(case, Path(scratch)) for case in cases
         }
+
+        def run_task(task: tuple[AdapterSpec, list[Case]]) -> list[tuple[str, str, AdapterOutput, Verdict]]:
+            adapter, chunk = task
+            projects = [project for case in chunk for _, project in layouts[case.id]]
+            if batch and adapter.batch:
+                outputs = adapter.invoke_many(projects)
+            else:
+                outputs = {
+                    key: value
+                    for project in projects
+                    for key, value in adapter.invoke_many([project]).items()
+                }
+            results = []
+            for case in chunk:
+                by_order = [(order, outputs[project.resolve()]) for order, project in layouts[case.id]]
+                verdict = judge_file_orders(case, by_order)
+                if progress is not None:
+                    progress(case, adapter, verdict)
+                results.append((case.id, adapter.name, by_order[0][1], verdict))
+            return results
+
+        with ThreadPoolExecutor(max_workers=jobs) as pool:
+            runs = {
+                (case_id, name): (output, verdict)
+                for results in pool.map(run_task, tasks)
+                for case_id, name, output, verdict in results
+            }
 
     versions: dict[str, str | None] = {adapter.name: None for adapter in adapters}
     for (_, name), (output, _) in runs.items():

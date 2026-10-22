@@ -17,6 +17,10 @@
       "quote": "LookML refinements leverage the order of includes"
     }
   ],
+  "order_variants": [
+    ["ra.view.lkml", "rb.view.lkml"],
+    ["rb.view.lkml", "rc.view.lkml"]
+  ],
   "expect": {
     "models": {
       "m1": {

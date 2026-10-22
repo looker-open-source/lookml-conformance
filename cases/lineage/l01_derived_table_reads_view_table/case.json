@@ -15,6 +15,7 @@
     }
   ],
   "rationale": "order_facts.view.lkml comes before orders.view.lkml in path order, so a tool that resolves references while reading files in that order has not seen orders when it reads order_facts. The reference names a view of the model, wherever that view is defined.",
+  "order_variants": [["views/order_facts.view.lkml", "views/orders.view.lkml"]],
   "expect": {
     "models": {
       "m": {

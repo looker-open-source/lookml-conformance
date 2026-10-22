@@ -15,6 +15,10 @@
     }
   ],
   "rationale": "The refinement replaces sql_table_name on orders, and the reference reads the orders view as the model resolves it.",
+  "order_variants": [
+    ["views/orders.view.lkml", "views/orders_rollup.view.lkml"],
+    ["views/orders_refinements.view.lkml", "views/orders_rollup.view.lkml"]
+  ],
   "expect": {
     "models": {
       "m": {

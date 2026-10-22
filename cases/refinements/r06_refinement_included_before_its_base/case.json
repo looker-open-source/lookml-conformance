@@ -17,6 +17,7 @@
       "quote": "The Looker IDE will give you warnings if you try to refine an object that is not included."
     }
   ],
+  "order_variants": [["orders.view.lkml", "r.view.lkml"]],
   "expect": {
     "models": {
       "m": {

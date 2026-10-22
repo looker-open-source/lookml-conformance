@@ -121,7 +121,7 @@
    "version": "0.29.25",
    "score": {
     "all": {
-     "passed": 22,
+     "passed": 21,
      "applicable": 40
     },
     "confirmed": {
@@ -129,7 +129,7 @@
      "applicable": 32
     },
     "provisional": {
-     "passed": 6,
+     "passed": 5,
      "applicable": 8
     }
    }
@@ -161,6 +161,7 @@
    "provisional": null,
    "observations": [],
    "invalid_in_looker": false,
+   "order_variants": [],
    "expect": {
     "models": {
      "ecommerce": {
@@ -239,6 +240,7 @@
    "provisional": null,
    "observations": [],
    "invalid_in_looker": false,
+   "order_variants": [],
    "expect": {
     "models": {
      "ecommerce": {
@@ -318,6 +320,7 @@
    "provisional": null,
    "observations": [],
    "invalid_in_looker": false,
+   "order_variants": [],
    "expect": {
     "models": {
      "main": {
@@ -422,6 +425,12 @@
    "provisional": null,
    "observations": [],
    "invalid_in_looker": false,
+   "order_variants": [
+    [
+     "a.view.lkml",
+     "b.view.lkml"
+    ]
+   ],
    "expect": {
     "models": {
      "m": {
@@ -473,7 +482,8 @@
     "dagster": {
      "outcome": "fail",
      "reasons": [
-      "m.orders.sql_table_name: expected 'from_a', got 'from_b'"
+      "as written: m.orders.sql_table_name: expected 'from_a', got 'from_b'",
+      "a.view.lkml and b.view.lkml exchanged: pass"
      ]
     }
    }
@@ -498,6 +508,7 @@
    "provisional": null,
    "observations": [],
    "invalid_in_looker": false,
+   "order_variants": [],
    "expect": {
     "models": {
      "m": {
@@ -574,6 +585,12 @@
    },
    "observations": [],
    "invalid_in_looker": false,
+   "order_variants": [
+    [
+     "orders.view.lkml",
+     "r.view.lkml"
+    ]
+   ],
    "expect": {
     "models": {
      "m": {
@@ -649,6 +666,7 @@
    "provisional": null,
    "observations": [],
    "invalid_in_looker": false,
+   "order_variants": [],
    "expect": {
     "models": {
      "m": {
@@ -730,6 +748,7 @@
    "provisional": null,
    "observations": [],
    "invalid_in_looker": false,
+   "order_variants": [],
    "expect": {
     "models": {
      "m": {
@@ -809,6 +828,7 @@
    "provisional": null,
    "observations": [],
    "invalid_in_looker": false,
+   "order_variants": [],
    "expect": {
     "models": {
      "m": {
@@ -900,6 +920,12 @@
    },
    "observations": [],
    "invalid_in_looker": true,
+   "order_variants": [
+    [
+     "r_final.view.lkml",
+     "r_later.view.lkml"
+    ]
+   ],
    "expect": {
     "models": {
      "m": {
@@ -951,8 +977,11 @@
      ]
     },
     "dagster": {
-     "outcome": "pass",
-     "reasons": []
+     "outcome": "fail",
+     "reasons": [
+      "as written: pass",
+      "r_final.view.lkml and r_later.view.lkml exchanged: m.orders.sql_table_name: expected 'a.final', got 'b.later'"
+     ]
     }
    }
   },
@@ -986,6 +1015,7 @@
    "provisional": null,
    "observations": [],
    "invalid_in_looker": false,
+   "order_variants": [],
    "expect": {
     "models": {
      "m": {
@@ -1061,6 +1091,7 @@
    },
    "observations": [],
    "invalid_in_looker": false,
+   "order_variants": [],
    "expect": {
     "models": {
      "m": {
@@ -1142,6 +1173,7 @@
    "provisional": null,
    "observations": [],
    "invalid_in_looker": false,
+   "order_variants": [],
    "expect": {
     "models": {
      "m": {
@@ -1234,6 +1266,7 @@
    "provisional": null,
    "observations": [],
    "invalid_in_looker": false,
+   "order_variants": [],
    "expect": {
     "models": {
      "ecommerce": {
@@ -1317,6 +1350,7 @@
    },
    "observations": [],
    "invalid_in_looker": false,
+   "order_variants": [],
    "expect": {
     "models": {
      "m": {
@@ -1397,6 +1431,16 @@
    },
    "observations": [],
    "invalid_in_looker": false,
+   "order_variants": [
+    [
+     "ra.view.lkml",
+     "rb.view.lkml"
+    ],
+    [
+     "rb.view.lkml",
+     "rc.view.lkml"
+    ]
+   ],
    "expect": {
     "models": {
      "m1": {
@@ -1468,8 +1512,10 @@
     "dagster": {
      "outcome": "fail",
      "reasons": [
-      "m1.orders.sql_table_name: expected 'a', got 'b'",
-      "m2.orders.sql_table_name: expected 'c', got 'b'"
+      "as written: m1.orders.sql_table_name: expected 'a', got 'b'",
+      "as written: m2.orders.sql_table_name: expected 'c', got 'b'",
+      "ra.view.lkml and rb.view.lkml exchanged: m2.orders.sql_table_name: expected 'c', got 'a'",
+      "rb.view.lkml and rc.view.lkml exchanged: m1.orders.sql_table_name: expected 'a', got 'c'"
      ]
     }
    }
@@ -1495,6 +1541,12 @@
    },
    "observations": [],
    "invalid_in_looker": false,
+   "order_variants": [
+    [
+     "ra.view.lkml",
+     "rb.view.lkml"
+    ]
+   ],
    "expect": {
     "models": {
      "m": {
@@ -1546,7 +1598,8 @@
     "dagster": {
      "outcome": "fail",
      "reasons": [
-      "m.orders.sql_table_name: expected 'a', got 'b'"
+      "as written: m.orders.sql_table_name: expected 'a', got 'b'",
+      "ra.view.lkml and rb.view.lkml exchanged: pass"
      ]
     }
    }
@@ -1576,6 +1629,7 @@
    "provisional": null,
    "observations": [],
    "invalid_in_looker": false,
+   "order_variants": [],
    "expect": {
     "models": {
      "m": {
@@ -1651,6 +1705,7 @@
    "provisional": null,
    "observations": [],
    "invalid_in_looker": false,
+   "order_variants": [],
    "expect": {
     "models": {
      "m": {
@@ -1731,6 +1786,7 @@
    "provisional": null,
    "observations": [],
    "invalid_in_looker": false,
+   "order_variants": [],
    "expect": {
     "models": {
      "m": {
@@ -1806,6 +1862,7 @@
    "provisional": null,
    "observations": [],
    "invalid_in_looker": false,
+   "order_variants": [],
    "expect": {
     "models": {
      "m": {
@@ -1881,6 +1938,12 @@
    },
    "observations": [],
    "invalid_in_looker": false,
+   "order_variants": [
+    [
+     "a.view.lkml",
+     "b.view.lkml"
+    ]
+   ],
    "expect": {
     "models": {
      "m": {
@@ -1956,6 +2019,7 @@
    "provisional": null,
    "observations": [],
    "invalid_in_looker": false,
+   "order_variants": [],
    "expect": {
     "models": {
      "m": {
@@ -2031,6 +2095,12 @@
    },
    "observations": [],
    "invalid_in_looker": false,
+   "order_variants": [
+    [
+     "views/ext.view.lkml",
+     "views/refine.view.lkml"
+    ]
+   ],
    "expect": {
     "models": {
      "main": {
@@ -2125,6 +2195,7 @@
    "provisional": null,
    "observations": [],
    "invalid_in_looker": false,
+   "order_variants": [],
    "expect": {
     "models": {
      "m": {
@@ -2209,6 +2280,7 @@
    "provisional": null,
    "observations": [],
    "invalid_in_looker": false,
+   "order_variants": [],
    "expect": {
     "models": {
      "m": {
@@ -2302,6 +2374,7 @@
    "provisional": null,
    "observations": [],
    "invalid_in_looker": false,
+   "order_variants": [],
    "expect": {
     "models": {
      "m": {
@@ -2391,6 +2464,7 @@
    "provisional": null,
    "observations": [],
    "invalid_in_looker": false,
+   "order_variants": [],
    "expect": {
     "models": {
      "refined": {
@@ -2493,6 +2567,7 @@
    "provisional": null,
    "observations": [],
    "invalid_in_looker": false,
+   "order_variants": [],
    "expect": {
     "models": {
      "m": {
@@ -2579,6 +2654,7 @@
    "provisional": null,
    "observations": [],
    "invalid_in_looker": false,
+   "order_variants": [],
    "expect": {
     "models": {
      "m": {
@@ -2669,6 +2745,7 @@
    "provisional": null,
    "observations": [],
    "invalid_in_looker": false,
+   "order_variants": [],
    "expect": {
     "models": {
      "m": {
@@ -2744,6 +2821,7 @@
    "provisional": null,
    "observations": [],
    "invalid_in_looker": false,
+   "order_variants": [],
    "expect": {
     "models": {
      "m": {
@@ -2821,6 +2899,12 @@
    "provisional": null,
    "observations": [],
    "invalid_in_looker": false,
+   "order_variants": [
+    [
+     "views/order_facts.view.lkml",
+     "views/orders.view.lkml"
+    ]
+   ],
    "expect": {
     "models": {
      "m": {
@@ -2860,7 +2944,8 @@
     "openmetadata": {
      "outcome": "fail",
      "reasons": [
-      "m.order_facts.upstream_tables: expected ['raw.orders'], got []; reported upstream: []"
+      "as written: m.order_facts.upstream_tables: expected ['raw.orders'], got []; reported upstream: []",
+      "views/order_facts.view.lkml and views/orders.view.lkml exchanged: pass"
      ]
     },
     "datahub": {
@@ -2893,6 +2978,16 @@
    "provisional": null,
    "observations": [],
    "invalid_in_looker": false,
+   "order_variants": [
+    [
+     "views/orders.view.lkml",
+     "views/orders_rollup.view.lkml"
+    ],
+    [
+     "views/orders_rollup.view.lkml",
+     "views/orders_rollup_repeat.view.lkml"
+    ]
+   ],
    "expect": {
     "models": {
      "m": {
@@ -2969,6 +3064,12 @@
    "provisional": null,
    "observations": [],
    "invalid_in_looker": false,
+   "order_variants": [
+    [
+     "views/orders.view.lkml",
+     "views/orders_by_customer.view.lkml"
+    ]
+   ],
    "expect": {
     "models": {
      "m": {
@@ -3009,7 +3110,8 @@
     "openmetadata": {
      "outcome": "fail",
      "reasons": [
-      "m.orders_by_customer.upstream_tables: expected ['raw.customers', 'raw.orders'], got []; reported upstream: []"
+      "as written: m.orders_by_customer.upstream_tables: expected ['raw.customers', 'raw.orders'], got []; reported upstream: []",
+      "views/orders.view.lkml and views/orders_by_customer.view.lkml exchanged: pass"
      ]
     },
     "datahub": {
@@ -3049,6 +3151,16 @@
    "provisional": null,
    "observations": [],
    "invalid_in_looker": false,
+   "order_variants": [
+    [
+     "views/orders.view.lkml",
+     "views/orders_rollup.view.lkml"
+    ],
+    [
+     "views/orders_refinements.view.lkml",
+     "views/orders_rollup.view.lkml"
+    ]
+   ],
    "expect": {
     "models": {
      "m": {
@@ -3092,7 +3204,9 @@
     "openmetadata": {
      "outcome": "fail",
      "reasons": [
-      "m.orders_rollup.upstream_tables: expected ['analytics.orders_clean'], got ['raw.orders']; reported upstream: ['table raw.orders']"
+      "as written: m.orders_rollup.upstream_tables: expected ['analytics.orders_clean'], got ['raw.orders']; reported upstream: ['table raw.orders']",
+      "views/orders.view.lkml and views/orders_rollup.view.lkml exchanged: m.orders_rollup.upstream_tables: expected ['analytics.orders_clean'], got []; reported upstream: []",
+      "views/orders_refinements.view.lkml and views/orders_rollup.view.lkml exchanged: m.orders_rollup.upstream_tables: expected ['analytics.orders_clean'], got ['raw.orders']; reported upstream: ['table raw.orders']"
      ]
     },
     "datahub": {
@@ -3132,6 +3246,16 @@
    "provisional": null,
    "observations": [],
    "invalid_in_looker": false,
+   "order_variants": [
+    [
+     "views/orders.view.lkml",
+     "views/orders_by_country.view.lkml"
+    ],
+    [
+     "views/orders_by_country.view.lkml",
+     "views/users.view.lkml"
+    ]
+   ],
    "expect": {
     "models": {
      "m": {
@@ -3211,6 +3335,7 @@
    "provisional": null,
    "observations": [],
    "invalid_in_looker": false,
+   "order_variants": [],
    "expect": {
     "models": {
      "m": {
@@ -3291,6 +3416,7 @@
    "provisional": null,
    "observations": [],
    "invalid_in_looker": false,
+   "order_variants": [],
    "expect": {
     "models": {
      "m": {
@@ -3366,6 +3492,7 @@
    "provisional": null,
    "observations": [],
    "invalid_in_looker": false,
+   "order_variants": [],
    "expect": {
     "models": {
      "m": {

@@ -304,7 +304,9 @@ def _add_adapter_selection(parser: argparse.ArgumentParser) -> None:
         "--jobs", "-j", type=int, default=os.cpu_count() or 1, help="adapter processes in parallel"
     )
     parser.add_argument(
-        "--no-batch", action="store_true", help="start one adapter process per case (slower, fully isolated)"
+        "--no-batch",
+        action="store_true",
+        help="start one adapter process per project (slower, fully isolated)",
     )
 
 

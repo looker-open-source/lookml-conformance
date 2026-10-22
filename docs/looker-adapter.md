@@ -96,6 +96,10 @@ With `LOOKER_DUMP` set, the adapter writes, per case, to `<dump>/<case id>/`:
 
 These files, not the adapter's parsed values, are the evidence for a case.
 
+A case with `order_variants` runs once per layout of its project
+([file order](case-format.md#file-order)). The layout as written goes to `<dump>/<case id>/`, and
+the n-th exchanged layout to `<dump>/<case id>.exchange-<n>/`.
+
 Imported projects need a second Looker project and are not supported yet; i05, i06 and i07 are
 scored N/A.
 

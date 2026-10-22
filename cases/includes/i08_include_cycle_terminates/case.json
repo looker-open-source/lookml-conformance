@@ -13,6 +13,7 @@
       "quote": "Within a project, refinements are applied in the order in which their files are included."
     }
   ],
+  "order_variants": [["a.view.lkml", "b.view.lkml"]],
   "expect": {
     "models": {
       "m": {

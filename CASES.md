@@ -69,6 +69,8 @@ Rule: When two included files refine the same view, the file included last wins.
 
 > Refinements from files included last will override refinements from files included earlier.<br>[lookml-refinements#order](https://docs.cloud.google.com/looker/docs/lookml-refinements#order)
 
+File order: also run with the contents of these files exchanged: `a.view.lkml` and `b.view.lkml`. The case passes only if it passes in every layout.
+
 Files: [`case.json`](cases/refinements/r04_later_include_wins/case.json) · [`project/`](cases/refinements/r04_later_include_wins/project)
 
 ### `r05_last_refinement_in_file_wins`
@@ -90,6 +92,8 @@ Rule: A refinement applies even when the model includes the refining file before
 > In the file where you write your refinements, you must include the files of the LookML that you're refining.<br>[lookml-refinements#using_refinements_in_your_lookml_project](https://docs.cloud.google.com/looker/docs/lookml-refinements#using_refinements_in_your_lookml_project)
 
 > The Looker IDE will give you warnings if you try to refine an object that is not included.<br>[lookml-refinements#using_refinements_in_your_lookml_project](https://docs.cloud.google.com/looker/docs/lookml-refinements#using_refinements_in_your_lookml_project)
+
+File order: also run with the contents of these files exchanged: `orders.view.lkml` and `r.view.lkml`. The case passes only if it passes in every layout.
 
 Open question: The refining file does not include the base view, which the documentation requires and the IDE warns about. Only the model includes both, refinement first. Does Looker still apply the refinement?
 
@@ -144,6 +148,8 @@ Rule: final: yes on a refinement stops any later refinement of the same view fro
 > The Looker IDE will return a LookML error if there are existing refinements that would be applied after this final refinement<br>[lookml-refinements#final](https://docs.cloud.google.com/looker/docs/lookml-refinements#final)
 
 Why: Looker rejects the project with a LookML error. A tool may report an error for the view, which the judge accepts because the case is invalid in Looker, but must not resolve the view with the later refinement applied.
+
+File order: also run with the contents of these files exchanged: `r_final.view.lkml` and `r_later.view.lkml`. The case passes only if it passes in every layout.
 
 Open question: Looker reports a LookML error for a refinement applied after one with final: yes. Does Looker still resolve the view, and if so to which table? Until that is checked, the case accepts an error for the view or the final refinement's table, and fails a tool that applies the later refinement.
 
@@ -239,6 +245,8 @@ Rule: A file included by an included file is applied at the position of its incl
 
 > LookML refinements leverage the order of includes<br>[param-model-include#wildcard_examples](https://docs.cloud.google.com/looker/docs/reference/param-model-include#wildcard_examples)
 
+File order: also run with the contents of these files exchanged: `ra.view.lkml` and `rb.view.lkml`; `rb.view.lkml` and `rc.view.lkml`. The case passes only if it passes in every layout.
+
 Open question: Where do the declarations of a nested include land in the include order? node-lookml-parser places them after the including file's own declarations (m1 resolves b).
 
 Pinned to: DataHub test fixture metadata-ingestion/tests/integration/looker/lookml/lkml_refinement_samples/sample1
@@ -252,6 +260,8 @@ Files: [`case.json`](cases/includes/i02_nested_include_expands_in_place/case.jso
 Rule: A file is applied once, at the position of its first include.
 
 > Within a project, refinements are applied in the order in which their files are included.<br>[lookml-refinements#order](https://docs.cloud.google.com/looker/docs/lookml-refinements#order)
+
+File order: also run with the contents of these files exchanged: `ra.view.lkml` and `rb.view.lkml`. The case passes only if it passes in every layout.
 
 Open question: Does a second include of the same file move its refinements to the later position?
 
@@ -321,6 +331,8 @@ Rule: Files that include each other are each processed once and resolution termi
 
 > Within a project, refinements are applied in the order in which their files are included.<br>[lookml-refinements#order](https://docs.cloud.google.com/looker/docs/lookml-refinements#order)
 
+File order: also run with the contents of these files exchanged: `a.view.lkml` and `b.view.lkml`. The case passes only if it passes in every layout.
+
 Open question: Looker's resulting order for mutually including files is not documented. The tool must terminate either way.
 
 Pinned to: node-lookml-parser 9.1.0
@@ -350,6 +362,8 @@ Rule: A view that extends another view inherits that view's refinements in the s
 > With LookML refinements, you can adapt an existing view or Explore without editing the LookML file that contains it.<br>[lookml-refinements](https://docs.cloud.google.com/looker/docs/lookml-refinements)
 
 > If there are any conflicts, the extending object will take precedence and override the settings of the object that is being extended.<br>[reusing-code-with-extends](https://docs.cloud.google.com/looker/docs/reusing-code-with-extends)
+
+File order: also run with the contents of these files exchanged: `views/ext.view.lkml` and `views/refine.view.lkml`. The case passes only if it passes in every layout.
 
 Open question: The documentation does not say whether extends copies a view before or after its refinements are applied.
 
@@ -487,6 +501,8 @@ Rule: A ${view.SQL_TABLE_NAME} reference in derived table SQL reads the table of
 
 Why: order_facts.view.lkml comes before orders.view.lkml in path order, so a tool that resolves references while reading files in that order has not seen orders when it reads order_facts. The reference names a view of the model, wherever that view is defined.
 
+File order: also run with the contents of these files exchanged: `views/order_facts.view.lkml` and `views/orders.view.lkml`. The case passes only if it passes in every layout.
+
 Files: [`case.json`](cases/lineage/l01_derived_table_reads_view_table/case.json) · [`project/`](cases/lineage/l01_derived_table_reads_view_table/project)
 
 ### `l02_chained_derived_tables_reach_the_base_table`
@@ -499,6 +515,8 @@ Rule: A derived table that reads another derived table through ${view.SQL_TABLE_
 
 Why: orders_rollup_repeat reads orders_rollup, and orders_rollup reads orders, so raw.orders is the only table upstream of orders_rollup_repeat.
 
+File order: also run with the contents of these files exchanged: `views/orders.view.lkml` and `views/orders_rollup.view.lkml`; `views/orders_rollup.view.lkml` and `views/orders_rollup_repeat.view.lkml`. The case passes only if it passes in every layout.
+
 Files: [`case.json`](cases/lineage/l02_chained_derived_tables_reach_the_base_table/case.json) · [`project/`](cases/lineage/l02_chained_derived_tables_reach_the_base_table/project)
 
 ### `l03_derived_table_reads_a_table_and_a_view`
@@ -508,6 +526,8 @@ Files: [`case.json`](cases/lineage/l02_chained_derived_tables_reach_the_base_tab
 Rule: When derived table SQL reads a table directly and a view through ${view.SQL_TABLE_NAME}, both tables are upstream.
 
 > In addition to referencing normal database tables, you can also reference LookML views or derived tables in sql.<br>[param-view-sql-for-derived-table#definition](https://docs.cloud.google.com/looker/docs/reference/param-view-sql-for-derived-table#definition)
+
+File order: also run with the contents of these files exchanged: `views/orders.view.lkml` and `views/orders_by_customer.view.lkml`. The case passes only if it passes in every layout.
 
 Files: [`case.json`](cases/lineage/l03_derived_table_reads_a_table_and_a_view/case.json) · [`project/`](cases/lineage/l03_derived_table_reads_a_table_and_a_view/project)
 
@@ -523,6 +543,8 @@ Rule: A reference to a refined view reads the table the refinement sets, not the
 
 Why: The refinement replaces sql_table_name on orders, and the reference reads the orders view as the model resolves it.
 
+File order: also run with the contents of these files exchanged: `views/orders.view.lkml` and `views/orders_rollup.view.lkml`; `views/orders_refinements.view.lkml` and `views/orders_rollup.view.lkml`. The case passes only if it passes in every layout.
+
 Files: [`case.json`](cases/lineage/l04_reference_follows_the_refined_table/case.json) · [`project/`](cases/lineage/l04_reference_follows_the_refined_table/project)
 
 ### `l05_native_derived_table_reads_its_explore`
@@ -536,6 +558,8 @@ Rule: A native derived table is a query on the explore named in explore_source, 
 > the column name matches the name of the specified field in the original Explore<br>[creating-ndts](https://docs.cloud.google.com/looker/docs/creating-ndts)
 
 Why: The columns take users.country and orders.count from the orders explore, so the query reads the orders view and the joined users view.
+
+File order: also run with the contents of these files exchanged: `views/orders.view.lkml` and `views/orders_by_country.view.lkml`; `views/orders_by_country.view.lkml` and `views/users.view.lkml`. The case passes only if it passes in every layout.
 
 Files: [`case.json`](cases/lineage/l05_native_derived_table_reads_its_explore/case.json) · [`project/`](cases/lineage/l05_native_derived_table_reads_its_explore/project)
 

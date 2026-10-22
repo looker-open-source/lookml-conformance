@@ -14,6 +14,7 @@
       "quote": "Refinements from files included last will override refinements from files included earlier."
     }
   ],
+  "order_variants": [["a.view.lkml", "b.view.lkml"]],
   "expect": {
     "models": {
       "m": {

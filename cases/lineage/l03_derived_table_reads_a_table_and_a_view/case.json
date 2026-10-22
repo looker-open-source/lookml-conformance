@@ -10,6 +10,7 @@
       "quote": "In addition to referencing normal database tables, you can also reference LookML views or derived tables in sql."
     }
   ],
+  "order_variants": [["views/orders.view.lkml", "views/orders_by_customer.view.lkml"]],
   "expect": {
     "models": {
       "m": {

@@ -15,6 +15,7 @@
   ],
   "rationale": "Looker rejects the project with a LookML error. A tool may report an error for the view, which the judge accepts because the case is invalid in Looker, but must not resolve the view with the later refinement applied.",
   "invalid_in_looker": true,
+  "order_variants": [["r_final.view.lkml", "r_later.view.lkml"]],
   "expect": {
     "models": {
       "m": {

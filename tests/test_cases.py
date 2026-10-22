@@ -7,9 +7,11 @@ from typing import Any
 import pytest
 
 from lookml_conformance.cases import (
+    AS_WRITTEN,
     Basis,
     CaseError,
     Citation,
+    FileOrder,
     Observation,
     Provenance,
     Status,
@@ -319,3 +321,74 @@ def test_load_cases_rejects_duplicate_ids(make_case: MakeCase, tmp_path: Path) -
 
     with pytest.raises(SuiteError, match="duplicate case ids: r01_a"):
         load_cases(tmp_path / "cases")
+
+
+def test_loads_order_variants(make_case: MakeCase) -> None:
+    files = {
+        "m.model.lkml": 'connection: "wh"\ninclude: "/*.view"\n',
+        "orders.view.lkml": "view: orders {}\n",
+        "a.view.lkml": "view: +orders {}\n",
+        "b.view.lkml": "view: +orders {}\n",
+    }
+    case = load_case(
+        make_case(
+            files=files,
+            order_variants=[["a.view.lkml", "b.view.lkml"], ["orders.view.lkml", "a.view.lkml"]],
+        )
+    )
+
+    assert case.file_orders == (
+        AS_WRITTEN,
+        FileOrder(("a.view.lkml", "b.view.lkml")),
+        FileOrder(("orders.view.lkml", "a.view.lkml")),
+    )
+    assert [order.label for order in case.file_orders] == [
+        "as written",
+        "a.view.lkml and b.view.lkml exchanged",
+        "orders.view.lkml and a.view.lkml exchanged",
+    ]
+
+
+def test_a_case_without_variants_runs_as_written(make_case: MakeCase) -> None:
+    assert load_case(make_case()).file_orders == (AS_WRITTEN,)
+
+
+ORDER_FILES = {
+    "m.model.lkml": 'connection: "wh"\ninclude: "/orders.view"\nexplore: orders {}\n',
+    "n.model.lkml": 'connection: "wh"\n',
+    "manifest.lkml": "",
+    "orders.view.lkml": "view: orders {}\n",
+    "a.view.lkml": "view: +orders {}\n",
+    "r.layer.lkml": "view: +orders {}\n",
+    "views/b.view.lkml": "view: +orders {}\n",
+    "imported_projects/shared/c.view.lkml": "view: c {}\n",
+    "imported_projects/shared/d.view.lkml": "view: d {}\n",
+}
+
+
+@pytest.mark.parametrize(
+    ("variants", "expected"),
+    [
+        ([], "'order_variants' must be a non-empty list"),
+        ("a.view.lkml", "'order_variants' must be a non-empty list"),
+        ([["a.view.lkml"]], "order_variants[0] must be a pair"),
+        ([["a.view.lkml", "missing.view.lkml"]], "'missing.view.lkml' is not a file of project/"),
+        ([["a.view.lkml", "/orders.view.lkml"]], "must be a path relative to project/"),
+        ([["a.view.lkml", "../orders.view.lkml"]], "must be a path relative to project/"),
+        ([["a.view.lkml", "a.view.lkml"]], "must name two different files"),
+        ([["a.view.lkml", "views/b.view.lkml"]], "must be in the same directory"),
+        ([["orders.view.lkml", "r.layer.lkml"]], "must have the same suffix"),
+        ([["m.model.lkml", "n.model.lkml"]], "is a model or manifest file"),
+        ([["manifest.lkml", "a.view.lkml"]], "is a model or manifest file"),
+        (
+            [["imported_projects/shared/c.view.lkml", "imported_projects/shared/d.view.lkml"]],
+            "is in an imported project",
+        ),
+        (
+            [["a.view.lkml", "orders.view.lkml"], ["orders.view.lkml", "a.view.lkml"]],
+            "repeats an earlier pair",
+        ),
+    ],
+)
+def test_rejects_invalid_order_variants(make_case: MakeCase, variants: Any, expected: str) -> None:
+    assert expected in problems_of(make_case(files=ORDER_FILES, order_variants=variants))

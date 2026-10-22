@@ -15,6 +15,10 @@
     }
   ],
   "rationale": "The columns take users.country and orders.count from the orders explore, so the query reads the orders view and the joined users view.",
+  "order_variants": [
+    ["views/orders.view.lkml", "views/orders_by_country.view.lkml"],
+    ["views/orders_by_country.view.lkml", "views/users.view.lkml"]
+  ],
   "expect": {
     "models": {
       "m": {

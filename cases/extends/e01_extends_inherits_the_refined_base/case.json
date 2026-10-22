@@ -17,6 +17,7 @@
       "quote": "If there are any conflicts, the extending object will take precedence and override the settings of the object that is being extended."
     }
   ],
+  "order_variants": [["views/ext.view.lkml", "views/refine.view.lkml"]],
   "expect": {
     "models": {
       "main": {

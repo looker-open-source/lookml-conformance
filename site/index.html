@@ -90,7 +90,7 @@
         <span>select a row for that tool's differences, a column for the case</span>
       </p>
       <p class="note"><i>A snapshot of released versions, not a ranking.</i> Every difference comes with a minimal project that reproduces it, ready to use as a test for a fix.</p>
-      <p class="note">Each tool runs as a user runs it, on macOS. DataHub: the whole <code>LookMLSource</code> ingestion, which emits one entity per view; the first model in path order that includes a view decides it, and the entity is scored under every model. Its <code>process_refinements</code> option is turned on (the default is off) and <code>emit_reachable_views_only</code> off (the default is on). OpenMetadata and Dagster read files in the order the file system lists them, so a few cases can resolve differently on Linux. <a href="https://github.com/josephaxisa/lookml-conformance#results">Details</a></p>
+      <p class="note">Each tool runs as a user runs it, on macOS. DataHub: the whole <code>LookMLSource</code> ingestion, which emits one entity per view; the first model in path order that includes a view decides it, and the entity is scored under every model. Its <code>process_refinements</code> option is turned on (the default is off) and <code>emit_reachable_views_only</code> off (the default is on). OpenMetadata and Dagster read files in the order the file system lists them. A case whose answer depends on the order of two files also runs with their contents exchanged and passes only if it passes both ways; i01 and i07, whose answers follow the paths themselves, can still resolve differently on Linux. <a href="https://github.com/josephaxisa/lookml-conformance#results">Details</a></p>
     </section>
 
     <section class="section" id="case-study">

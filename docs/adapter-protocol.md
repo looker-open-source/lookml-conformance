@@ -23,9 +23,14 @@ given on the command line, and lines may come in any order.
 
 If a run ends without a line for some project (the tool crashed part-way, or timed out), the runner
 runs those projects again one at a time. An adapter that only handles one project per run, and does
-not print `project`, therefore still works: the runner falls back to one process per case. The
+not print `project`, therefore still works: the runner falls back to one process per project. The
 timeout is 300 seconds per project. `lookml-conformance run --no-batch`, or `"batch": false` in
-`adapters.json`, starts one process per case.
+`adapters.json`, starts one process per project.
+
+A case whose answer depends on the order of two files is resolved in more than one layout
+([file order](case-format.md#file-order)). For such a case the runner passes a temporary copy of
+the project for each layout, named `<case id>/project` and `<case id>.exchange-<n>/project`, instead
+of the case's own `project/`. Read the files the way the tool does; do not sort or reorder them.
 
 ## Output
 

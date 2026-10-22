@@ -102,6 +102,10 @@ cannot explain.
 The adapter declares what the API cannot show, so those cases are N/A rather than failures: r11
 (`derived_table.datagroup_trigger`) and the imported-project cases (i05, i06, i07).
 
+Cases with `order_variants` run once per layout. Read the dump of the layout as written,
+`$LOOKER_DUMP/<case id>/`; the exchanged layouts, `$LOOKER_DUMP/<case id>.exchange-<n>/`, must give
+the same answer, and a difference means the setup or Looker depends on file names.
+
 | Case | Read | Expectation holds if | Otherwise |
 | --- | --- | --- | --- |
 | r06 | `sql__m__orders__orders.sql`; warnings in `validation.json` | `FROM refined AS orders` | `raw.orders`: the refinement does not apply when included before its base. Expect `raw.orders`. |

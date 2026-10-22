@@ -84,6 +84,13 @@ def _case(case: Case, cases_path: str) -> list[str]:
     ]
     if case.rationale:
         lines += [f"Why: {case.rationale}", ""]
+    if exchanged := [order.exchange for order in case.order_variants if order.exchange is not None]:
+        pairs = "; ".join(f"`{first}` and `{second}`" for first, second in exchanged)
+        lines += [
+            f"File order: also run with the contents of these files exchanged: {pairs}. "
+            "The case passes only if it passes in every layout.",
+            "",
+        ]
     if case.provisional:
         lines += [
             f"Open question: {case.provisional.question}",

@@ -15,9 +15,11 @@ from typing import Any
 
 import pytest
 
-from lookml_conformance.runner import AdapterSpec, load_registry
+from lookml_conformance.cases import load_cases
+from lookml_conformance.judge import Outcome
+from lookml_conformance.runner import AdapterSpec, load_registry, run_suite
 from tests.adapters.test_published_scorecard import installed
-from tests.conftest import REPO_ROOT
+from tests.conftest import CASES_ROOT, REPO_ROOT
 
 REGISTRY = {adapter.name: adapter for adapter in load_registry(REPO_ROOT / "adapters.json")}
 
@@ -179,3 +181,38 @@ def test_node_lookml_parser_finds_files_with_its_own_glob(tmp_path: Path) -> Non
     orders = output["models"]["m"]["views"]["orders"]
     assert orders["sql_table_name"] == "from_s"
     assert orders["fields"] == ["id", "status"]
+
+
+@pytest.mark.integration
+def test_a_pass_that_came_from_the_file_listing_now_fails() -> None:
+    # dagster-looker has no notion of final: yes and applies refinements in rglob order. Before r10
+    # ran with r_final.view.lkml and r_later.view.lkml exchanged, it passed on APFS, which lists
+    # r_final.view.lkml last. Now it resolves the final refinement in one layout and the later one in
+    # the other, on any file system, and the case fails.
+    adapter = REGISTRY["dagster"]
+    if not installed(adapter):
+        pytest.skip("dagster is not installed; run: lookml-conformance setup dagster")
+    [case] = load_cases(CASES_ROOT, only="r10_")
+
+    verdict = run_suite([case], [adapter]).results[0].verdicts["dagster"]
+
+    assert verdict.outcome is Outcome.FAIL
+    assert sorted(reason.partition(": ")[2] for reason in verdict.reasons) == [
+        "m.orders.sql_table_name: expected 'a.final', got 'b.later'",
+        "pass",
+    ]
+
+
+@pytest.mark.integration
+@pytest.mark.parametrize("case_id", ["r04_", "i03_"])
+def test_a_tool_that_follows_include_order_passes_every_layout(case_id: str) -> None:
+    adapter = REGISTRY["node-lookml-parser"]
+    if not installed(adapter) or shutil.which("node") is None:
+        pytest.skip("node-lookml-parser is not installed or node is not on PATH")
+    [case] = load_cases(CASES_ROOT, only=case_id)
+    assert len(case.file_orders) == 2
+
+    verdict = run_suite([case], [adapter]).results[0].verdicts["node-lookml-parser"]
+
+    assert verdict.outcome is Outcome.PASS
+    assert verdict.reasons == ()

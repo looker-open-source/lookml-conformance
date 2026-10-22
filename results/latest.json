@@ -133,7 +133,8 @@
         "dagster": {
           "outcome": "fail",
           "reasons": [
-            "m.orders.sql_table_name: expected 'from_a', got 'from_b'"
+            "as written: m.orders.sql_table_name: expected 'from_a', got 'from_b'",
+            "a.view.lkml and b.view.lkml exchanged: pass"
           ]
         }
       }
@@ -300,8 +301,11 @@
           ]
         },
         "dagster": {
-          "outcome": "pass",
-          "reasons": []
+          "outcome": "fail",
+          "reasons": [
+            "as written: pass",
+            "r_final.view.lkml and r_later.view.lkml exchanged: m.orders.sql_table_name: expected 'a.final', got 'b.later'"
+          ]
         }
       }
     },
@@ -474,8 +478,10 @@
         "dagster": {
           "outcome": "fail",
           "reasons": [
-            "m1.orders.sql_table_name: expected 'a', got 'b'",
-            "m2.orders.sql_table_name: expected 'c', got 'b'"
+            "as written: m1.orders.sql_table_name: expected 'a', got 'b'",
+            "as written: m2.orders.sql_table_name: expected 'c', got 'b'",
+            "ra.view.lkml and rb.view.lkml exchanged: m2.orders.sql_table_name: expected 'c', got 'a'",
+            "rb.view.lkml and rc.view.lkml exchanged: m1.orders.sql_table_name: expected 'a', got 'c'"
           ]
         }
       }
@@ -504,7 +510,8 @@
         "dagster": {
           "outcome": "fail",
           "reasons": [
-            "m.orders.sql_table_name: expected 'a', got 'b'"
+            "as written: m.orders.sql_table_name: expected 'a', got 'b'",
+            "ra.view.lkml and rb.view.lkml exchanged: pass"
           ]
         }
       }
@@ -941,7 +948,8 @@
         "openmetadata": {
           "outcome": "fail",
           "reasons": [
-            "m.order_facts.upstream_tables: expected ['raw.orders'], got []; reported upstream: []"
+            "as written: m.order_facts.upstream_tables: expected ['raw.orders'], got []; reported upstream: []",
+            "views/order_facts.view.lkml and views/orders.view.lkml exchanged: pass"
           ]
         },
         "datahub": {
@@ -995,7 +1003,8 @@
         "openmetadata": {
           "outcome": "fail",
           "reasons": [
-            "m.orders_by_customer.upstream_tables: expected ['raw.customers', 'raw.orders'], got []; reported upstream: []"
+            "as written: m.orders_by_customer.upstream_tables: expected ['raw.customers', 'raw.orders'], got []; reported upstream: []",
+            "views/orders.view.lkml and views/orders_by_customer.view.lkml exchanged: pass"
           ]
         },
         "datahub": {
@@ -1024,7 +1033,9 @@
         "openmetadata": {
           "outcome": "fail",
           "reasons": [
-            "m.orders_rollup.upstream_tables: expected ['analytics.orders_clean'], got ['raw.orders']; reported upstream: ['table raw.orders']"
+            "as written: m.orders_rollup.upstream_tables: expected ['analytics.orders_clean'], got ['raw.orders']; reported upstream: ['table raw.orders']",
+            "views/orders.view.lkml and views/orders_rollup.view.lkml exchanged: m.orders_rollup.upstream_tables: expected ['analytics.orders_clean'], got []; reported upstream: []",
+            "views/orders_refinements.view.lkml and views/orders_rollup.view.lkml exchanged: m.orders_rollup.upstream_tables: expected ['analytics.orders_clean'], got ['raw.orders']; reported upstream: ['table raw.orders']"
           ]
         },
         "datahub": {

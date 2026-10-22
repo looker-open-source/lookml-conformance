@@ -36,7 +36,19 @@ def test_render_catalog_shows_basis_and_observations(make_case: MakeCase, tmp_pa
 
 
 def test_render_catalog(make_case: MakeCase) -> None:
-    confirmed = load_case(make_case(id="r01_a", rationale="Because."))
+    files = {
+        "m.model.lkml": 'connection: "wh"\ninclude: "/*.view"\n',
+        "orders.view.lkml": "view: orders {}\n",
+        "a.view.lkml": "view: +orders {}\n",
+    }
+    confirmed = load_case(
+        make_case(
+            id="r01_a",
+            rationale="Because.",
+            files=files,
+            order_variants=[["a.view.lkml", "orders.view.lkml"]],
+        )
+    )
     provisional = load_case(
         make_case(
             category="includes",
@@ -60,6 +72,10 @@ def test_render_catalog(make_case: MakeCase) -> None:
         "[lookml-refinements#refinements_override_parameters]"
     ) in catalog
     assert "Why: Because." in catalog
+    assert (
+        "File order: also run with the contents of these files exchanged: `a.view.lkml` and "
+        "`orders.view.lkml`. The case passes only if it passes in every layout."
+    ) in catalog
     assert "Open question: Which order?\n\nPinned to: tool 1.0" in catalog
     assert "Looker rejects this project." in catalog
     assert "[`project/`](cases/includes/i01_b/project)" in catalog

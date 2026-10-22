@@ -200,6 +200,9 @@ function renderDetail(data, tools, c) {
     h("p", { class: "detail__rule" }, h("b", {}, "Rule. "), c.rule),
     c.citations.map((cit) => h("blockquote", { class: "quote" }, `“${cit.quote}”`, h("a", { href: cit.url }, cit.label))),
     c.status === "provisional" && c.provisional?.question ? h("p", { class: "question" }, h("b", {}, "Open question. "), c.provisional.question) : null,
+    c.order_variants?.length
+      ? h("p", { class: "question" }, h("b", {}, "File order. "), `Also run with the contents of ${c.order_variants.map(([a, b]) => `${a} and ${b}`).join("; ")} exchanged. It passes only if it passes in every layout.`)
+      : null,
     h(
       "div",
       { class: "files" },

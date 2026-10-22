@@ -18,13 +18,14 @@ import re
 from collections.abc import Iterable, Mapping
 from dataclasses import dataclass, field
 from enum import Enum
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import Any
 
 CASE_FILE = "case.json"
 PROJECT_DIR = "project"
 IMPORTED_PROJECTS_DIR = "imported_projects"
 MODEL_SUFFIX = ".model.lkml"
+MANIFEST_FILE = "manifest.lkml"
 
 CATEGORIES = (
     "refinements",
@@ -57,6 +58,7 @@ _TOP_KEYS = frozenset(
         "provisional",
         "observations",
         "invalid_in_looker",
+        "order_variants",
         "expect",
     }
 )
@@ -134,6 +136,30 @@ class Observation:
 
 
 @dataclass(frozen=True)
+class FileOrder:
+    """One layout of a case's project: as written, or with the contents of two files exchanged.
+
+    ``exchange`` holds two paths relative to ``project/``, in the same directory and with the same
+    suffix. In the exchanged layout each file holds the other's content, and include statements are
+    rewritten so that they reach the same declarations (see ``file_order.py``). The set of paths does
+    not change, so a tool that reads files in the order the file system lists them reads the two
+    contents in the opposite order, while include order stays the same.
+    """
+
+    exchange: tuple[str, str] | None = None
+
+    @property
+    def label(self) -> str:
+        if self.exchange is None:
+            return "as written"
+        first, second = self.exchange
+        return f"{first} and {second} exchanged"
+
+
+AS_WRITTEN = FileOrder()
+
+
+@dataclass(frozen=True)
 class ModelExpectation:
     """Assertions about one model. Only the keys present in each entry are checked."""
 
@@ -157,10 +183,16 @@ class Case:
     provisional: Provenance | None = None
     basis: tuple[Basis, ...] = ()
     observations: tuple[Observation, ...] = ()
+    order_variants: tuple[FileOrder, ...] = ()
 
     @property
     def project(self) -> Path:
         return self.directory / PROJECT_DIR
+
+    @property
+    def file_orders(self) -> tuple[FileOrder, ...]:
+        """The layouts the case runs in: as written, then each of ``order_variants``."""
+        return (AS_WRITTEN, *self.order_variants)
 
     @property
     def requires(self) -> frozenset[str]:
@@ -181,7 +213,7 @@ class Case:
             needed.add("derived_table_params")
         if (self.project / IMPORTED_PROJECTS_DIR).is_dir():
             needed.add("imported_projects")
-        manifest = self.project / "manifest.lkml"
+        manifest = self.project / MANIFEST_FILE
         if manifest.is_file() and _CONSTANT_DECLARATION.search(manifest.read_text(encoding="utf-8")):
             needed.add("constants")
         return frozenset(needed)
@@ -220,6 +252,7 @@ def load_case(directory: Path) -> Case:
     observations = check.observations(data, status, basis, directory.parent.parent.parent)
     models, absent_views = check.expectations(data.get("expect"))
     check.project(directory / PROJECT_DIR, models)
+    order_variants = check.order_variants(data, directory / PROJECT_DIR)
 
     case = Case(
         id=case_id or directory.name,
@@ -236,6 +269,7 @@ def load_case(directory: Path) -> Case:
         provisional=provisional,
         basis=basis,
         observations=observations,
+        order_variants=order_variants,
     )
     if check.problems:
         raise CaseError(path, check.problems)
@@ -505,6 +539,36 @@ class _Checker:
                 continue
             self.no_unknown_keys(join, JOIN_KEYS, f"{where}.joins.{join_name}")
 
+    def order_variants(self, data: Mapping[str, Any], project: Path) -> tuple[FileOrder, ...]:
+        raw = data.get("order_variants")
+        if raw is None:
+            return ()
+        if not isinstance(raw, list) or not raw:
+            self.problem("'order_variants' must be a non-empty list of pairs of file paths")
+            return ()
+        variants: list[FileOrder] = []
+        for index, pair in enumerate(raw):
+            where = f"order_variants[{index}]"
+            if not (_is_list_of(pair, str) and len(pair) == 2):
+                self.problem(f"{where} must be a pair of file paths relative to project/")
+                continue
+            if problems := [problem for path in pair for problem in _exchangeable(project, path)]:
+                self.problem(f"{where}: " + "; ".join(problems))
+                continue
+            first, second = (PurePosixPath(path) for path in pair)
+            variant = FileOrder((pair[0], pair[1]))
+            if first == second:
+                self.problem(f"{where} must name two different files")
+            elif first.parent != second.parent:
+                self.problem(f"{where}: the two files must be in the same directory")
+            elif _suffix(first) != _suffix(second):
+                self.problem(f"{where}: the two files must have the same suffix, such as .view.lkml")
+            elif {frozenset(pair)} & {frozenset(seen.exchange or ()) for seen in variants}:
+                self.problem(f"{where} repeats an earlier pair")
+            else:
+                variants.append(variant)
+        return tuple(variants)
+
     def project(self, project: Path, models: Mapping[str, ModelExpectation]) -> None:
         if not project.is_dir():
             self.problem(f"missing LookML project directory {project.name}/")
@@ -516,6 +580,25 @@ class _Checker:
         }
         if missing := sorted(set(models) - model_files):
             self.problem(f"expected models without a .model.lkml file in project/: {missing}")
+
+
+def _exchangeable(project: Path, path: str) -> list[str]:
+    """Why ``path`` cannot be one of a pair of files whose contents exchange, if it cannot."""
+    relative = PurePosixPath(path)
+    if relative.is_absolute() or ".." in relative.parts or not path or "\\" in path:
+        return [f"{path!r} must be a path relative to project/"]
+    if not (project / relative).is_file():
+        return [f"{path!r} is not a file of project/"]
+    if relative.parts[0] == IMPORTED_PROJECTS_DIR:
+        return [f"{path!r} is in an imported project"]
+    if relative.name.endswith(MODEL_SUFFIX) or relative.name == MANIFEST_FILE:
+        return [f"{path!r} is a model or manifest file, whose name the project depends on"]
+    return []
+
+
+def _suffix(path: PurePosixPath) -> str:
+    """Everything after the first dot of the file name: ``view.lkml`` for ``orders.view.lkml``."""
+    return path.name.partition(".")[2]
 
 
 def _is_text(value: Any) -> bool:

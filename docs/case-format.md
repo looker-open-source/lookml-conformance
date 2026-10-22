@@ -27,6 +27,7 @@ a snake_case summary, and match the directory name.
 | `provisional` | provisional only | `{"question", "pinned_to"}`: what the documentation leaves open, and the public source the expectation follows. |
 | `observations` | with basis `observation` | One or more `{"looker_version", "date", "finding", "evidence"}`, described below. |
 | `invalid_in_looker` | no | `true` when Looker rejects the project (for example a refinement after `final: yes`). Tools may report an error but must not produce the forbidden result: the judge accepts a view reported as an error, and still fails a view resolved to anything but the expectation. |
+| `order_variants` | no | Pairs of files whose order decides the result of a tool that reads files in the order the file system lists them. The case also runs with the contents of each pair exchanged; see [File order](#file-order). |
 | `expect` | yes | `{"models": {...}, "absent_views": [...]}`, described below. |
 
 ### Status and basis
@@ -123,6 +124,57 @@ Expectations are per model. A model name is the file name of a `<name>.model.lkm
 | explore `view_name`, `from`, `label` | Text. |
 | explore `joins` | Per join, per listed parameter (`from`, `view_label`, `sql_on`, `relationship`, `type`), as text. |
 | `absent_views` | Names that no model may expose as a view, such as a refinement mistaken for a view (`+orders`). |
+
+## File order
+
+Some tools read a project's files in the order the file system lists them, instead of following
+include statements. That order depends on the file system: APFS (macOS) lists a directory in an
+order fixed by the file names, and ext4 (Linux) in an order that also depends on a hash seed chosen
+when the file system was created. On such a tool, a case whose answer depends on the order of two
+files passes or fails by the luck of the listing. `order_variants` removes that luck:
+
+```json
+"order_variants": [["r_final.view.lkml", "r_later.view.lkml"]]
+```
+
+Each entry is a pair of paths relative to `project/`, in the same directory and with the same
+suffix (such as `.view.lkml`). Model files, `manifest.lkml` and files of imported projects cannot be
+exchanged. For each pair the runner writes a second layout of the project in which the two files
+exchange contents, and rewrites every include statement that names either file to name the other.
+Every include then reaches the same declarations as before, in the same include order. Includes with
+a wildcard are kept: they match the same paths, so a wildcard that matches both files now reaches
+their contents in the opposite order. Pair files that a wildcard includes only when the expectation
+does not depend on the order the wildcard puts them in.
+
+The runner writes every layout, including the one as written, into a fresh temporary directory, file
+by file in path order, and runs the adapter on each. A file system that lists a directory by the
+names of its files or by the order they were created lists the same paths in the same order in both
+layouts, so a tool that reads files in that order reads the exchanged contents in one order in one
+layout and in the opposite order in the other. A tool that follows include order sees the same
+project twice. The case passes only if it passes in every layout. When the layouts disagree, each
+reason starts with its layout (`as written`, or `<file> and <file> exchanged`), and a layout that
+passed is listed as `pass`.
+
+Add a pair when the case's answer depends on the order of the two files, or when a tool that
+ignores the rule under test could pass because of the order in which the file system lists them:
+
+- two files whose declarations compete for the same value, such as two refinements of one view
+  (r04, r10, i02, i03);
+- a declaration and what it refers to, when the case checks that the reference is resolved
+  wherever the target is read: a refinement and its base view (r06, i08), a view that extends a
+  refined view and the refinement (e01), a derived table and the view or explore it reads (l01 to
+  l05).
+
+Two kinds of order-dependent case have no pair:
+
+- The order is inside one file (r05: two refinements in one file; e03: the order of an `extends`
+  list). The file's content fixes the order, and no file system changes it.
+- The expectation follows the paths themselves: i01 (files matched by one wildcard apply in path
+  order) and i07 (which of two views named `orders` belongs to the imported project). Exchanging
+  contents moves the expected answer with them, and a tool that reads files in listing order gives
+  the same verdict in both layouts. On a file system that lists `r/a_r.view.lkml` before
+  `r/b_r.view.lkml`, a tool that reads files in listing order cannot be told apart from one that
+  sorts paths, so these two results can still differ between machines.
 
 ## `project/`
 

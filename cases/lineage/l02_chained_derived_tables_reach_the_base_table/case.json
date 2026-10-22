@@ -11,6 +11,10 @@
     }
   ],
   "rationale": "orders_rollup_repeat reads orders_rollup, and orders_rollup reads orders, so raw.orders is the only table upstream of orders_rollup_repeat.",
+  "order_variants": [
+    ["views/orders.view.lkml", "views/orders_rollup.view.lkml"],
+    ["views/orders_rollup.view.lkml", "views/orders_rollup_repeat.view.lkml"]
+  ],
   "expect": {
     "models": {
       "m": {

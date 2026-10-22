@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
-from collections.abc import Iterator, Mapping
+from collections.abc import Iterator, Mapping, Sequence
 from dataclasses import dataclass
 from enum import Enum
 from typing import Any
 
-from lookml_conformance.cases import Case, ModelExpectation
+from lookml_conformance.cases import Case, FileOrder, ModelExpectation
 from lookml_conformance.normalize import collapse_whitespace
 from lookml_conformance.protocol import AdapterOutput, ExploreOutput, ModelOutput, Upstream, ViewOutput
 
@@ -60,6 +60,31 @@ def judge(case: Case, output: AdapterOutput) -> Verdict:
                 Outcome.PASS, tuple(f"accepted for a project Looker rejects: {r}" for r in accepted)
             )
     return Verdict(Outcome.FAIL, tuple(reasons)) if reasons else Verdict(Outcome.PASS)
+
+
+def judge_file_orders(case: Case, outputs: Sequence[tuple[FileOrder, AdapterOutput]]) -> Verdict:
+    """Judge a case run in several layouts of its project (``order_variants``).
+
+    The case passes only if it passes in every layout. When the layouts disagree, each reason starts
+    with the layout it comes from, and a layout that passed is listed as such, so the verdict shows
+    which file order the result depends on. When they agree, the reasons are those of one run.
+    """
+    verdicts = [(order, judge(case, output)) for order, output in outputs]
+    if len(verdicts) == 1 or all(verdict == verdicts[0][1] for _, verdict in verdicts):
+        return verdicts[0][1]
+    for _, verdict in verdicts:
+        if not verdict.outcome.applicable:
+            return verdict
+    outcomes = {verdict.outcome for _, verdict in verdicts}
+    outcome = next(
+        (candidate for candidate in (Outcome.FAIL, Outcome.ERROR) if candidate in outcomes), Outcome.PASS
+    )
+    reasons: list[str] = []
+    for order, verdict in verdicts:
+        if verdict.outcome is Outcome.PASS and not verdict.reasons:
+            reasons.append(f"{order.label}: pass")
+        reasons += [f"{order.label}: {reason}" for reason in verdict.reasons]
+    return Verdict(outcome, tuple(reasons))
 
 
 def _view_errors(case: Case, output: AdapterOutput) -> Iterator[str]:

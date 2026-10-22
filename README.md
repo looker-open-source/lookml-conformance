@@ -22,7 +22,7 @@ Released versions, scored on 2026-10-20 on macOS (APFS) ([full scorecard](result
 | Tool | Version | Confirmed | Provisional | All |
 | --- | --- | ---: | ---: | ---: |
 | [node-lookml-parser](https://github.com/fabio-looker/node-lookml-parser) | `lookml-parser` 9.1.0 | 21 / 27 | 6 / 8 | **27 / 35** |
-| [Dagster](https://github.com/dagster-io/dagster) | `dagster-looker` 0.29.25 | 16 / 32 | 6 / 8 | **22 / 40** |
+| [Dagster](https://github.com/dagster-io/dagster) | `dagster-looker` 0.29.25 | 16 / 32 | 5 / 8 | **21 / 40** |
 | [DataHub](https://github.com/datahub-project/datahub) | `acryl-datahub[lookml]` 1.7.0.14 | 14 / 27 | 1 / 8 | **15 / 35** |
 | [OpenMetadata](https://github.com/open-metadata/OpenMetadata) | `openmetadata-ingestion[looker]` 2.0.5.0 | 7 / 27 | 0 / 8 | **7 / 35** |
 
@@ -50,14 +50,17 @@ Each adapter runs its tool the way a user runs it and reports what that run prod
   resolver runs, and `emit_reachable_views_only` is off (the default is on), so that views no
   explore reaches, such as those of the lineage cases, are emitted.
 - OpenMetadata reads view files in the order `os.walk` lists them and Dagster in the order
-  `Path.rglob` lists them; the adapters use the tools' own listing. That order depends on the file
-  system. On APFS it is fixed by the file names, so the results above reproduce on a Mac. On ext4
-  (Linux) it also depends on a hash seed chosen when the file system was created, so the cases in
-  which several files refine the same view (Dagster: i01, i02, i03, r03, r04, r10) or define a
-  view of the same name (OpenMetadata: i07), and the lineage cases in which a derived table reads
-  another view (OpenMetadata: l01 to l04), can resolve differently on another machine. Dagster's
-  pass on r10 comes from this order: it has no notion of `final: yes`, and APFS lists
-  `r_final.view.lkml` after `r_later.view.lkml`.
+  `Path.rglob` lists them; the adapters keep the tools' own listing. That order depends on the file
+  system: APFS (macOS) lists a directory in an order fixed by the file names, and ext4 (Linux) in
+  an order that also depends on a hash seed chosen when the file system was created. The 12 cases
+  whose answer depends on the order of two files also run with the contents of those files
+  exchanged, and pass only if they pass in both layouts ([file order](docs/case-format.md#file-order)).
+  A tool that reads files in listing order instead of include order fails them on any file
+  system. Dagster passes r10 as written only because APFS lists `r_final.view.lkml` after
+  `r_later.view.lkml` (it has no notion of `final: yes`), and fails it with the two files
+  exchanged. Two cases cannot be made independent of the listing, because their expectation
+  follows the paths themselves: i01 (Dagster) and i07 (Dagster and OpenMetadata) can still resolve
+  differently on another machine.
 - node-lookml-parser finds the files with its own glob (`**/*.lkml`, without LookML dashboards) and
   sorts their paths, so its results do not depend on the file system.
 
@@ -103,6 +106,11 @@ a Looker instance, which the [Looker adapter](docs/looker-adapter.md) does throu
 `lookml-conformance check-citations` fetches every cited page and fails if a
 quote is no longer on it.
 
+A case whose answer depends on the order of two files lists them in `order_variants`. The runner
+resolves the project as written and with the contents of the two files exchanged, include
+statements rewritten to match, so a pass means the tool follows include order rather than the order
+in which the file system happened to list the files ([file order](docs/case-format.md#file-order)).
+
 ## Usage
 
 Requires Python 3.10 or later. The runner has no dependencies.
@@ -124,7 +132,7 @@ lookml-conformance run --adapter datahub --only r0     # one tool, cases whose i
 ```
 
 Each adapter process resolves a batch of cases, so a tool's start-up cost is paid once per batch.
-`--no-batch` starts one process per case instead.
+`--no-batch` starts one process per project instead.
 
 Score a branch or a local build. Install the branch and this package into one environment, then
 pass the adapter command:
@@ -181,6 +189,11 @@ def test_lookml_conformance(case_file, request):
 A change that breaks a passing case fails the run. A fix that makes a known failure pass also fails
 it, until the case is removed from the list. To update, copy the cases again from a newer release.
 
+`order_variants` in `case.json` lists pairs of files: the case passes only if it also passes with
+the contents of each pair exchanged and the include statements that name them rewritten
+([file order](docs/case-format.md#file-order)). To check those layouts too, write them with
+`lookml_conformance.file_order.layout`, or exchange the files by hand.
+
 ## Adapters
 
 An adapter runs one tool on LookML projects and prints one JSON line per project. It reports what
@@ -212,7 +225,7 @@ also available as a [JSON Schema](docs/adapter-output.schema.json).
 
 ```text
 cases/<category>/<id>/       case.json and project/ (a minimal LookML project)
-src/lookml_conformance/      loader, judge, runner, scorecards, CLI, Adapter base class
+src/lookml_conformance/      loader, judge, runner, file order layouts, scorecards, CLI, Adapter base class
 src/lookml_conformance/adapters/   one adapter per tool, plus kit.py with helpers for writing them
 adapters.json                tools in the published scorecard: command and pinned version
 results/latest.{json,md}     published scorecard
