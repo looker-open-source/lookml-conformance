@@ -1,0 +1,28 @@
+[
+ {
+  "repo": "antfido_thc_looker",
+  "models": 1,
+  "checked": 4,
+  "table_match_new": 4,
+  "table_match_old": 4,
+  "fields_match_new": 4,
+  "fields_match_old": 1,
+  "phantom_views_old": [
+   "+avg_products_per_order_2023",
+   "+order_segmentation",
+   "+orders_2023",
+   "+orders_2023M",
+   "+orders_segmented",
+   "+orders_stg",
+   "+products_per_order_2Y",
+   "+sales_forecast",
+   "+sales_stg"
+  ],
+  "phantom_views_new": [],
+  "parse_s_old": 0.03,
+  "parse_s_new": 0.04,
+  "mismatches_new": [],
+  "regressions": [],
+  "model_resolve_s_max": 0.001
+ }
+]

@@ -1,0 +1,12 @@
+looker-open-source_block-bigquery-optimization/ 38d1a27
+looker-open-source_block-cortex-oracle-ebs/ 6adca9d
+looker-open-source_block-cortex-salesforce/ 526fad7
+looker-open-source_block-cortex-sap/ 8952aea
+looker-open-source_block-cortex-sfmc/ 96b47b1
+looker-open-source_block-ga360/ 26c4de8
+looker-open-source_block-gcp-billing/ 2009df6
+looker-open-source_block-google-ads/ 20febdc
+looker-open-source_block-redshift-admin/ f052c69
+looker-open-source_block-snowflake-usage/ 350adc7
+looker-open-source_block-zendesk/ beed9ad
+looker-open-source_healthcare_demo/ eeb03ac

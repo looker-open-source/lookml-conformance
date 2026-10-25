@@ -1,0 +1,45 @@
+[
+ {
+  "repo": "Pieter-devries_youtube_analytics",
+  "models": 7,
+  "checked": 36,
+  "table_match_new": 36,
+  "table_match_old": 35,
+  "fields_match_new": 35,
+  "fields_match_old": 35,
+  "phantom_views_old": [
+   "+before_refinements"
+  ],
+  "phantom_views_new": [],
+  "parse_s_old": 0.38,
+  "parse_s_new": 0.41,
+  "mismatches_new": [
+   {
+    "model": "fil_sug",
+    "view": "fc_purchase_gachas",
+    "oracle": {
+     "sql_table_name": "`@{gcp_project_name}.{% parameter platform_selector.param_platform %}.games_detailed`",
+     "derived_sql": null,
+     "fields": [
+      "category",
+      "id",
+      "name",
+      "partition",
+      "user_id"
+     ]
+    },
+    "new": {
+     "sql_table_name": "`@{gcp_project_name}.{% parameter platform_selector.param_platform %}.games_detailed`",
+     "derived_sql": null,
+     "fields": [
+      "category",
+      "id",
+      "name"
+     ]
+    }
+   }
+  ],
+  "regressions": [],
+  "model_resolve_s_max": 0.001
+ }
+]

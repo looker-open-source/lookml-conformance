@@ -50,6 +50,7 @@ omit = ["*/lookml_conformance/adapters/datahub.py", "*/lookml_conformance/adapte
 [tool.ruff]
 line-length = 110
 target-version = "py310"
+extend-exclude = ["study"]
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "UP", "B", "SIM", "RUF", "PT", "RET", "C4"]

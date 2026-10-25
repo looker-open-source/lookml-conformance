@@ -1,0 +1,26 @@
+[
+ {
+  "repo": "ludovicapierdom24_stellantis_welding_poc",
+  "models": 1,
+  "checked": 10,
+  "table_match_new": 10,
+  "table_match_old": 10,
+  "fields_match_new": 10,
+  "fields_match_old": 4,
+  "phantom_views_old": [
+   "+plc_logs",
+   "+spot_sheet_details",
+   "+summary_weldlog",
+   "+v_madi_kpi_dominant_3l48",
+   "+weld_training_features_3l48",
+   "+weld_training_madi_shap_3l48",
+   "+weld_training_scores_madi_3l48"
+  ],
+  "phantom_views_new": [],
+  "parse_s_old": 0.26,
+  "parse_s_new": 0.28,
+  "mismatches_new": [],
+  "regressions": [],
+  "model_resolve_s_max": 0.003
+ }
+]

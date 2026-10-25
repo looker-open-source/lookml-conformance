@@ -1,0 +1,557 @@
+[
+ {
+  "repo": "mozilla_looker-spoke-temporary-default",
+  "models": 3,
+  "checked": 30,
+  "table_match_new": 18,
+  "table_match_old": 18,
+  "fields_match_new": 16,
+  "fields_match_old": 16,
+  "phantom_views_old": [],
+  "phantom_views_new": [],
+  "parse_s_old": 123.82,
+  "parse_s_new": 127.29,
+  "mismatches_new": [
+   {
+    "model": "firefox-desktop",
+    "view": "client_counts",
+    "oracle": {
+     "sql_table_name": null,
+     "derived_sql": null,
+     "fields": []
+    },
+    "new": {
+     "sql_table_name": null,
+     "derived_sql": null,
+     "fields": [
+      "client_count",
+      "have_completed_period",
+      "since_first_seen"
+     ]
+    }
+   },
+   {
+    "model": "firefox-desktop",
+    "view": "events",
+    "oracle": {
+     "sql_table_name": null,
+     "derived_sql": null,
+     "fields": []
+    },
+    "new": {
+     "sql_table_name": null,
+     "derived_sql": null,
+     "fields": [
+      "completed_event_1",
+      "completed_event_2",
+      "completed_event_3",
+      "completed_event_4",
+      "count_sessions_event1",
+      "count_sessions_event2",
+      "count_sessions_event3",
+      "count_sessions_event4",
+      "fraction_sessions_event1",
+      "fraction_sessions_event2",
+      "fraction_sessions_event3",
+      "fraction_sessions_event4",
+      "total_user_days"
+     ]
+    }
+   },
+   {
+    "model": "firefox_ios",
+    "view": "growth",
+    "oracle": {
+     "sql_table_name": "`mozdata.firefox_ios.baseline_clients_last_seen`",
+     "derived_sql": null,
+     "fields": [
+      "active_hours_sum",
+      "active_last_week",
+      "active_this_week",
+      "android_sdk_version",
+      "app_build",
+      "app_channel",
+      "app_display_version",
+      "architecture",
+      "attribution__campaign",
+      "attribution__content",
+      "attribution__medium",
+      "attribution__source",
+      "attribution__term",
+      "attribution_dlsource",
+      "attribution_dltoken",
+      "attribution_experiment",
+      "attribution_msclkid",
+      "attribution_ua",
+      "attribution_variation",
+      "browser_engagement_active_ticks",
+      "browser_engagement_uri_count",
+      "city",
+      "client_id",
+      "clients",
+      "country",
+      "days_active_bits",
+      "days_created_profile_bits",
+      "days_seen_bits",
+      "days_seen_session_end_bits",
+      "days_seen_session_start_bits",
+      "days_since_active",
+      "days_since_created_profile",
+      "days_since_seen",
+      "days_since_seen_session_end",
+      "days_since_seen_session_start",
+      "days_since_visited_1_uri",
+      "days_visited_1_uri_bits",
+      "device_manufacturer",
+      "device_model",
+      "distribution__name",
+      "distribution_id",
+      "distribution_partner_id",
+      "distribution_version",
+      "distributor",
+      "distributor_channel",
+      "durations",
+      "established_user_retention_rate",
+      "established_users_churned",
+      "established_users_churned_count",
+      "established_users_returning",
+      "experiments",
+      "first_run",
+      "first_seen",
+      "fraction_of_active_established_returning",
+      "fraction_of_active_new",
+      "fraction_of_active_new_returning",
+      "fraction_of_active_resurrected",
+      "geo_subdivision",
+      "install_source",
+      "is_default_browser",
+      "is_new_profile",
+      "isp",
+      "last_updated_date",
+      "legacy_telemetry_client_id",
+      "locale",
+      "new_last_week",
+      "new_this_week",
+      "new_user_retention_rate",
+      "new_users",
+      "new_users_churned",
+      "new_users_churned_count",
+      "new_users_returning",
+      "normalized_app_id",
+      "normalized_channel",
+      "normalized_os",
+      "normalized_os_version",
+      "overall_active_current",
+      "overall_active_previous",
+      "overall_churn_rate",
+      "overall_churned",
+      "overall_resurrected",
+      "overall_retention_rate",
+      "policies_is_enterprise",
+      "profile_group_id",
+      "quick_ratio",
+      "sample_id",
+      "startup_profile_selection_reason_first",
+      "submission",
+      "telemetry_sdk_build",
+      "windows_build_number"
+     ]
+    },
+    "new": {
+     "sql_table_name": null,
+     "derived_sql": null,
+     "fields": [
+      "active_last_week",
+      "active_this_week",
+      "days_since_seen",
+      "days_since_seen_session_end",
+      "days_since_seen_session_start",
+      "established_user_retention_rate",
+      "established_users_churned",
+      "established_users_churned_count",
+      "established_users_returning",
+      "first_run",
+      "fraction_of_active_established_returning",
+      "fraction_of_active_new",
+      "fraction_of_active_new_returning",
+      "fraction_of_active_resurrected",
+      "last_updated_date",
+      "new_last_week",
+      "new_this_week",
+      "new_user_retention_rate",
+      "new_users",
+      "new_users_churned",
+      "new_users_churned_count",
+      "new_users_returning",
+      "overall_active_current",
+      "overall_active_previous",
+      "overall_churn_rate",
+      "overall_churned",
+      "overall_resurrected",
+      "overall_retention_rate",
+      "quick_ratio"
+     ]
+    }
+   },
+   {
+    "model": "firefox_ios",
+    "view": "usage",
+    "oracle": {
+     "sql_table_name": "`mozdata.firefox_ios.baseline_clients_last_seen`",
+     "derived_sql": null,
+     "fields": [
+      "active_hours_sum",
+      "active_in_last_5_days",
+      "active_last_7_days",
+      "active_last_week_and_two_weeks_ago",
+      "active_this_day",
+      "active_today",
+      "active_today_and_yesterday",
+      "active_two_weeks_ago",
+      "active_yesterday",
+      "android_sdk_version",
+      "app_build",
+      "app_channel",
+      "app_display_version",
+      "architecture",
+      "attribution__campaign",
+      "attribution__content",
+      "attribution__medium",
+      "attribution__source",
+      "attribution__term",
+      "attribution_dlsource",
+      "attribution_dltoken",
+      "attribution_experiment",
+      "attribution_msclkid",
+      "attribution_ua",
+      "attribution_variation",
+      "average_intensity",
+      "browser_engagement_active_ticks",
+      "browser_engagement_uri_count",
+      "city",
+      "client_id",
+      "clients",
+      "country",
+      "days_active_bits",
+      "days_created_profile_bits",
+      "days_seen_bits",
+      "days_seen_session_end_bits",
+      "days_seen_session_start_bits",
+      "days_since_active",
+      "days_since_created_profile",
+      "days_since_seen",
+      "days_since_seen_session_end",
+      "days_since_seen_session_start",
+      "days_since_visited_1_uri",
+      "days_visited_1_uri_bits",
+      "device_manufacturer",
+      "device_model",
+      "distribution__name",
+      "distribution_id",
+      "distribution_partner_id",
+      "distribution_version",
+      "distributor",
+      "distributor_channel",
+      "dod_retention",
+      "durations",
+      "experiments",
+      "first_run",
+      "first_seen",
+      "geo_subdivision",
+      "install_source",
+      "intensity",
+      "is_default_browser",
+      "is_new_profile",
+      "isp",
+      "legacy_telemetry_client_id",
+      "locale",
+      "normalized_app_id",
+      "normalized_channel",
+      "normalized_os",
+      "normalized_os_version",
+      "policies_is_enterprise",
+      "profile_group_id",
+      "sample_id",
+      "startup_profile_selection_reason_first",
+      "submission",
+      "telemetry_sdk_build",
+      "user_count_active_28_days",
+      "user_count_active_7_days",
+      "user_count_active_this_day",
+      "windows_build_number",
+      "wow_retention"
+     ]
+    },
+    "new": {
+     "sql_table_name": null,
+     "derived_sql": null,
+     "fields": [
+      "active_in_last_5_days",
+      "active_last_7_days",
+      "active_last_week_and_two_weeks_ago",
+      "active_this_day",
+      "active_today",
+      "active_today_and_yesterday",
+      "active_two_weeks_ago",
+      "active_yesterday",
+      "average_intensity",
+      "days_since_seen",
+      "days_since_seen_session_end",
+      "days_since_seen_session_start",
+      "dod_retention",
+      "first_run",
+      "intensity",
+      "user_count_active_28_days",
+      "user_count_active_7_days",
+      "user_count_active_this_day",
+      "wow_retention"
+     ]
+    }
+   },
+   {
+    "model": "user_journey",
+    "view": "cohort",
+    "oracle": {
+     "sql_table_name": "`mozdata.messaging_system.events_daily`",
+     "derived_sql": null,
+     "fields": [
+      "addon_version",
+      "app_version",
+      "city",
+      "client_id",
+      "completed_event_1",
+      "completed_event_2",
+      "completed_event_3",
+      "completed_event_4",
+      "country",
+      "events",
+      "experiments",
+      "locale",
+      "normalized_channel",
+      "os",
+      "sample_id",
+      "subdivision1",
+      "submission_date",
+      "total_user_days"
+     ]
+    },
+    "new": {
+     "sql_table_name": null,
+     "derived_sql": null,
+     "fields": [
+      "completed_event_1",
+      "completed_event_2",
+      "completed_event_3",
+      "completed_event_4",
+      "total_user_days"
+     ]
+    }
+   },
+   {
+    "model": "user_journey",
+    "view": "cohort_event_type_1",
+    "oracle": {
+     "sql_table_name": null,
+     "derived_sql": "SELECT mozfun.event_analysis.aggregate_match_strings( ARRAY_AGG( CONCAT(event_properties_match_string, event_match_string))) AS match_string FROM ( SELECT mozfun.event_analysis.event_index_to_match_string(index) AS event_match_string, ARRAY_TO_STRING(ARRAY_AGG(event_property_match_string ORDER BY event_property_index DESC), '') AS event_properties_match_string, FROM ( SELECT selected_events.index, event_property.index AS event_property_index, COALESCE(event_property_match_string, '.') AS event_property_match_string FROM ( SELECT * FROM mozdata.messaging_system.event_types WHERE {% condition message_id %} event_types.category {% endcondition %} AND {% condition event_type %} event_types.event {% endcondition %} ) AS selected_events LEFT JOIN UNNEST(event_properties) AS event_property LEFT JOIN ( SELECT selected_events.index, event_property.index AS event_property_index, mozfun.event_analysis.aggregate_match_strings(ARRAY_AGG(mozfun.event_analysis.escape_metachars(event_property_value.value))) AS event_property_match_string FROM ( SELECT * FROM mozdata.messaging_system.event_types WHERE {% condition message_id %} event_types.category {% endcondition %} AND {% condition event_type %} event_types.event {% endcondition %} ) AS selected_events LEFT JOIN UNNEST(event_properties) AS event_property LEFT JOIN UNNEST(value) AS event_property_value WHERE ( event_property.key = \"page\" AND REGEXP_CONTAINS(\"\"\"{% condition page %} __key__ {% endcondition %}\"\"\", r\"__key__\") AND {% condition page %} event_property_value.key {% endcondition %} ) OR ( event_property.key = \"source\" AND REGEXP_CONTAINS(\"\"\"{% condition source %} __key__ {% endcondition %}\"\"\", r\"__key__\") AND {% condition source %} event_property_value.key {% endcondition %} ) OR ( event_property.key = \"domState\" AND REGEXP_CONTAINS(\"\"\"{% condition domState %} __key__ {% endcondition %}\"\"\", r\"__key__\") AND {% condition domState %} event_property_value.key {% endcondition %} ) OR ( event_property.key = \"reason\" AND REGEXP_CONTAINS(\"\"\"{% condition reason %} __key__ {% endcondition %}\"\"\", r\"__key__\") AND {% condition reason %} event_property_value.key {% endcondition %} ) OR ( event_property.key = \"display\" AND REGEXP_CONTAINS(\"\"\"{% condition display %} __key__ {% endcondition %}\"\"\", r\"__key__\") AND {% condition display %} event_property_value.key {% endcondition %} ) GROUP BY selected_events.index, event_property.index ) AS selected_event_properties ON selected_event_properties.index = selected_events.index AND selected_event_properties.event_property_index = event_property.index ) AS all_event_properties GROUP BY index )",
+     "fields": [
+      "average_days_of_use",
+      "match_string",
+      "total_days_of_use"
+     ]
+    },
+    "new": {
+     "sql_table_name": null,
+     "derived_sql": null,
+     "fields": [
+      "average_days_of_use",
+      "total_days_of_use"
+     ]
+    }
+   },
+   {
+    "model": "user_journey",
+    "view": "cohort_event_type_2",
+    "oracle": {
+     "sql_table_name": null,
+     "derived_sql": "SELECT mozfun.event_analysis.aggregate_match_strings( ARRAY_AGG( CONCAT(event_properties_match_string, event_match_string))) AS match_string FROM ( SELECT mozfun.event_analysis.event_index_to_match_string(index) AS event_match_string, ARRAY_TO_STRING(ARRAY_AGG(event_property_match_string ORDER BY event_property_index DESC), '') AS event_properties_match_string, FROM ( SELECT selected_events.index, event_property.index AS event_property_index, COALESCE(event_property_match_string, '.') AS event_property_match_string FROM ( SELECT * FROM mozdata.messaging_system.event_types WHERE {% condition message_id %} event_types.category {% endcondition %} AND {% condition event_type %} event_types.event {% endcondition %} ) AS selected_events LEFT JOIN UNNEST(event_properties) AS event_property LEFT JOIN ( SELECT selected_events.index, event_property.index AS event_property_index, mozfun.event_analysis.aggregate_match_strings(ARRAY_AGG(mozfun.event_analysis.escape_metachars(event_property_value.value))) AS event_property_match_string FROM ( SELECT * FROM mozdata.messaging_system.event_types WHERE {% condition message_id %} event_types.category {% endcondition %} AND {% condition event_type %} event_types.event {% endcondition %} ) AS selected_events LEFT JOIN UNNEST(event_properties) AS event_property LEFT JOIN UNNEST(value) AS event_property_value WHERE ( event_property.key = \"page\" AND REGEXP_CONTAINS(\"\"\"{% condition page %} __key__ {% endcondition %}\"\"\", r\"__key__\") AND {% condition page %} event_property_value.key {% endcondition %} ) OR ( event_property.key = \"source\" AND REGEXP_CONTAINS(\"\"\"{% condition source %} __key__ {% endcondition %}\"\"\", r\"__key__\") AND {% condition source %} event_property_value.key {% endcondition %} ) OR ( event_property.key = \"domState\" AND REGEXP_CONTAINS(\"\"\"{% condition domState %} __key__ {% endcondition %}\"\"\", r\"__key__\") AND {% condition domState %} event_property_value.key {% endcondition %} ) OR ( event_property.key = \"reason\" AND REGEXP_CONTAINS(\"\"\"{% condition reason %} __key__ {% endcondition %}\"\"\", r\"__key__\") AND {% condition reason %} event_property_value.key {% endcondition %} ) OR ( event_property.key = \"display\" AND REGEXP_CONTAINS(\"\"\"{% condition display %} __key__ {% endcondition %}\"\"\", r\"__key__\") AND {% condition display %} event_property_value.key {% endcondition %} ) GROUP BY selected_events.index, event_property.index ) AS selected_event_properties ON selected_event_properties.index = selected_events.index AND selected_event_properties.event_property_index = event_property.index ) AS all_event_properties GROUP BY index )",
+     "fields": [
+      "average_days_of_use",
+      "match_string",
+      "total_days_of_use"
+     ]
+    },
+    "new": {
+     "sql_table_name": null,
+     "derived_sql": null,
+     "fields": [
+      "average_days_of_use",
+      "total_days_of_use"
+     ]
+    }
+   },
+   {
+    "model": "user_journey",
+    "view": "cohort_event_type_3",
+    "oracle": {
+     "sql_table_name": null,
+     "derived_sql": "SELECT mozfun.event_analysis.aggregate_match_strings( ARRAY_AGG( CONCAT(event_properties_match_string, event_match_string))) AS match_string FROM ( SELECT mozfun.event_analysis.event_index_to_match_string(index) AS event_match_string, ARRAY_TO_STRING(ARRAY_AGG(event_property_match_string ORDER BY event_property_index DESC), '') AS event_properties_match_string, FROM ( SELECT selected_events.index, event_property.index AS event_property_index, COALESCE(event_property_match_string, '.') AS event_property_match_string FROM ( SELECT * FROM mozdata.messaging_system.event_types WHERE {% condition message_id %} event_types.category {% endcondition %} AND {% condition event_type %} event_types.event {% endcondition %} ) AS selected_events LEFT JOIN UNNEST(event_properties) AS event_property LEFT JOIN ( SELECT selected_events.index, event_property.index AS event_property_index, mozfun.event_analysis.aggregate_match_strings(ARRAY_AGG(mozfun.event_analysis.escape_metachars(event_property_value.value))) AS event_property_match_string FROM ( SELECT * FROM mozdata.messaging_system.event_types WHERE {% condition message_id %} event_types.category {% endcondition %} AND {% condition event_type %} event_types.event {% endcondition %} ) AS selected_events LEFT JOIN UNNEST(event_properties) AS event_property LEFT JOIN UNNEST(value) AS event_property_value WHERE ( event_property.key = \"page\" AND REGEXP_CONTAINS(\"\"\"{% condition page %} __key__ {% endcondition %}\"\"\", r\"__key__\") AND {% condition page %} event_property_value.key {% endcondition %} ) OR ( event_property.key = \"source\" AND REGEXP_CONTAINS(\"\"\"{% condition source %} __key__ {% endcondition %}\"\"\", r\"__key__\") AND {% condition source %} event_property_value.key {% endcondition %} ) OR ( event_property.key = \"domState\" AND REGEXP_CONTAINS(\"\"\"{% condition domState %} __key__ {% endcondition %}\"\"\", r\"__key__\") AND {% condition domState %} event_property_value.key {% endcondition %} ) OR ( event_property.key = \"reason\" AND REGEXP_CONTAINS(\"\"\"{% condition reason %} __key__ {% endcondition %}\"\"\", r\"__key__\") AND {% condition reason %} event_property_value.key {% endcondition %} ) OR ( event_property.key = \"display\" AND REGEXP_CONTAINS(\"\"\"{% condition display %} __key__ {% endcondition %}\"\"\", r\"__key__\") AND {% condition display %} event_property_value.key {% endcondition %} ) GROUP BY selected_events.index, event_property.index ) AS selected_event_properties ON selected_event_properties.index = selected_events.index AND selected_event_properties.event_property_index = event_property.index ) AS all_event_properties GROUP BY index )",
+     "fields": [
+      "average_days_of_use",
+      "match_string",
+      "total_days_of_use"
+     ]
+    },
+    "new": {
+     "sql_table_name": null,
+     "derived_sql": null,
+     "fields": [
+      "average_days_of_use",
+      "total_days_of_use"
+     ]
+    }
+   },
+   {
+    "model": "user_journey",
+    "view": "cohort_event_type_4",
+    "oracle": {
+     "sql_table_name": null,
+     "derived_sql": "SELECT mozfun.event_analysis.aggregate_match_strings( ARRAY_AGG( CONCAT(event_properties_match_string, event_match_string))) AS match_string FROM ( SELECT mozfun.event_analysis.event_index_to_match_string(index) AS event_match_string, ARRAY_TO_STRING(ARRAY_AGG(event_property_match_string ORDER BY event_property_index DESC), '') AS event_properties_match_string, FROM ( SELECT selected_events.index, event_property.index AS event_property_index, COALESCE(event_property_match_string, '.') AS event_property_match_string FROM ( SELECT * FROM mozdata.messaging_system.event_types WHERE {% condition message_id %} event_types.category {% endcondition %} AND {% condition event_type %} event_types.event {% endcondition %} ) AS selected_events LEFT JOIN UNNEST(event_properties) AS event_property LEFT JOIN ( SELECT selected_events.index, event_property.index AS event_property_index, mozfun.event_analysis.aggregate_match_strings(ARRAY_AGG(mozfun.event_analysis.escape_metachars(event_property_value.value))) AS event_property_match_string FROM ( SELECT * FROM mozdata.messaging_system.event_types WHERE {% condition message_id %} event_types.category {% endcondition %} AND {% condition event_type %} event_types.event {% endcondition %} ) AS selected_events LEFT JOIN UNNEST(event_properties) AS event_property LEFT JOIN UNNEST(value) AS event_property_value WHERE ( event_property.key = \"page\" AND REGEXP_CONTAINS(\"\"\"{% condition page %} __key__ {% endcondition %}\"\"\", r\"__key__\") AND {% condition page %} event_property_value.key {% endcondition %} ) OR ( event_property.key = \"source\" AND REGEXP_CONTAINS(\"\"\"{% condition source %} __key__ {% endcondition %}\"\"\", r\"__key__\") AND {% condition source %} event_property_value.key {% endcondition %} ) OR ( event_property.key = \"domState\" AND REGEXP_CONTAINS(\"\"\"{% condition domState %} __key__ {% endcondition %}\"\"\", r\"__key__\") AND {% condition domState %} event_property_value.key {% endcondition %} ) OR ( event_property.key = \"reason\" AND REGEXP_CONTAINS(\"\"\"{% condition reason %} __key__ {% endcondition %}\"\"\", r\"__key__\") AND {% condition reason %} event_property_value.key {% endcondition %} ) OR ( event_property.key = \"display\" AND REGEXP_CONTAINS(\"\"\"{% condition display %} __key__ {% endcondition %}\"\"\", r\"__key__\") AND {% condition display %} event_property_value.key {% endcondition %} ) GROUP BY selected_events.index, event_property.index ) AS selected_event_properties ON selected_event_properties.index = selected_events.index AND selected_event_properties.event_property_index = event_property.index ) AS all_event_properties GROUP BY index )",
+     "fields": [
+      "average_days_of_use",
+      "match_string",
+      "total_days_of_use"
+     ]
+    },
+    "new": {
+     "sql_table_name": null,
+     "derived_sql": null,
+     "fields": [
+      "average_days_of_use",
+      "total_days_of_use"
+     ]
+    }
+   },
+   {
+    "model": "user_journey",
+    "view": "event_type_1",
+    "oracle": {
+     "sql_table_name": null,
+     "derived_sql": "SELECT mozfun.event_analysis.aggregate_match_strings( ARRAY_AGG( CONCAT(event_properties_match_string, event_match_string))) AS match_string FROM ( SELECT mozfun.event_analysis.event_index_to_match_string(index) AS event_match_string, ARRAY_TO_STRING(ARRAY_AGG(event_property_match_string ORDER BY event_property_index DESC), '') AS event_properties_match_string, FROM ( SELECT selected_events.index, event_property.index AS event_property_index, COALESCE(event_property_match_string, '.') AS event_property_match_string FROM ( SELECT * FROM mozdata.messaging_system.event_types WHERE {% condition message_id %} event_types.category {% endcondition %} AND {% condition event_type %} event_types.event {% endcondition %} ) AS selected_events LEFT JOIN UNNEST(event_properties) AS event_property LEFT JOIN ( SELECT selected_events.index, event_property.index AS event_property_index, mozfun.event_analysis.aggregate_match_strings(ARRAY_AGG(mozfun.event_analysis.escape_metachars(event_property_value.value))) AS event_property_match_string FROM ( SELECT * FROM mozdata.messaging_system.event_types WHERE {% condition message_id %} event_types.category {% endcondition %} AND {% condition event_type %} event_types.event {% endcondition %} ) AS selected_events LEFT JOIN UNNEST(event_properties) AS event_property LEFT JOIN UNNEST(value) AS event_property_value WHERE ( event_property.key = \"page\" AND REGEXP_CONTAINS(\"\"\"{% condition page %} __key__ {% endcondition %}\"\"\", r\"__key__\") AND {% condition page %} event_property_value.key {% endcondition %} ) OR ( event_property.key = \"source\" AND REGEXP_CONTAINS(\"\"\"{% condition source %} __key__ {% endcondition %}\"\"\", r\"__key__\") AND {% condition source %} event_property_value.key {% endcondition %} ) OR ( event_property.key = \"domState\" AND REGEXP_CONTAINS(\"\"\"{% condition domState %} __key__ {% endcondition %}\"\"\", r\"__key__\") AND {% condition domState %} event_property_value.key {% endcondition %} ) OR ( event_property.key = \"reason\" AND REGEXP_CONTAINS(\"\"\"{% condition reason %} __key__ {% endcondition %}\"\"\", r\"__key__\") AND {% condition reason %} event_property_value.key {% endcondition %} ) OR ( event_property.key = \"display\" AND REGEXP_CONTAINS(\"\"\"{% condition display %} __key__ {% endcondition %}\"\"\", r\"__key__\") AND {% condition display %} event_property_value.key {% endcondition %} ) GROUP BY selected_events.index, event_property.index ) AS selected_event_properties ON selected_event_properties.index = selected_events.index AND selected_event_properties.event_property_index = event_property.index ) AS all_event_properties GROUP BY index )",
+     "fields": [
+      "match_string"
+     ]
+    },
+    "new": {
+     "sql_table_name": null,
+     "derived_sql": null,
+     "fields": []
+    }
+   },
+   {
+    "model": "user_journey",
+    "view": "event_type_2",
+    "oracle": {
+     "sql_table_name": null,
+     "derived_sql": "SELECT mozfun.event_analysis.aggregate_match_strings( ARRAY_AGG( CONCAT(event_properties_match_string, event_match_string))) AS match_string FROM ( SELECT mozfun.event_analysis.event_index_to_match_string(index) AS event_match_string, ARRAY_TO_STRING(ARRAY_AGG(event_property_match_string ORDER BY event_property_index DESC), '') AS event_properties_match_string, FROM ( SELECT selected_events.index, event_property.index AS event_property_index, COALESCE(event_property_match_string, '.') AS event_property_match_string FROM ( SELECT * FROM mozdata.messaging_system.event_types WHERE {% condition message_id %} event_types.category {% endcondition %} AND {% condition event_type %} event_types.event {% endcondition %} ) AS selected_events LEFT JOIN UNNEST(event_properties) AS event_property LEFT JOIN ( SELECT selected_events.index, event_property.index AS event_property_index, mozfun.event_analysis.aggregate_match_strings(ARRAY_AGG(mozfun.event_analysis.escape_metachars(event_property_value.value))) AS event_property_match_string FROM ( SELECT * FROM mozdata.messaging_system.event_types WHERE {% condition message_id %} event_types.category {% endcondition %} AND {% condition event_type %} event_types.event {% endcondition %} ) AS selected_events LEFT JOIN UNNEST(event_properties) AS event_property LEFT JOIN UNNEST(value) AS event_property_value WHERE ( event_property.key = \"page\" AND REGEXP_CONTAINS(\"\"\"{% condition page %} __key__ {% endcondition %}\"\"\", r\"__key__\") AND {% condition page %} event_property_value.key {% endcondition %} ) OR ( event_property.key = \"source\" AND REGEXP_CONTAINS(\"\"\"{% condition source %} __key__ {% endcondition %}\"\"\", r\"__key__\") AND {% condition source %} event_property_value.key {% endcondition %} ) OR ( event_property.key = \"domState\" AND REGEXP_CONTAINS(\"\"\"{% condition domState %} __key__ {% endcondition %}\"\"\", r\"__key__\") AND {% condition domState %} event_property_value.key {% endcondition %} ) OR ( event_property.key = \"reason\" AND REGEXP_CONTAINS(\"\"\"{% condition reason %} __key__ {% endcondition %}\"\"\", r\"__key__\") AND {% condition reason %} event_property_value.key {% endcondition %} ) OR ( event_property.key = \"display\" AND REGEXP_CONTAINS(\"\"\"{% condition display %} __key__ {% endcondition %}\"\"\", r\"__key__\") AND {% condition display %} event_property_value.key {% endcondition %} ) GROUP BY selected_events.index, event_property.index ) AS selected_event_properties ON selected_event_properties.index = selected_events.index AND selected_event_properties.event_property_index = event_property.index ) AS all_event_properties GROUP BY index )",
+     "fields": [
+      "match_string"
+     ]
+    },
+    "new": {
+     "sql_table_name": null,
+     "derived_sql": null,
+     "fields": []
+    }
+   },
+   {
+    "model": "user_journey",
+    "view": "event_type_3",
+    "oracle": {
+     "sql_table_name": null,
+     "derived_sql": "SELECT mozfun.event_analysis.aggregate_match_strings( ARRAY_AGG( CONCAT(event_properties_match_string, event_match_string))) AS match_string FROM ( SELECT mozfun.event_analysis.event_index_to_match_string(index) AS event_match_string, ARRAY_TO_STRING(ARRAY_AGG(event_property_match_string ORDER BY event_property_index DESC), '') AS event_properties_match_string, FROM ( SELECT selected_events.index, event_property.index AS event_property_index, COALESCE(event_property_match_string, '.') AS event_property_match_string FROM ( SELECT * FROM mozdata.messaging_system.event_types WHERE {% condition message_id %} event_types.category {% endcondition %} AND {% condition event_type %} event_types.event {% endcondition %} ) AS selected_events LEFT JOIN UNNEST(event_properties) AS event_property LEFT JOIN ( SELECT selected_events.index, event_property.index AS event_property_index, mozfun.event_analysis.aggregate_match_strings(ARRAY_AGG(mozfun.event_analysis.escape_metachars(event_property_value.value))) AS event_property_match_string FROM ( SELECT * FROM mozdata.messaging_system.event_types WHERE {% condition message_id %} event_types.category {% endcondition %} AND {% condition event_type %} event_types.event {% endcondition %} ) AS selected_events LEFT JOIN UNNEST(event_properties) AS event_property LEFT JOIN UNNEST(value) AS event_property_value WHERE ( event_property.key = \"page\" AND REGEXP_CONTAINS(\"\"\"{% condition page %} __key__ {% endcondition %}\"\"\", r\"__key__\") AND {% condition page %} event_property_value.key {% endcondition %} ) OR ( event_property.key = \"source\" AND REGEXP_CONTAINS(\"\"\"{% condition source %} __key__ {% endcondition %}\"\"\", r\"__key__\") AND {% condition source %} event_property_value.key {% endcondition %} ) OR ( event_property.key = \"domState\" AND REGEXP_CONTAINS(\"\"\"{% condition domState %} __key__ {% endcondition %}\"\"\", r\"__key__\") AND {% condition domState %} event_property_value.key {% endcondition %} ) OR ( event_property.key = \"reason\" AND REGEXP_CONTAINS(\"\"\"{% condition reason %} __key__ {% endcondition %}\"\"\", r\"__key__\") AND {% condition reason %} event_property_value.key {% endcondition %} ) OR ( event_property.key = \"display\" AND REGEXP_CONTAINS(\"\"\"{% condition display %} __key__ {% endcondition %}\"\"\", r\"__key__\") AND {% condition display %} event_property_value.key {% endcondition %} ) GROUP BY selected_events.index, event_property.index ) AS selected_event_properties ON selected_event_properties.index = selected_events.index AND selected_event_properties.event_property_index = event_property.index ) AS all_event_properties GROUP BY index )",
+     "fields": [
+      "match_string"
+     ]
+    },
+    "new": {
+     "sql_table_name": null,
+     "derived_sql": null,
+     "fields": []
+    }
+   },
+   {
+    "model": "user_journey",
+    "view": "event_type_4",
+    "oracle": {
+     "sql_table_name": null,
+     "derived_sql": "SELECT mozfun.event_analysis.aggregate_match_strings( ARRAY_AGG( CONCAT(event_properties_match_string, event_match_string))) AS match_string FROM ( SELECT mozfun.event_analysis.event_index_to_match_string(index) AS event_match_string, ARRAY_TO_STRING(ARRAY_AGG(event_property_match_string ORDER BY event_property_index DESC), '') AS event_properties_match_string, FROM ( SELECT selected_events.index, event_property.index AS event_property_index, COALESCE(event_property_match_string, '.') AS event_property_match_string FROM ( SELECT * FROM mozdata.messaging_system.event_types WHERE {% condition message_id %} event_types.category {% endcondition %} AND {% condition event_type %} event_types.event {% endcondition %} ) AS selected_events LEFT JOIN UNNEST(event_properties) AS event_property LEFT JOIN ( SELECT selected_events.index, event_property.index AS event_property_index, mozfun.event_analysis.aggregate_match_strings(ARRAY_AGG(mozfun.event_analysis.escape_metachars(event_property_value.value))) AS event_property_match_string FROM ( SELECT * FROM mozdata.messaging_system.event_types WHERE {% condition message_id %} event_types.category {% endcondition %} AND {% condition event_type %} event_types.event {% endcondition %} ) AS selected_events LEFT JOIN UNNEST(event_properties) AS event_property LEFT JOIN UNNEST(value) AS event_property_value WHERE ( event_property.key = \"page\" AND REGEXP_CONTAINS(\"\"\"{% condition page %} __key__ {% endcondition %}\"\"\", r\"__key__\") AND {% condition page %} event_property_value.key {% endcondition %} ) OR ( event_property.key = \"source\" AND REGEXP_CONTAINS(\"\"\"{% condition source %} __key__ {% endcondition %}\"\"\", r\"__key__\") AND {% condition source %} event_property_value.key {% endcondition %} ) OR ( event_property.key = \"domState\" AND REGEXP_CONTAINS(\"\"\"{% condition domState %} __key__ {% endcondition %}\"\"\", r\"__key__\") AND {% condition domState %} event_property_value.key {% endcondition %} ) OR ( event_property.key = \"reason\" AND REGEXP_CONTAINS(\"\"\"{% condition reason %} __key__ {% endcondition %}\"\"\", r\"__key__\") AND {% condition reason %} event_property_value.key {% endcondition %} ) OR ( event_property.key = \"display\" AND REGEXP_CONTAINS(\"\"\"{% condition display %} __key__ {% endcondition %}\"\"\", r\"__key__\") AND {% condition display %} event_property_value.key {% endcondition %} ) GROUP BY selected_events.index, event_property.index ) AS selected_event_properties ON selected_event_properties.index = selected_events.index AND selected_event_properties.event_property_index = event_property.index ) AS all_event_properties GROUP BY index )",
+     "fields": [
+      "match_string"
+     ]
+    },
+    "new": {
+     "sql_table_name": null,
+     "derived_sql": null,
+     "fields": []
+    }
+   },
+   {
+    "model": "user_journey",
+    "view": "funnel_analysis",
+    "oracle": {
+     "sql_table_name": "`mozdata.messaging_system.events_daily`",
+     "derived_sql": null,
+     "fields": [
+      "addon_version",
+      "app_version",
+      "city",
+      "client_id",
+      "completed_event_1",
+      "completed_event_2",
+      "completed_event_3",
+      "completed_event_4",
+      "count_user_days_event1",
+      "count_user_days_event2",
+      "count_user_days_event3",
+      "count_user_days_event4",
+      "country",
+      "events",
+      "experiments",
+      "fraction_user_days_event1",
+      "fraction_user_days_event2",
+      "fraction_user_days_event3",
+      "fraction_user_days_event4",
+      "locale",
+      "normalized_channel",
+      "os",
+      "sample_id",
+      "subdivision1",
+      "submission_date",
+      "total_user_days"
+     ]
+    },
+    "new": {
+     "sql_table_name": null,
+     "derived_sql": null,
+     "fields": [
+      "completed_event_1",
+      "completed_event_2",
+      "completed_event_3",
+      "completed_event_4",
+      "count_user_days_event1",
+      "count_user_days_event2",
+      "count_user_days_event3",
+      "count_user_days_event4",
+      "fraction_user_days_event1",
+      "fraction_user_days_event2",
+      "fraction_user_days_event3",
+      "fraction_user_days_event4",
+      "total_user_days"
+     ]
+    }
+   }
+  ],
+  "regressions": [],
+  "model_resolve_s_max": 0.026
+ }
+]

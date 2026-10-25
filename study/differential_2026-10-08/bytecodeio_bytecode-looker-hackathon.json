@@ -1,0 +1,18 @@
+[
+ {
+  "repo": "bytecodeio_bytecode-looker-hackathon",
+  "models": 5,
+  "checked": 153,
+  "table_match_new": 153,
+  "table_match_old": 153,
+  "fields_match_new": 153,
+  "fields_match_old": 153,
+  "phantom_views_old": [],
+  "phantom_views_new": [],
+  "parse_s_old": 0.97,
+  "parse_s_new": 1.14,
+  "mismatches_new": [],
+  "regressions": [],
+  "model_resolve_s_max": 0.004
+ }
+]

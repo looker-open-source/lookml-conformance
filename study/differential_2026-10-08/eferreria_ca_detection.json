@@ -1,0 +1,49 @@
+[
+ {
+  "repo": "eferreria_ca_detection",
+  "models": 3,
+  "checked": 57,
+  "table_match_new": 57,
+  "table_match_old": 56,
+  "fields_match_new": 56,
+  "fields_match_old": 52,
+  "phantom_views_old": [
+   "+gcp_billing_export",
+   "+project_avg_monthly_spend",
+   "+project_create_model_net_cost",
+   "+project_detect_anomalies_net_cost",
+   "+project_explain_forecast_net_cost",
+   "+recommendations_export"
+  ],
+  "phantom_views_new": [],
+  "parse_s_old": 0.38,
+  "parse_s_new": 0.42,
+  "mismatches_new": [
+   {
+    "model": "cost_anomaly_detection",
+    "view": "project_forecast_data_net_cost",
+    "oracle": {
+     "sql_table_name": null,
+     "derived_sql": "WITH avg_monthly_spend_by_project AS ( SELECT * FROM ${project_avg_monthly_spend.SQL_TABLE_NAME} ) SELECT (DATE(gcp_billing_export.usage_start_date)) AS usage_start_date, COALESCE(gcp_billing_export.project_id, \"Null Project ID\") AS project_id, gcp_billing_export.project_name AS project_name, SUM(gcp_billing_export.total_net_cost) AS total_net_cost FROM ${project_daily_spend.SQL_TABLE_NAME} AS gcp_billing_export -- Filter out records with less than $1,000 average monthly spend & have at least 3 months history INNER JOIN avg_monthly_spend_by_project ON COALESCE(gcp_billing_export.project_id, \"Null Project ID\") = avg_monthly_spend_by_project.project_id GROUP BY 1, 2, 3",
+     "fields": [
+      "pk",
+      "project_id",
+      "project_name",
+      "row_count",
+      "total_cost",
+      "total_net_cost",
+      "usage",
+      "usage_start_date"
+     ]
+    },
+    "new": {
+     "sql_table_name": null,
+     "derived_sql": "WITH avg_monthly_spend_by_project AS ( SELECT * FROM ${project_avg_monthly_spend.SQL_TABLE_NAME} ) SELECT (DATE(gcp_billing_export.usage_start_date)) AS usage_start_date, COALESCE(gcp_billing_export.project_id, \"Null Project ID\") AS project_id, gcp_billing_export.project_name AS project_name, SUM(gcp_billing_export.total_net_cost) AS total_net_cost FROM ${project_daily_spend.SQL_TABLE_NAME} AS gcp_billing_export -- Filter out records with less than $1,000 average monthly spend & have at least 3 months history INNER JOIN avg_monthly_spend_by_project ON COALESCE(gcp_billing_export.project_id, \"Null Project ID\") = avg_monthly_spend_by_project.project_id GROUP BY 1, 2, 3",
+     "fields": []
+    }
+   }
+  ],
+  "regressions": [],
+  "model_resolve_s_max": 0.002
+ }
+]

@@ -230,6 +230,7 @@ src/lookml_conformance/      loader, judge, runner, file order layouts, scorecar
 src/lookml_conformance/adapters/   one adapter per tool, plus kit.py with helpers for writing them
 adapters.json                tools in the published scorecard: command and pinned version
 results/latest.{json,md}     published scorecard
+study/                       corpus study (1,996 -> 1,782 -> 156 -> 18 repos), funnel scripts, and differential harness
 site/                        website (GitHub Pages)
 docs/                        case format, adapter protocol and schema, adapter walkthrough
 tests/                       unit tests; tests/adapters/ also re-runs installed tools (pytest -m integration)

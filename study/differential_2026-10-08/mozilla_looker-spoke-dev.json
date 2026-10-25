@@ -1,0 +1,21 @@
+[
+ {
+  "repo": "mozilla_looker-spoke-dev",
+  "models": 3,
+  "checked": 4,
+  "table_match_new": 4,
+  "table_match_old": 4,
+  "fields_match_new": 4,
+  "fields_match_old": 2,
+  "phantom_views_old": [
+   "+active_users_aggregates",
+   "+countries"
+  ],
+  "phantom_views_new": [],
+  "parse_s_old": 125.39,
+  "parse_s_new": 129.15,
+  "mismatches_new": [],
+  "regressions": [],
+  "model_resolve_s_max": 0.018
+ }
+]

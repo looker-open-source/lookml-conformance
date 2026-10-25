@@ -1,0 +1,222 @@
+[
+ {
+  "repo": "4mile_looker_bqml-staging",
+  "models": 1,
+  "checked": 16,
+  "table_match_new": 16,
+  "table_match_old": 16,
+  "fields_match_new": 9,
+  "fields_match_old": 9,
+  "phantom_views_old": [],
+  "phantom_views_new": [],
+  "parse_s_old": 0.09,
+  "parse_s_new": 0.1,
+  "mismatches_new": [
+   {
+    "model": "bqml_accelerator",
+    "view": "arima_evaluate",
+    "oracle": {
+     "sql_table_name": "ML.ARIMA_EVALUATE(MODEL @{BQML_MODEL_DATASET_NAME}.{% parameter arima.model_name %} , STRUCT(FALSE AS show_all_candidate_models))",
+     "derived_sql": null,
+     "fields": [
+      "accuracy",
+      "aic",
+      "error_message",
+      "explained_variance",
+      "f1_score",
+      "has_drift",
+      "has_holiday_effect",
+      "has_spikes_and_dips",
+      "has_step_changes",
+      "log_likelihood",
+      "log_loss",
+      "mean_absolute_error",
+      "mean_squared_error",
+      "mean_squared_log_error",
+      "median_absolute_error",
+      "non_seasonal_d",
+      "non_seasonal_p",
+      "non_seasonal_q",
+      "precision",
+      "r2_score",
+      "recall",
+      "roc_auc",
+      "seasonal_periods",
+      "variance"
+     ]
+    },
+    "new": {
+     "sql_table_name": "ML.ARIMA_EVALUATE(MODEL @{BQML_MODEL_DATASET_NAME}.{% parameter arima.model_name %} , STRUCT(FALSE AS show_all_candidate_models))",
+     "derived_sql": null,
+     "fields": []
+    }
+   },
+   {
+    "model": "bqml_accelerator",
+    "view": "arima_feature_info",
+    "oracle": {
+     "sql_table_name": "ML.FEATURE_INFO(MODEL @{BQML_MODEL_DATASET_NAME}.{% parameter arima.model_name %})",
+     "derived_sql": null,
+     "fields": [
+      "category_count",
+      "input",
+      "max",
+      "mean",
+      "median",
+      "min",
+      "null_count",
+      "stddev"
+     ]
+    },
+    "new": {
+     "sql_table_name": "ML.FEATURE_INFO(MODEL @{BQML_MODEL_DATASET_NAME}.{% parameter arima.model_name %})",
+     "derived_sql": null,
+     "fields": []
+    }
+   },
+   {
+    "model": "bqml_accelerator",
+    "view": "arima_forecast",
+    "oracle": {
+     "sql_table_name": null,
+     "derived_sql": "with -- get model forecast: forecast_values as ( select forecast_timestamp , forecast_value , standard_error , confidence_level , prediction_interval_lower_bound , prediction_interval_upper_bound from ML.FORECAST(MODEL @{BQML_MODEL_DATASET_NAME}.{% parameter arima.model_name %} , STRUCT({% parameter arima.set_horizon %} AS horizon , {% parameter arima.set_confidence_level %} AS confidence_level) ) ), -- generate date series -- uses input_data for min_date and forecast_values for max date date_series as ( select date from unnest(GENERATE_DATE_ARRAY( (select min({% parameter arima.time_series_timestamp_col %}) min_date from @{BQML_MODEL_DATASET_NAME}.{% parameter arima.input_table_name %}), (select max(date(forecast_timestamp)) max_date from forecast_values), INTERVAL 1 DAY)) date ) select d.date , i.{% parameter arima.time_series_data_col %} as time_series_data_col , i.{% parameter arima.time_series_timestamp_col %} as time_series_timestamp_col , f.* from date_series d left join @{BQML_MODEL_DATASET_NAME}.{% parameter arima.input_table_name %} i on i.{% parameter arima.time_series_timestamp_col %} = d.date left join forecast_values f on date(f.forecast_timestamp) = d.date",
+     "fields": [
+      "confidence_level",
+      "date",
+      "forecast",
+      "forecast_count",
+      "forecast_value",
+      "forecasted_time_series_data_col",
+      "pk",
+      "prediction_interval_lower_bound",
+      "prediction_interval_upper_bound",
+      "standard_error",
+      "time_series_data_col",
+      "total_forecast",
+      "total_prediction_interval_lower_bound",
+      "total_prediction_interval_upper_bound",
+      "total_time_series_data_col"
+     ]
+    },
+    "new": {
+     "sql_table_name": null,
+     "derived_sql": "with -- get model forecast: forecast_values as ( select forecast_timestamp , forecast_value , standard_error , confidence_level , prediction_interval_lower_bound , prediction_interval_upper_bound from ML.FORECAST(MODEL @{BQML_MODEL_DATASET_NAME}.{% parameter arima.model_name %} , STRUCT({% parameter arima.set_horizon %} AS horizon , {% parameter arima.set_confidence_level %} AS confidence_level) ) ), -- generate date series -- uses input_data for min_date and forecast_values for max date date_series as ( select date from unnest(GENERATE_DATE_ARRAY( (select min({% parameter arima.time_series_timestamp_col %}) min_date from @{BQML_MODEL_DATASET_NAME}.{% parameter arima.input_table_name %}), (select max(date(forecast_timestamp)) max_date from forecast_values), INTERVAL 1 DAY)) date ) select d.date , i.{% parameter arima.time_series_data_col %} as time_series_data_col , i.{% parameter arima.time_series_timestamp_col %} as time_series_timestamp_col , f.* from date_series d left join @{BQML_MODEL_DATASET_NAME}.{% parameter arima.input_table_name %} i on i.{% parameter arima.time_series_timestamp_col %} = d.date left join forecast_values f on date(f.forecast_timestamp) = d.date",
+     "fields": [
+      "confidence_level",
+      "date",
+      "forecasted_time_series_data_col",
+      "pk",
+      "prediction_interval_lower_bound",
+      "prediction_interval_upper_bound",
+      "standard_error",
+      "time_series_data_col",
+      "total_forecast",
+      "total_prediction_interval_lower_bound",
+      "total_prediction_interval_upper_bound",
+      "total_time_series_data_col"
+     ]
+    }
+   },
+   {
+    "model": "bqml_accelerator",
+    "view": "arima_training_info",
+    "oracle": {
+     "sql_table_name": "ML.TRAINING_INFO(MODEL @{BQML_MODEL_DATASET_NAME}.{% parameter arima.model_name %})",
+     "derived_sql": null,
+     "fields": [
+      "duration_ms",
+      "iteration",
+      "training_run"
+     ]
+    },
+    "new": {
+     "sql_table_name": "ML.TRAINING_INFO(MODEL @{BQML_MODEL_DATASET_NAME}.{% parameter arima.model_name %})",
+     "derived_sql": null,
+     "fields": []
+    }
+   },
+   {
+    "model": "bqml_accelerator",
+    "view": "boosted_tree_evaluate",
+    "oracle": {
+     "sql_table_name": "ML.EVALUATE(MODEL @{BQML_MODEL_DATASET_NAME}.{% parameter boosted_tree.model_name %})",
+     "derived_sql": null,
+     "fields": [
+      "accuracy",
+      "aic",
+      "error_message",
+      "explained_variance",
+      "f1_score",
+      "has_drift",
+      "has_holiday_effect",
+      "has_spikes_and_dips",
+      "has_step_changes",
+      "log_likelihood",
+      "log_loss",
+      "mean_absolute_error",
+      "mean_squared_error",
+      "mean_squared_log_error",
+      "median_absolute_error",
+      "non_seasonal_d",
+      "non_seasonal_p",
+      "non_seasonal_q",
+      "precision",
+      "r2_score",
+      "recall",
+      "roc_auc",
+      "seasonal_periods",
+      "variance"
+     ]
+    },
+    "new": {
+     "sql_table_name": "ML.EVALUATE(MODEL @{BQML_MODEL_DATASET_NAME}.{% parameter boosted_tree.model_name %})",
+     "derived_sql": null,
+     "fields": []
+    }
+   },
+   {
+    "model": "bqml_accelerator",
+    "view": "boosted_tree_feature_info",
+    "oracle": {
+     "sql_table_name": "ML.FEATURE_INFO(MODEL @{BQML_MODEL_DATASET_NAME}.{% parameter boosted_tree.model_name %})",
+     "derived_sql": null,
+     "fields": [
+      "category_count",
+      "input",
+      "max",
+      "mean",
+      "median",
+      "min",
+      "null_count",
+      "stddev"
+     ]
+    },
+    "new": {
+     "sql_table_name": "ML.FEATURE_INFO(MODEL @{BQML_MODEL_DATASET_NAME}.{% parameter boosted_tree.model_name %})",
+     "derived_sql": null,
+     "fields": []
+    }
+   },
+   {
+    "model": "bqml_accelerator",
+    "view": "boosted_tree_training_info",
+    "oracle": {
+     "sql_table_name": "ML.TRAINING_INFO(MODEL @{BQML_MODEL_DATASET_NAME}.{% parameter boosted_tree.model_name %})",
+     "derived_sql": null,
+     "fields": [
+      "duration_ms",
+      "iteration",
+      "training_run"
+     ]
+    },
+    "new": {
+     "sql_table_name": "ML.TRAINING_INFO(MODEL @{BQML_MODEL_DATASET_NAME}.{% parameter boosted_tree.model_name %})",
+     "derived_sql": null,
+     "fields": []
+    }
+   }
+  ],
+  "regressions": [],
+  "model_resolve_s_max": 0.001
+ }
+]

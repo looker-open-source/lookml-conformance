@@ -1,0 +1,138 @@
+[
+ {
+  "repo": "joon-solutions_Felix-the-field-agent",
+  "models": 1,
+  "checked": 18,
+  "table_match_new": 16,
+  "table_match_old": 16,
+  "fields_match_new": 17,
+  "fields_match_old": 15,
+  "phantom_views_old": [
+   "+history",
+   "+query_metrics"
+  ],
+  "phantom_views_new": [],
+  "parse_s_old": 0.16,
+  "parse_s_new": 0.18,
+  "mismatches_new": [
+   {
+    "model": "felix_the_field_agent",
+    "view": "field_usage",
+    "oracle": {
+     "sql_table_name": "@{GCP_PROJECT}.@{DATASET}.history",
+     "derived_sql": "select * from @{GCP_PROJECT}.@{DATASET}.history where completed_time >= coalesce({% date_start query_completed_date %}, cast('1970-01-01' as timestamp format 'YYYY-MM-DD')) and completed_time <= coalesce({% date_end query_completed_date %}, current_timestamp()) {% if field_usage.filter_issuer_source._is_filtered %} and issuer_source in ({{ _filters['field_usage.filter_issuer_source'] | split:\",\" | sql_quote | join:\",\" }}) {% endif %} {% if field_usage.filter_source._is_filtered %} and source in ({{ _filters['field_usage.filter_source'] | split:\",\" | sql_quote | join:\",\" }}) {% endif %} {% if field_usage.filter_status._is_filtered %} and status in ({{ _filters['field_usage.filter_status'] | split:\",\" | sql_quote | join:\",\" }}) {% endif %}",
+     "fields": [
+      "apply_formatting",
+      "apply_vis",
+      "approximate_usage_in_minutes",
+      "average_runtime",
+      "cache",
+      "cache_key",
+      "cache_only",
+      "cache_result_query_count",
+      "completed",
+      "connection_id",
+      "connection_name",
+      "count",
+      "created",
+      "dashboard_id",
+      "dashboard_id_as_number",
+      "dashboard_run_count",
+      "dashboard_session",
+      "dashboard_user",
+      "database_result_query_count",
+      "dialect",
+      "explore_user",
+      "first_query_date",
+      "force_production",
+      "generate_links",
+      "id",
+      "initiated_by_ui_user",
+      "is_single_query",
+      "is_user_dashboard",
+      "issuer_source",
+      "look_id",
+      "look_run_count",
+      "max_runtime",
+      "message",
+      "min_runtime",
+      "most_recent_length",
+      "most_recent_query_date",
+      "most_recent_run_at",
+      "node_id",
+      "queries_under_10s",
+      "query_id",
+      "query_run_count",
+      "query_source",
+      "raw_source",
+      "real_dash_id",
+      "rebuild_pdts",
+      "render_key",
+      "result_format",
+      "result_maker_id",
+      "result_source",
+      "runtime",
+      "runtime_tiers",
+      "runtime_tiers_1",
+      "runtime_tiers_5",
+      "runtime_under_10s",
+      "server_table_calcs",
+      "slug",
+      "source",
+      "sql_query_id",
+      "status",
+      "title",
+      "total_runtime",
+      "user_id",
+      "workspace_id"
+     ]
+    },
+    "new": {
+     "sql_table_name": null,
+     "derived_sql": "select * from @{GCP_PROJECT}.@{DATASET}.history where completed_time >= coalesce({% date_start query_completed_date %}, cast('1970-01-01' as timestamp format 'YYYY-MM-DD')) and completed_time <= coalesce({% date_end query_completed_date %}, current_timestamp()) {% if field_usage.filter_issuer_source._is_filtered %} and issuer_source in ({{ _filters['field_usage.filter_issuer_source'] | split:\",\" | sql_quote | join:\",\" }}) {% endif %} {% if field_usage.filter_source._is_filtered %} and source in ({{ _filters['field_usage.filter_source'] | split:\",\" | sql_quote | join:\",\" }}) {% endif %} {% if field_usage.filter_status._is_filtered %} and status in ({{ _filters['field_usage.filter_status'] | split:\",\" | sql_quote | join:\",\" }}) {% endif %}",
+     "fields": [
+      "cache_result_query_count",
+      "count",
+      "database_result_query_count",
+      "first_query_date",
+      "most_recent_query_date",
+      "queries_under_10s",
+      "query_run_count"
+     ]
+    }
+   },
+   {
+    "model": "felix_the_field_agent",
+    "view": "parsed_query",
+    "oracle": {
+     "sql_table_name": null,
+     "derived_sql": "CREATE TEMPORARY FUNCTION extract_keys(infoo STRING) RETURNS Array<String> LANGUAGE js AS \"\"\" blah = [];, function processKey(node, parent) { if (parent !== '') {parent += '.'};, Object.keys(node).forEach(function(key) { value = node[key].toString();, if (value !== '[object Object]') { blah.push(parent+key) } else { processKey(node[key], parent + key);, };, });, };, try { x = JSON.parse(infoo);, processKey(x,'');, return blah;, } catch (e) { return null } \"\"\" OPTIONS ();, CREATE TEMPORARY FUNCTION extract_keys(infoo JSON) RETURNS ARRAY<STRING> LANGUAGE js AS \"\"\" var blah = [];, function processKey(node, parent) { if (parent !== '') { parent += '.';, } Object.keys(node).forEach(function(key) { var value = node[key].toString();, if (value !== '[object Object]') { blah.push(parent + key);, } else { processKey(node[key], parent + key);, } });, } try { processKey(infoo, '');, return blah;, } catch (e) { return null;, } \"\"\" OPTIONS ();, with source as ( select id as query_id, model, view as explore, json_extract_array(fields) as fields, extract_keys(filters) as filters, safe.parse_json(dynamic_fields) as dynamic_fields from @{GCP_PROJECT}.@{DATASET}.query ), pjson_fields as ( select query_id, model, explore, REGEXP_REPLACE((REGEXP_EXTRACT(parsed_fields, r'^.*\\.')), '[.\"]', '') as view, REGEXP_REPLACE(REGEXP_EXTRACT(parsed_fields, r'\\..*'), '[.\"]', '') as field, \"fields\" as field_type from source, unnest(fields) as parsed_fields ), pjson_filters_fields as ( select query_id, model, explore, REGEXP_REPLACE((REGEXP_EXTRACT(parsed_filters, r'^.*\\.')), '[.\"]', '') as view, REGEXP_REPLACE(REGEXP_EXTRACT(parsed_filters, r'\\..*'), '[.\"]', '') as field, \"filters\" as field_type from source, unnest(filters) as parsed_filters ), flatten_dynamic_fields as ( select query_id, model, explore, --common fields json_value(df_json.category) as category, json_value(df_json._kind_hint) as kind_hint, -- table calculation & dimension json_value(df_json.expression) as expression, -- table calculation & measure json_value(df_json.based_on) as based_on, -- dimension JSON_VALUE_ARRAY(df_json.args)[0] as args, -- measure JSON_EXTRACT(df_json, '$.filters') as filters from source, unnest(json_query_array(dynamic_fields)) as df_json where dynamic_fields is not null ), extr as ( select query_id, model, explore, case when coalesce(category, kind_hint) = 'table_calculation' then 'table calculation' when coalesce(category, kind_hint) = 'measure' then 'custom measure' when coalesce(category, kind_hint) = 'dimension' then 'custom dimension' else null end as field_type, regexp_extract_all(expression, r'\\$\\{[a-zA-Z0-9_]*\\.[a-zA-Z0-9_]*\\}') as inputs_expression, regexp_extract_all(based_on, r'[a-zA-Z0-9_]*\\.[a-zA-Z0-9_]*') as inputs_based_on, regexp_extract_all(args, r'[a-zA-Z0-9_]*\\.[a-zA-Z0-9_]*') as inputs_args, extract_keys(filters) as inputs_filters from flatten_dynamic_fields ), expression_unnest as ( select query_id, model, explore, replace(replace(replace(split(unnest_fields, '.')[0], '$', ''), '}', ''), '{', '') as view, replace(replace(replace(split(unnest_fields, '.')[1], '$', ''), '}', ''), '{', '') as field, field_type from extr, unnest(inputs_expression) as unnest_fields ), basedon_unnest as ( select query_id, model, explore, split(unnest_fields, '.')[0] as view, split(unnest_fields, '.')[1] as field, field_type from extr, unnest(inputs_based_on) as unnest_fields ), args_unnest as ( select query_id, model, explore, split(unnest_fields, '.')[0] as view, split(unnest_fields, '.')[1] as field, field_type from extr, unnest(inputs_args) as unnest_fields ), filters_unnest as ( select query_id, model, explore, split(unnest_fields, '.')[0] as view, split(unnest_fields, '.')[1] as field, \"custom filters\" as field_type from extr, unnest(inputs_filters) as unnest_fields where unnest_fields like '%.%' ), final as ( select * from pjson_fields where field is not null union distinct select * from pjson_filters_fields where field is not null union distinct select * from expression_unnest union distinct select * from basedon_unnest union distinct select * from args_unnest union distinct select * from filters_unnest ) select *, generate_uuid() AS id from final",
+     "fields": [
+      "explore",
+      "field",
+      "field_type_in_query",
+      "id",
+      "model",
+      "query_id",
+      "view"
+     ]
+    },
+    "new": {
+     "sql_table_name": null,
+     "derived_sql": "CREATE TEMPORARY FUNCTION extract_keys(infoo STRING) RETURNS Array<String> LANGUAGE js AS \"\"\" blah = []; function processKey(node, parent) { if (parent !== '') {parent += '.'}; Object.keys(node).forEach(function(key) { value = node[key].toString(); if (value !== '[object Object]') { blah.push(parent+key) } else { processKey(node[key], parent + key); }; }); }; try { x = JSON.parse(infoo); processKey(x,''); return blah; } catch (e) { return null } \"\"\" OPTIONS (); CREATE TEMPORARY FUNCTION extract_keys(infoo JSON) RETURNS ARRAY<STRING> LANGUAGE js AS \"\"\" var blah = []; function processKey(node, parent) { if (parent !== '') { parent += '.'; } Object.keys(node).forEach(function(key) { var value = node[key].toString(); if (value !== '[object Object]') { blah.push(parent + key); } else { processKey(node[key], parent + key); } }); } try { processKey(infoo, ''); return blah; } catch (e) { return null; } \"\"\" OPTIONS (); with source as ( select id as query_id, model, view as explore, json_extract_array(fields) as fields, extract_keys(filters) as filters, safe.parse_json(dynamic_fields) as dynamic_fields from @{GCP_PROJECT}.@{DATASET}.query ), pjson_fields as ( select query_id, model, explore, REGEXP_REPLACE((REGEXP_EXTRACT(parsed_fields, r'^.*\\.')), '[.\"]', '') as view, REGEXP_REPLACE(REGEXP_EXTRACT(parsed_fields, r'\\..*'), '[.\"]', '') as field, \"fields\" as field_type from source, unnest(fields) as parsed_fields ), pjson_filters_fields as ( select query_id, model, explore, REGEXP_REPLACE((REGEXP_EXTRACT(parsed_filters, r'^.*\\.')), '[.\"]', '') as view, REGEXP_REPLACE(REGEXP_EXTRACT(parsed_filters, r'\\..*'), '[.\"]', '') as field, \"filters\" as field_type from source, unnest(filters) as parsed_filters ), flatten_dynamic_fields as ( select query_id, model, explore, --common fields json_value(df_json.category) as category, json_value(df_json._kind_hint) as kind_hint, -- table calculation & dimension json_value(df_json.expression) as expression, -- table calculation & measure json_value(df_json.based_on) as based_on, -- dimension JSON_VALUE_ARRAY(df_json.args)[0] as args, -- measure JSON_EXTRACT(df_json, '$.filters') as filters from source, unnest(json_query_array(dynamic_fields)) as df_json where dynamic_fields is not null ), extr as ( select query_id, model, explore, case when coalesce(category, kind_hint) = 'table_calculation' then 'table calculation' when coalesce(category, kind_hint) = 'measure' then 'custom measure' when coalesce(category, kind_hint) = 'dimension' then 'custom dimension' else null end as field_type, regexp_extract_all(expression, r'\\$\\{[a-zA-Z0-9_]*\\.[a-zA-Z0-9_]*\\}') as inputs_expression, regexp_extract_all(based_on, r'[a-zA-Z0-9_]*\\.[a-zA-Z0-9_]*') as inputs_based_on, regexp_extract_all(args, r'[a-zA-Z0-9_]*\\.[a-zA-Z0-9_]*') as inputs_args, extract_keys(filters) as inputs_filters from flatten_dynamic_fields ), expression_unnest as ( select query_id, model, explore, replace(replace(replace(split(unnest_fields, '.')[0], '$', ''), '}', ''), '{', '') as view, replace(replace(replace(split(unnest_fields, '.')[1], '$', ''), '}', ''), '{', '') as field, field_type from extr, unnest(inputs_expression) as unnest_fields ), basedon_unnest as ( select query_id, model, explore, split(unnest_fields, '.')[0] as view, split(unnest_fields, '.')[1] as field, field_type from extr, unnest(inputs_based_on) as unnest_fields ), args_unnest as ( select query_id, model, explore, split(unnest_fields, '.')[0] as view, split(unnest_fields, '.')[1] as field, field_type from extr, unnest(inputs_args) as unnest_fields ), filters_unnest as ( select query_id, model, explore, split(unnest_fields, '.')[0] as view, split(unnest_fields, '.')[1] as field, \"custom filters\" as field_type from extr, unnest(inputs_filters) as unnest_fields where unnest_fields like '%.%' ), final as ( select * from pjson_fields where field is not null union distinct select * from pjson_filters_fields where field is not null union distinct select * from expression_unnest union distinct select * from basedon_unnest union distinct select * from args_unnest union distinct select * from filters_unnest ) select *, generate_uuid() AS id from final",
+     "fields": [
+      "explore",
+      "field",
+      "field_type_in_query",
+      "id",
+      "model",
+      "query_id",
+      "view"
+     ]
+    }
+   }
+  ],
+  "regressions": [],
+  "model_resolve_s_max": 0.002
+ }
+]

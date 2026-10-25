@@ -1,0 +1,18 @@
+[
+ {
+  "repo": "mattermost_mattermost-looker",
+  "models": 7,
+  "checked": 241,
+  "table_match_new": 241,
+  "table_match_old": 239,
+  "fields_match_new": 241,
+  "fields_match_old": 239,
+  "phantom_views_old": [],
+  "phantom_views_new": [],
+  "parse_s_old": 6.91,
+  "parse_s_new": 7.4,
+  "mismatches_new": [],
+  "regressions": [],
+  "model_resolve_s_max": 0.012
+ }
+]
