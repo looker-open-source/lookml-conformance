@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/josephaxisa/lookml-conformance/blob/main/docs/adapter-output.schema.json",
+  "$id": "https://github.com/looker-open-source/lookml-conformance/blob/main/docs/adapter-output.schema.json",
   "title": "lookml-conformance adapter output",
   "description": "One JSON line an adapter prints per project. See docs/adapter-protocol.md.",
   "type": "object",

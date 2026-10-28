@@ -1,7 +1,7 @@
 # lookml-conformance
 
-[![CI](https://github.com/josephaxisa/lookml-conformance/actions/workflows/ci.yml/badge.svg)](https://github.com/josephaxisa/lookml-conformance/actions/workflows/ci.yml)
-[![Citations](https://github.com/josephaxisa/lookml-conformance/actions/workflows/citations.yml/badge.svg)](https://github.com/josephaxisa/lookml-conformance/actions/workflows/citations.yml)
+[![CI](https://github.com/looker-open-source/lookml-conformance/actions/workflows/ci.yml/badge.svg)](https://github.com/looker-open-source/lookml-conformance/actions/workflows/ci.yml)
+[![Citations](https://github.com/looker-open-source/lookml-conformance/actions/workflows/citations.yml/badge.svg)](https://github.com/looker-open-source/lookml-conformance/actions/workflows/citations.yml)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue)](pyproject.toml)
 
 A conformance suite for tools that resolve LookML projects: metadata catalogs, orchestrators,
@@ -13,7 +13,9 @@ model, applying refinements in include order, merging `extends`, and substitutin
 constants. Every tool that builds lineage from LookML implements this resolution itself, and then
 traces each view to the tables it reads. This suite checks both against the Looker documentation.
 
-Results and case explorer: https://josephaxisa.github.io/lookml-conformance/
+Created and maintained by [Joseph Axisa](https://github.com/josephaxisa). To cite the suite, see [CITATION.cff](CITATION.cff).
+
+Results and case explorer: https://looker-open-source.github.io/lookml-conformance/
 
 ## Results
 
@@ -63,6 +65,31 @@ Each adapter runs its tool the way a user runs it and reports what that run prod
   differently on another machine.
 - node-lookml-parser finds the files with its own glob (`**/*.lkml`, without LookML dashboards) and
   sorts their paths, so its results do not depend on the file system.
+
+## Prior work
+
+[`lkml`](https://github.com/joshtemple/lkml) parses individual `.lkml` files. Before this suite, there was no shared reference for the next step, resolving a whole project. Each tool listed below implements include order, refinements, `extends` and constants on its own, and tests that logic only against its own fixtures. Looker's documentation describes the behavior in prose but ships no executable cases. This suite turns those rules into cases a tool can run.
+
+## Fixes made upstream
+
+Defects found with the suite and fixed in the tools themselves:
+
+| Project | Change | Cases | Status |
+| --- | --- | --- | --- |
+| node-lookml-parser | [#43](https://github.com/fabio-looker/node-lookml-parser/pull/43): a single `;` inside a `;;` block | p01 | Merged 2026-10-12, released in 9.1.1 |
+| node-lookml-parser | [#46](https://github.com/fabio-looker/node-lookml-parser/pull/46): field `filters` stay additive under refinement | r09 | Merged, released in 9.3.1 |
+| node-lookml-parser | [#47](https://github.com/fabio-looker/node-lookml-parser/pull/47): project wildcards do not reach imported projects | i05 | Merged, released in 9.3.1 |
+| node-lookml-parser | [#49](https://github.com/fabio-looker/node-lookml-parser/pull/49): `extends` stays additive, root `$name` kept across refinements | extends | Merged 2026-10-27, released in 9.3.1 |
+| node-lookml-parser | [#48](https://github.com/fabio-looker/node-lookml-parser/pull/48) | p03 | Open |
+| OpenMetadata | [#35773](https://github.com/open-metadata/OpenMetadata/pull/35773) (fixes [#35684](https://github.com/open-metadata/OpenMetadata/issues/35684)): refinements no longer create phantom `+view` models | refinements | Merged 2026-10-26 |
+| DataHub | [#20583](https://github.com/datahub-project/datahub/pull/20583) (for [#20582](https://github.com/datahub-project/datahub/issues/20582)): refinement and include resolution | refinements, includes | In review |
+| Dagster | [#34354](https://github.com/dagster-io/dagster/pull/34354): derived tables keep the tables their SQL reads | l03 | In review |
+
+## Used by
+
+Projects that run these cases in their own tests (see [Using the cases in your own tests](#using-the-cases-in-your-own-tests)). To be listed, open an issue with a link to where your tests use them.
+
+_None listed yet._
 
 ## Cases
 
@@ -116,7 +143,7 @@ in which the file system happened to list the files ([file order](docs/case-form
 Requires Python 3.10 or later. The runner has no dependencies.
 
 ```bash
-git clone https://github.com/josephaxisa/lookml-conformance
+git clone https://github.com/looker-open-source/lookml-conformance
 cd lookml-conformance
 pip install -e .
 ```
@@ -167,7 +194,7 @@ put a short note at the top of the copy:
 
 ```text
 From lookml-conformance <release>, case <id>
-https://github.com/josephaxisa/lookml-conformance/tree/<release>/cases/<category>/<id>
+https://github.com/looker-open-source/lookml-conformance/tree/<release>/cases/<category>/<id>
 ```
 
 Then write one test that resolves each copied `project/` with your tool and checks the result
@@ -244,3 +271,10 @@ uv run pytest                    # unit tests
 uv run pytest -m integration     # re-run installed tools against results/latest.json
 uv run ruff check . && uv run ruff format --check . && uv run mypy
 ```
+
+## License and disclaimer
+
+Licensed under the [Apache 2.0 License](LICENSE).
+
+This is not an officially supported Google product. This project is not eligible for the
+[Google Open Source Software Vulnerability Rewards Program](https://bughunters.google.com/open-source-security).
