@@ -337,10 +337,10 @@
       },
       "explores": {}
      },
-     "sandbox": {
+     "scratch": {
       "views": {
        "orders": {
-        "sql_table_name": "sandbox.orders_test",
+        "sql_table_name": "scratch.orders_test",
         "fields": [
          "id"
         ]
@@ -359,8 +359,8 @@
      "content": "connection: \"wh\"\ninclude: \"/views/orders.view.lkml\"\ninclude: \"/views/refine.view.lkml\"\nexplore: orders {}\n"
     },
     {
-     "path": "sandbox.model.lkml",
-     "content": "connection: \"wh\"\ninclude: \"/views/orders.view.lkml\"\ninclude: \"/views/sandbox_refine.view.lkml\"\nexplore: orders {}\n"
+     "path": "scratch.model.lkml",
+     "content": "connection: \"wh\"\ninclude: \"/views/orders.view.lkml\"\ninclude: \"/views/scratch_refine.view.lkml\"\nexplore: orders {}\n"
     },
     {
      "path": "views/orders.view.lkml",
@@ -371,8 +371,8 @@
      "content": "include: \"/views/orders.view.lkml\"\nview: +orders {\n  sql_table_name: analytics.orders_clean ;;\n}\n"
     },
     {
-     "path": "views/sandbox_refine.view.lkml",
-     "content": "include: \"/views/orders.view.lkml\"\nview: +orders {\n  sql_table_name: sandbox.orders_test ;;\n}\n"
+     "path": "views/scratch_refine.view.lkml",
+     "content": "include: \"/views/orders.view.lkml\"\nview: +orders {\n  sql_table_name: scratch.orders_test ;;\n}\n"
     }
    ],
    "verdicts": {
@@ -384,7 +384,7 @@
      "outcome": "fail",
      "reasons": [
       "main.orders.sql_table_name: expected 'analytics.orders_clean', got 'raw.orders'",
-      "sandbox.orders.sql_table_name: expected 'sandbox.orders_test', got 'raw.orders'",
+      "scratch.orders.sql_table_name: expected 'scratch.orders_test', got 'raw.orders'",
       "views that must not exist were exposed: ['+orders']"
      ]
     },
@@ -392,13 +392,13 @@
      "outcome": "fail",
      "reasons": [
       "main.orders.sql_table_name: expected 'analytics.orders_clean', got 'raw.orders'",
-      "sandbox.orders.sql_table_name: expected 'sandbox.orders_test', got 'raw.orders'"
+      "scratch.orders.sql_table_name: expected 'scratch.orders_test', got 'raw.orders'"
      ]
     },
     "dagster": {
      "outcome": "fail",
      "reasons": [
-      "main.orders.sql_table_name: expected 'analytics.orders_clean', got 'sandbox.orders_test'"
+      "main.orders.sql_table_name: expected 'analytics.orders_clean', got 'scratch.orders_test'"
      ]
     }
    }

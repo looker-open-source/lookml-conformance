@@ -90,7 +90,7 @@
           "outcome": "fail",
           "reasons": [
             "main.orders.sql_table_name: expected 'analytics.orders_clean', got 'raw.orders'",
-            "sandbox.orders.sql_table_name: expected 'sandbox.orders_test', got 'raw.orders'",
+            "scratch.orders.sql_table_name: expected 'scratch.orders_test', got 'raw.orders'",
             "views that must not exist were exposed: ['+orders']"
           ]
         },
@@ -98,13 +98,13 @@
           "outcome": "fail",
           "reasons": [
             "main.orders.sql_table_name: expected 'analytics.orders_clean', got 'raw.orders'",
-            "sandbox.orders.sql_table_name: expected 'sandbox.orders_test', got 'raw.orders'"
+            "scratch.orders.sql_table_name: expected 'scratch.orders_test', got 'raw.orders'"
           ]
         },
         "dagster": {
           "outcome": "fail",
           "reasons": [
-            "main.orders.sql_table_name: expected 'analytics.orders_clean', got 'sandbox.orders_test'"
+            "main.orders.sql_table_name: expected 'analytics.orders_clean', got 'scratch.orders_test'"
           ]
         }
       }

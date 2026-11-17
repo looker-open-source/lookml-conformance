@@ -63,9 +63,9 @@
 - `r02_refinement_in_non_view_file` · **OpenMetadata**: ecommerce.orders.sql_table_name: expected 'analytics.orders_clean', got 'raw.orders'
 - `r02_refinement_in_non_view_file` · **DataHub**: ecommerce.orders.sql_table_name: expected 'analytics.orders_clean', got 'raw.orders'
 - `r02_refinement_in_non_view_file` · **Dagster**: ecommerce.orders.sql_table_name: expected 'analytics.orders_clean', got 'raw.orders'
-- `r03_two_models_refine_one_view_differently` · **OpenMetadata**: main.orders.sql_table_name: expected 'analytics.orders_clean', got 'raw.orders'; sandbox.orders.sql_table_name: expected 'sandbox.orders_test', got 'raw.orders'; views that must not exist were exposed: ['+orders']
-- `r03_two_models_refine_one_view_differently` · **DataHub**: main.orders.sql_table_name: expected 'analytics.orders_clean', got 'raw.orders'; sandbox.orders.sql_table_name: expected 'sandbox.orders_test', got 'raw.orders'
-- `r03_two_models_refine_one_view_differently` · **Dagster**: main.orders.sql_table_name: expected 'analytics.orders_clean', got 'sandbox.orders_test'
+- `r03_two_models_refine_one_view_differently` · **OpenMetadata**: main.orders.sql_table_name: expected 'analytics.orders_clean', got 'raw.orders'; scratch.orders.sql_table_name: expected 'scratch.orders_test', got 'raw.orders'; views that must not exist were exposed: ['+orders']
+- `r03_two_models_refine_one_view_differently` · **DataHub**: main.orders.sql_table_name: expected 'analytics.orders_clean', got 'raw.orders'; scratch.orders.sql_table_name: expected 'scratch.orders_test', got 'raw.orders'
+- `r03_two_models_refine_one_view_differently` · **Dagster**: main.orders.sql_table_name: expected 'analytics.orders_clean', got 'scratch.orders_test'
 - `r04_later_include_wins` · **OpenMetadata**: m.orders.sql_table_name: expected 'from_a', got 'raw.orders'
 - `r04_later_include_wins` · **DataHub**: m.orders.sql_table_name: expected 'from_a', got 'raw.orders'
 - `r04_later_include_wins` · **Dagster**: as written: m.orders.sql_table_name: expected 'from_a', got 'from_b'; a.view.lkml and b.view.lkml exchanged: pass

@@ -163,7 +163,7 @@ derived_table: { sql: SELECT … FROM ${orders.SQL_TABLE_NAME} ;; }</pre>
           <p>Dagster builds each view’s asset dependencies from its resolved table:</p>
           <pre class="snippet">sql_table_name = lookml_view_props.get("sql_table_name") or lookml_view_props["name"]</pre>
           <p class="small"><a href="https://github.com/dagster-io/dagster/blob/1.13.25/python_modules/libraries/dagster-looker/dagster_looker/lkml/dagster_looker_lkml_translator.py#L76-L108">dagster-looker 0.29.25, dagster_looker_lkml_translator.py#L76-L108</a></p>
-          <p>When it applies the wrong refinement, the <code>orders</code> asset depends on <code>sandbox.orders_test</code> instead of <code>analytics.orders_clean</code>.</p>
+          <p>When it applies the wrong refinement, the <code>orders</code> asset depends on <code>scratch.orders_test</code> instead of <code>analytics.orders_clean</code>.</p>
         </div>
         <div>
           <p class="small">AI assistants · not scored here</p>
