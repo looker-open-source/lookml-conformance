@@ -13,7 +13,7 @@
 # limitations under the License.
 
 """
-OM-0 harness: drive OpenMetadata's real LookerSource data-model stage end to end on a LookML
+End-to-end harness: drive OpenMetadata's real LookerSource data-model stage on a LookML
 project directory, mocking only the external boundaries:
   * the Looker API (all_lookml_models / lookml_model_explore) -- explores are derived from the
     model files the way Looker's API would report them (view_name, joins, from:);

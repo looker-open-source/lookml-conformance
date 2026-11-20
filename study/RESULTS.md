@@ -19,7 +19,7 @@ production scale without regressions.
   the correct field list and from 155 phantom data models to none.
 - 10 of the 18 repositories use refinements; the other 8 (`extends`- and import-heavy, no refinements)
   act as regression controls. All 8 are unchanged except two Mattermost views that are now resolved
-  correctly — attributable to per-model include resolution (OM-3), the only patch mechanism that can
+  correctly, attributable to per-model include resolution, the only patch mechanism that can
   fire in a repository without refinements.
 - 132 explore views still differ from the reference after the fix. **None is a refinement defect**
   (§4): 124 are `extends` views (OpenMetadata models `extends` as a view→view lineage edge and does
@@ -55,7 +55,7 @@ production scale without regressions.
    fix, in order — view block declares `extends:` → `extends`; OpenMetadata returned no view →
    `unresolved`; source strings differ → `src_differs` (sub-class `constant_subst` when only a
    `@{…}` differs); otherwise `fields_only` (set difference of field names reported).
-5. **Environment:** personal machine, Python 3.10.2, `openmetadata-ingestion` editable install from the local
+5. **Environment:** macOS (APFS), Python 3.10.2, `openmetadata-ingestion` editable install from the local
    clone, `lkml` 1.3.7, Node 22, `node-lookml-parser` 9.1.0. Wall clock for the 18 runs: 22 min
    (06:30–06:53 UTC); the three Mozilla spokes each parse the full hub twice (~125 s per parse).
 
@@ -94,9 +94,9 @@ Regression controls (no refinements): rows 3, 4, 5, 7, 8, 9, 11, 13.
 
 | Class | n | Repositories | What it is | Before/after |
 |---|--:|---|---|---|
-| `extends` | 124 | Mozilla spoke-default 42, spoke-temporary-default 14, BC Gov 44, Qubit 13, 4 Mile 7, five singles | The explore view `extends:` another view. The reference parser flattens the parent's `sql_table_name`/fields into the child; OpenMetadata deliberately keeps `extends` as a view→view lineage edge and resolves the child's own body only. Same class as `e01`–`e03` in the conformance suite; expected failures for this tool, to be marked `xfail` in OM-4. | identical |
+| `extends` | 124 | Mozilla spoke-default 42, spoke-temporary-default 14, BC Gov 44, Qubit 13, 4 Mile 7, five singles | The explore view `extends:` another view. The reference parser flattens the parent's `sql_table_name`/fields into the child; OpenMetadata deliberately keeps `extends` as a view→view lineage edge and resolves the child's own body only. Same class as `e01`-`e03` in the conformance suite; expected failures for this tool. | identical |
 | duplicate field names | 5 | Ruthmcel/Publictest (`sales` ×4 models, `ar_transaction_status`) | The source view declares the same field name more than once (`filled`, `last_filled`, `reportable_sales`, `returned`, `rx_autofill_enable`, `sold`, `will_call_arrival` in `sales.view.lkml`) — a LookML validation error. The reference keys fields by name within each type, so a repeat within a type collapses to one; OpenMetadata keeps every declaration as a list entry. The *sets* of field names are identical in both directions. | identical |
-| reference `;` quirk | 3 | Mozilla `search.search_funnel_forecasts`, `firefox_accounts.auth_entrypoint_conversion`; Joon `parsed_query` | The `sql:` block contains a lone `;` (inside a SQL comment or a JS UDF). `node-lookml-parser` 9.1.0 returns the block with `;,` in place of `;` (verified on a 6-line fixture, independent of `strings`/`modelAssembly` options). **OpenMetadata's text is the faithful one.** Logged as a reference-parser deviation in the suite's `STATUS.md`; verify against the parser's tokenizer before raising it with its maintainer. | identical |
+| reference `;` quirk | 3 | Mozilla `search.search_funnel_forecasts`, `firefox_accounts.auth_entrypoint_conversion`; Joon `parsed_query` | The `sql:` block contains a lone `;` (inside a SQL comment or a JS UDF). `node-lookml-parser` 9.1.0 returns the block with `;,` in place of `;` (verified on a 6-line fixture, independent of `strings`/`modelAssembly` options). **OpenMetadata's text is the faithful one.** Covered by case `p01_single_semicolon_inside_sql_block` and fixed upstream in `fabio-looker/node-lookml-parser` PR #43. | identical |
 
 Mozilla spoke-default example of the `extends` class: `accounts_backend/views/events_stream_with_extras.view.lkml`
 (`view: events_stream_with_extras { extends: [events_stream_table] … }` over the hub's
@@ -113,8 +113,8 @@ child's 5 own fields and no table, before and after.
   exactly the pattern the fix targets, and it is the largest refinement corpus on public GitHub.
 - **Does not show:** behaviour on private estates (most enterprise LookML is private; see
   `scout/` caveats), DataHub/Dagster/Metaphor behaviour (separate adapters, not yet run on this
-  corpus), or Looker's own ground truth — the reference is `node-lookml-parser`, which the suite's
-  `STATUS.md` records as deviating from the Looker docs on four documented cases. For the
+  corpus), or Looker's own ground truth: the reference is `node-lookml-parser` 9.1.0, which scores
+  27/35 on the conformance suite (see `results/latest.md`). For the
   before/after claim this does not matter (both OpenMetadata variants are compared to the same
   reference and the regression count is 0); for absolute-correctness claims it does.
 - **Not claimed:** nothing about Looker itself, nothing about user impact (no deployment data),
